@@ -11,6 +11,7 @@
     "build:edge": "npm run assets:pdf && wxt build -b edge",
     "zip": "npm run assets:pdf && wxt zip",
     "zip:edge": "npm run assets:pdf && wxt zip -b edge",
+    "package:release": "node scripts/package-release.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "pretest:e2e": "node scripts/prepare-e2e.mjs",

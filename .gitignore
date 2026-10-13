@@ -1,0 +1,13 @@
+node_modules/
+.output/
+.wxt/
+artifacts/
+coverage/
+playwright-report/
+test-results/
+.env
+.env.*
+*.local
+*.log
+Thumbs.db
+!.env.example

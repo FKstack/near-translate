@@ -1,0 +1,35 @@
+:root { font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif; color: #183047; background: #f4f7fb; font-synthesis: none; color-scheme: light; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+button, input, select { font: inherit; }
+button { cursor: pointer; border: 1px solid #d5dfea; border-radius: 9px; padding: 10px 16px; color: #19334d; background: white; transition: background .15s; }
+button:hover { background: #edf3fb; }
+button:disabled { opacity: .55; cursor: default; }
+button.primary { background: #2563eb; border-color: #2563eb; color: white; }
+button.primary:hover { background: #1d4ed8; }
+button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid #a5c8ff; outline-offset: 2px; }
+input[type=text], input[type=password], input[type=url], input[type=number] { border: 1px solid #cdd9e6; border-radius: 8px; padding: 11px 12px; background: white; color: #183047; width: 100%; }
+input[type=checkbox] { accent-color: #2563eb; width: 17px; height: 17px; }
+a { color: #235dcc; }
+.page { max-width: 760px; margin: 48px auto; padding: 0 24px 48px; }
+.brand { display: flex; align-items: center; gap: 12px; }
+.brand-icon { display: grid; place-items: center; border-radius: 13px; width: 44px; height: 44px; color: white; background: #2563eb; font-size: 23px; font-weight: 700; }
+h1 { font-size: 26px; margin: 0 0 6px; }
+h2 { font-size: 17px; margin: 0 0 16px; }
+p { line-height: 1.7; }
+.muted { color: #64788e; font-size: 13px; line-height: 1.7; }
+.panel { margin-top: 24px; padding: 24px; background: white; border: 1px solid #e1e8f0; border-radius: 16px; box-shadow: 0 6px 24px #16344a05; }
+.field { display: grid; gap: 8px; margin-bottom: 20px; }
+.field label { font-size: 14px; font-weight: 600; }
+.check { display: flex; align-items: center; gap: 10px; margin: 16px 0; }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.notice { background: #eef5ff; border: 1px solid #d6e6fb; padding: 12px 14px; border-radius: 9px; font-size: 13px; line-height: 1.65; }
+.error { color: #b42318; background: #fff2f0; border-color: #f2ceca; }
+.success { color: #14724c; }
+.status { margin-top: 16px; font-size: 13px; line-height: 1.65; }
+.popup { width: 340px; padding: 22px; background: #f8faff; }
+.popup h1 { font-size: 20px; }
+.popup .actions { display: grid; margin-top: 18px; }
+.popup .actions button { text-align: left; }
+.popup footer { margin-top: 20px; color: #6c7c90; font-size: 12px; }
+@media (max-width: 640px) { .page { margin-top: 24px; padding: 0 16px 30px; } .panel { padding: 20px; } }

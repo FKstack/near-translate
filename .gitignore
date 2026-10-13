@@ -2,6 +2,7 @@ node_modules/
 .output/
 .wxt/
 artifacts/
+public/pdfjs/
 coverage/
 playwright-report/
 test-results/

@@ -26,5 +26,8 @@ export async function synchronizeContentRegistration(): Promise<void> {
 export async function broadcastPublicSettings(): Promise<void> {
   const settings = await publicSettings();
   const tabs = await browser.tabs.query({});
-  await Promise.allSettled(tabs.filter(tab => tab.id !== undefined).map(tab => browser.tabs.sendMessage(tab.id!, { type: 'settings-changed', settings })));
+  await Promise.allSettled([
+    browser.runtime.sendMessage({ type: 'settings-changed', settings }),
+    ...tabs.filter(tab => tab.id !== undefined).map(tab => browser.tabs.sendMessage(tab.id!, { type: 'settings-changed', settings })),
+  ]);
 }

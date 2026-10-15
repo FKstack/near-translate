@@ -16,6 +16,8 @@
 
 ## 配置 DeepSeek
 
+0.1.1 修复了旧版原生网络调用被误报为网络失败的问题。已经原位更新的用户保留现有安装目录和Key；刷新原网页即可，无需移除扩展或重新填写Key。
+
 点击近译图标 →「翻译设置」。从 https://platform.deepseek.com/api_keys 获取自己的 Key，在密码输入框填写并点击「保存设置」。API 用量由你的 DeepSeek 账户支付。
 
 默认模型为 **deepseek-flash**，默认关闭思考模式。可以按 DeepSeek 官方支持列表修改模型名，默认访问官方 `https://api.deepseek.com/chat/completions`。

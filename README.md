@@ -53,4 +53,4 @@ PDF worker、CMaps、字体与解码器由构建前脚本从同一版本 `pdfjs-
 
 架构与新增 provider 指南见 [架构说明](docs/ARCHITECTURE.md)，验收记录见 [验证说明](docs/VALIDATION.md)，真实翻译质量样例见 [质量验收表](docs/QUALITY_SAMPLES.md)。
 
-Git 开发分支：`feat/selection-translation`，按骨架、网页翻译、PDF、验证与文档阶段提交。Key、依赖、构建产物及浏览器测试配置均不进入 Git。
+Git 初版开发分支为 `feat/selection-translation`；0.1.1 原生网络修复保存在 `fix/native-fetch-binding`。按功能阶段提交，Key、依赖、构建产物及浏览器测试配置均不进入 Git。

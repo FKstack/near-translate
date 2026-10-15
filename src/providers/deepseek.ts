@@ -104,7 +104,7 @@ function finishFailure(reason: string): TranslationFailure {
 export class DeepSeekProvider implements TranslationProvider {
   constructor(
     private readonly configuration: DeepSeekConfiguration,
-    private readonly fetcher: typeof fetch = globalThis.fetch,
+    private readonly fetcher: typeof fetch = globalThis.fetch.bind(globalThis),
   ) {}
 
   async *translate(rawInput: TranslationInput, signal: AbortSignal): AsyncIterable<TranslationEvent> {

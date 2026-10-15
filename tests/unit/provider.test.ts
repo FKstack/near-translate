@@ -39,9 +39,24 @@ async function collect(provider: DeepSeekProvider, input = textInput, signal = n
   return events;
 }
 
-afterEach(() => { vi.useRealTimers(); });
+afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); });
 
 describe('DeepSeek provider', () => {
+  it('calls the default fetch with the global receiver required by browser workers', async () => {
+    const nativeStyleFetch = vi.fn<typeof fetch>(function (this: unknown) {
+      if (this !== globalThis) throw new TypeError('Illegal invocation');
+      return Promise.resolve(response(delta('译文') + delta(null, 'stop') + 'data: [DONE]\n\n'));
+    });
+    vi.stubGlobal('fetch', nativeStyleFetch);
+
+    // Omit the injected transport to exercise the production default.
+    const events = await collect(new DeepSeekProvider({ apiKey: 'test-key' }));
+
+    expect(events.at(-1)).toEqual({ type: 'result', result: { kind: 'text', translation: '译文' } });
+    expect(nativeStyleFetch).toHaveBeenCalledOnce();
+    expect(nativeStyleFetch.mock.contexts[0]).toBe(globalThis);
+  });
+
   it('uses Flash, disabled thinking, the official endpoint, and streams faithful paragraph text', async () => {
     const fetcher = transport(`: keepalive\n\n${delta('结果在 0.05 水平下')}${delta('不显著。\n\n下一段。')}${delta(null, 'stop')}data: [DONE]\n\n`, new Array(90).fill(1));
     const events = await collect(new DeepSeekProvider({ apiKey: 'test-key' }, fetcher));

@@ -19,7 +19,9 @@ async function installFakeApi(background: Worker): Promise<void> {
     };
     const nativeFetch = global.fetch.bind(global);
     global.__nearTest = { requests: [], cancellations: 0, failNext: false };
-    global.fetch = async (input, init) => {
+    global.fetch = async function (this: typeof globalThis, input, init) {
+      // Match the native WorkerGlobalScope receiver contract; arrow mocks hide illegal invocations.
+      if (this !== globalThis) throw new TypeError("Failed to execute 'fetch' on 'WorkerGlobalScope': Illegal invocation");
       const url = input instanceof Request ? input.url : String(input);
       if (!url.startsWith('https://api.deepseek.com/')) return nativeFetch(input, init);
       const request = JSON.parse(String(init?.body));

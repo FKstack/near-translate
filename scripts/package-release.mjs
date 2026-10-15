@@ -74,5 +74,14 @@ for (const browser of ['chrome', 'edge']) {
 await copyFile(path.join(root, 'docs', 'INSTALL.md'), path.join(destination, '安装说明.md'));
 await copyFile(path.join(root, 'docs', 'VALIDATION.md'), path.join(destination, '验证记录.md'));
 await writeFile(path.join(destination, 'SHA256SUMS.txt'), artifacts.map(item => `${item.sha256}  ${item.filename}`).join('\n') + '\n');
-await writeFile(path.join(destination, 'release.json'), JSON.stringify({ version, defaultModel: 'deepseek-flash', unitTests: 90, browserTests: { chrome: 15, edge: 15 }, realApiVerified: false, artifacts }, null, 2) + '\n');
+let realApiVerified = false;
+try {
+  const proof = JSON.parse(await readFile(path.join(output, 'installed-diagnostic.json'), 'utf8'));
+  const sample = proof.states?.find(item => item.phase === 'result' && item.version === version && typeof item.result?.translation === 'string');
+  if (sample) {
+    realApiVerified = true;
+    await writeFile(path.join(destination, 'connection-check.json'), JSON.stringify({ version, sample: 'JavaScript', result: sample.result }, null, 2) + '\n');
+  }
+} catch (error) { if (error?.code !== 'ENOENT') throw error; }
+await writeFile(path.join(destination, 'release.json'), JSON.stringify({ version, defaultModel: 'deepseek-flash', unitTests: 91, browserTests: { chrome: 15, edge: 15 }, realApiVerified, artifacts }, null, 2) + '\n');
 console.log(JSON.stringify({ version, artifacts }, null, 2));

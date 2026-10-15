@@ -32,10 +32,33 @@ async function installFakeApi(background: Worker): Promise<void> {
         return new Response('{}', { status: 503 });
       }
       const word = request.response_format?.type === 'json_object';
+      const entry = envelope.selectedText === 'bank' ? {
+        translation: '银行', partOfSpeech: '名词', explanation: '此处指金融机构。',
+        senses: [
+          { partOfSpeech: '名词', meaning: '银行' },
+          { partOfSpeech: '名词', meaning: '河岸' },
+          { partOfSpeech: '动词', meaning: '把钱存入银行' },
+        ],
+      } : envelope.selectedText === 'record' ? {
+        translation: '记录', partOfSpeech: '动词', explanation: '这里表示把最终结果写下来或保存。',
+        senses: [
+          { partOfSpeech: '名词', meaning: '记录；记载' },
+          { partOfSpeech: '名词', meaning: '唱片' },
+          { partOfSpeech: '名词', meaning: '最高纪录；最佳成绩' },
+          { partOfSpeech: '名词', meaning: '履历；经历' },
+          { partOfSpeech: '动词', meaning: '记录；记载信息' },
+          { partOfSpeech: '动词', meaning: '录制声音或影像' },
+        ],
+      } : envelope.selectedText === 'scheduler' ? {
+        translation: '调度器', partOfSpeech: '名词', explanation: '此处指安排并发任务执行的调度器。',
+        senses: [{ partOfSpeech: '名词', meaning: '调度器' }],
+      } : {
+        translation: '准确性', partOfSpeech: '名词', explanation: '此处采用技术文档中的常见词义。',
+        senses: [{ partOfSpeech: '名词', meaning: '准确性；精确度' }],
+      };
       const translated = word ? JSON.stringify({
-        translation: envelope.selectedText === 'bank' ? '银行' : envelope.selectedText === 'scheduler' ? '调度器' : '准确性',
-        partOfSpeech: '名词',
-        explanation: envelope.selectedText === 'bank' ? '此处指金融机构。' : '此处采用技术文档中的常见词义。',
+        ...entry,
+        explanation: envelope.context ? entry.explanation : '未提供上下文，此为常见参考释义，需结合原句判断。',
       }) : envelope.selectedText.startsWith('Render translated HTML')
         ? '<img src=x onerror="window.translationExecuted=true">译文保持纯文本。'
         : envelope.selectedText.startsWith('Slow selection') ? '旧请求部分译文；旧请求最终译文。'
@@ -162,10 +185,24 @@ test('double-click word translates with context, copy and close', async ({}, tes
   await expect(page.locator('.nt-word')).toHaveText('银行');
   await expect(page.locator('.nt-pos')).toHaveText('名词');
   await expect(page.locator('.nt-explanation')).toContainText('金融机构');
+  await expect(page.locator('.nt-current-sense')).toHaveAttribute('aria-label', '本句含义');
+  await expect(page.locator('.nt-senses')).toBeVisible();
+  await expect(page.getByText('常见义项', { exact: true })).toBeVisible();
+  await expect(page.locator('.nt-sense-group').filter({ hasText: '名词' }).locator('.nt-sense-meaning')).toHaveText(['银行', '河岸']);
+  await expect(page.locator('.nt-sense-group').filter({ hasText: '动词' }).locator('.nt-sense-meaning')).toHaveText(['把钱存入银行']);
+  await expect(page.getByText('河岸', { exact: true })).toBeInViewport();
   expect((await requests())[0]).toMatchObject({ selectedText: 'bank', context: 'The bank approved the technical report.', model: 'deepseek-flash', thinking: { type: 'disabled' } });
   await page.screenshot({ path: testInfo.outputPath('web-word-card.png'), fullPage: true });
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: BASE });
+  await page.bringToFront();
   await page.getByRole('button', { name: '复制', exact: true }).click();
   await expect(page.getByRole('status')).toContainText('已复制译文');
+  const copied = (await page.evaluate(() => navigator.clipboard.readText())).replace(/\r\n/g, '\n');
+  expect(copied).toContain('本句含义');
+  expect(copied).toContain('词性：名词');
+  expect(copied).toContain('常见义项');
+  expect(copied).toContain('名词\n1. 银行\n2. 河岸');
+  expect(copied).toContain('动词\n1. 把钱存入银行');
   await page.getByRole('button', { name: '关闭翻译' }).click();
   await expect(page.getByRole('dialog', { name: '英文翻译结果' })).toHaveCount(0);
 });
@@ -186,6 +223,11 @@ test('context switch removes context from the request and settings show Flash', 
   await page.locator('#bank').dblclick();
   await page.getByRole('button', { name: '翻译选中的英文' }).click();
   await expect(page.locator('.nt-word')).toHaveText('银行');
+  await expect(page.locator('.nt-current-sense')).toHaveAttribute('aria-label', '参考释义');
+  await expect(page.getByText('本句含义', { exact: true })).toHaveCount(0);
+  await expect(page.locator('.nt-context-note')).toContainText('未提供上下文');
+  await expect(page.locator('.nt-senses')).toBeVisible();
+  await expect(page.locator('.nt-sense-meaning')).toHaveCount(3);
   expect((await requests())[0]).not.toHaveProperty('context');
 });
 
@@ -236,6 +278,8 @@ test('authorized iframe selections translate in their own document', async () =>
   await expect(frame.getByRole('button', { name: '翻译选中的英文' })).toBeVisible();
   await frame.getByRole('button', { name: '翻译选中的英文' }).click();
   await expect(frame.locator('.nt-word')).toHaveText('调度器');
+  await expect(frame.locator('.nt-sense-meaning')).toHaveText(['调度器']);
+  await expect(frame.locator('.nt-sense-group')).toHaveCount(1);
   expect((await requests())[0]?.selectedText).toBe('scheduler');
 });
 
@@ -294,6 +338,26 @@ test('editable selection and viewport-edge overlay remain usable', async () => {
   expect(box!.x + box!.width).toBeLessThanOrEqual(1280); expect(box!.y + box!.height).toBeLessThanOrEqual(900);
 });
 
+test('a larger dictionary keeps different parts of speech accessible in a small viewport', async ({}, testInfo) => {
+  await page.setViewportSize({ width: 480, height: 360 });
+  await page.locator('#record').dblclick();
+  await page.getByRole('button', { name: '翻译选中的英文' }).click();
+  await expect(page.locator('.nt-word')).toHaveText('记录');
+  await expect(page.locator('.nt-pos')).toHaveText('动词');
+  await expect(page.locator('.nt-sense-pos')).toHaveText(['名词', '动词']);
+  await expect(page.locator('.nt-sense-meaning')).toHaveCount(6);
+  const box = await page.getByRole('dialog', { name: '英文翻译结果' }).boundingBox();
+  expect(box).not.toBeNull();
+  expect(box!.x).toBeGreaterThanOrEqual(0); expect(box!.y).toBeGreaterThanOrEqual(0);
+  expect(box!.x + box!.width).toBeLessThanOrEqual(480); expect(box!.y + box!.height).toBeLessThanOrEqual(360);
+  expect(await page.locator('.nt-body').evaluate(element => element.scrollHeight > element.clientHeight)).toBe(true);
+  await page.locator('.nt-sense-meaning').last().scrollIntoViewIfNeeded();
+  await expect(page.getByText('录制声音或影像', { exact: true })).toBeInViewport();
+  await expect(page.getByRole('button', { name: '复制', exact: true })).toBeInViewport();
+  await expect(page.getByRole('button', { name: '关闭翻译' })).toBeInViewport();
+  await page.screenshot({ path: testInfo.outputPath('dictionary-small-viewport.png'), fullPage: true });
+});
+
 test('local PDF text layer translates, zooms, searches, and changes pages', async ({}, testInfo) => {
   await page.goto(`chrome-extension://${extensionId}/reader.html`);
   await expect(page.getByRole('button', { name: '打开本地 PDF', exact: true })).toBeEnabled();
@@ -304,10 +368,22 @@ test('local PDF text layer translates, zooms, searches, and changes pages', asyn
   await page.getByLabel('搜索文档', { exact: true }).fill('technical');
   await expect(page.locator('.reader-match-count')).toContainText('1 / 1');
   await page.getByLabel('搜索文档', { exact: true }).fill('');
-  await selectElement(page, '.textLayer span');
+  await page.locator('.textLayer span').filter({ hasText: 'The bank approved the technical report.' }).first().evaluate((element) => {
+    const text = element.firstChild;
+    const offset = text?.textContent?.indexOf('bank') ?? -1;
+    if (!text || offset < 0) throw new Error('The PDF fixture must expose bank in its text layer.');
+    const range = document.createRange(); range.setStart(text, offset); range.setEnd(text, offset + 4);
+    const selection = document.getSelection(); selection?.removeAllRanges(); selection?.addRange(range);
+    const rect = range.getBoundingClientRect();
+    element.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, clientX: rect.right - 4, clientY: rect.bottom - 4 }));
+  });
   await page.getByRole('button', { name: '翻译选中的英文' }).click();
   await expect(page.getByRole('button', { name: '复制', exact: true })).toBeVisible();
   await expect(page.locator('.nt-meta')).toContainText('PDF');
+  await expect(page.locator('.nt-word')).toHaveText('银行');
+  await expect(page.locator('.nt-current-sense')).toHaveAttribute('aria-label', '本句含义');
+  await expect(page.locator('.nt-sense-meaning')).toHaveText(['银行', '河岸', '把钱存入银行']);
+  expect((await requests())[0]?.selectedText).toBe('bank');
   await page.screenshot({ path: testInfo.outputPath('pdf-reader-card.png'), fullPage: true });
   await page.getByRole('button', { name: '关闭翻译' }).click();
   await page.getByRole('button', { name: '下一页', exact: true }).click();

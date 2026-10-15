@@ -38,4 +38,6 @@
 
 每例应忠实、中文通顺，关键术语、数字、公式和否定/条件关系正确，未添加原文不存在的事实；单词释义符合上下文。发现误译后记录具体例子并调整提示词或模型设置，再复核三类样例。
 
-0.1.1 已在用户实际安装的扩展中完成公开单词 JavaScript 的真实调用，Key未读取或导出。上述15个质量样例仍未全部执行，需要另外记录译文与延迟。
+0.1.1完成JavaScript真实调用；0.2.0又完成description、河岸语境bank、动词语境record的真实词典调用，确认同时返回当前句义与其他常见词性/义项。Key未读取或导出。上述15个质量样例仍未全部执行，需要另外记录译文与延迟。
+
+词义核对参考出版方词典：[Cambridge description](https://dictionary.cambridge.org/dictionary/english/description)、[of every description](https://dictionary.cambridge.org/dictionary/english/of-every-description)、[bank](https://dictionary.cambridge.org/dictionary/english/bank)。这些是验收参考，扩展运行时仍只调用已配置的DeepSeek，不发送内容到词典网站。

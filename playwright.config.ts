@@ -1,4 +1,7 @@
 import { defineConfig } from '@playwright/test';
+import { readFileSync } from 'node:fs';
+
+const packageVersion = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')).version;
 
 export default defineConfig({
   testDir: './tests/e2e',
@@ -8,7 +11,8 @@ export default defineConfig({
   expect: { timeout: 8_000 },
   retries: 0,
   outputDir: 'test-results',
-  reporter: [['list'], ['html', { outputFolder: 'playwright-report', open: 'never' }]],
+  metadata: { extensionVersion: packageVersion },
+  reporter: [['list'], ['html', { outputFolder: 'playwright-report', open: 'never' }], ['json', { outputFile: '.output/e2e-results.json' }]],
   use: { trace: 'retain-on-failure' },
   webServer: {
     command: 'node tests/e2e/server.mjs',

@@ -4,6 +4,7 @@ const document = `<!doctype html><html lang="en"><head><meta charset="utf-8"><ti
 <style>body{margin:0;background:#f2f5f2;color:#263b31;font:18px/1.9 Georgia,serif}main{max-width:820px;margin:60px auto;padding:40px 56px;background:white;border-radius:18px}h1{font:36px/1.2 Georgia,serif;margin-top:0}p{margin:24px 0}small{color:#788d7d}button{display:none!important}iframe{width:100%;height:170px;border:1px solid #dae5dc;border-radius:8px}textarea{width:100%;height:80px;font:17px Georgia,serif}.edge{position:fixed;bottom:10px;right:10px}</style></head>
 <body><main><small>ENGLISH READING · LOCAL TEST FIXTURE</small><h1>Understanding technical writing</h1>
 <p id="word-context">The <span id="bank">bank</span> approved the technical report.</p>
+<p>I will <span id="record">record</span> the final result.</p>
 <p id="paragraph">Concurrency does not imply parallelism.\nThe result is not statistically significant at 0.05.</p>
 <p id="slow">Slow selection must never overwrite a newer translation.</p>
 <p id="inert">Render translated HTML as plain text.</p>

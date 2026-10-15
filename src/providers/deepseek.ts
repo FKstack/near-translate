@@ -4,6 +4,7 @@ import {
   type TranslationInput,
   type TranslationProvider,
   type WordResult,
+  type WordSense,
 } from '../shared/contracts';
 import { httpFailure, TranslationFailure } from '../core/errors';
 import { normalizeTranslationInput } from '../core/input';
@@ -84,13 +85,33 @@ function parseWordResult(content: string): WordResult {
   try { value = JSON.parse(content); }
   catch { throw new TranslationFailure('INVALID_RESPONSE', '单词译文格式不正确，请重试。', true); }
   if (!record(value)) throw new TranslationFailure('INVALID_RESPONSE', '单词译文格式不正确，请重试。', true);
-  const { translation, partOfSpeech, explanation } = value;
+  const { translation, partOfSpeech, explanation, senses } = value;
   if (typeof translation !== 'string' || !translation.trim()
     || typeof partOfSpeech !== 'string' || !partOfSpeech.trim()
     || typeof explanation !== 'string' || !explanation.trim()) {
     throw new TranslationFailure('INVALID_RESPONSE', '单词译文缺少词义、词性或解释，请重试。', true);
   }
-  return { kind: 'word', translation: translation.trim(), partOfSpeech: partOfSpeech.trim(), explanation: explanation.trim() };
+  if (!Array.isArray(senses) || senses.length < 1 || senses.length > 10) {
+    throw new TranslationFailure('INVALID_RESPONSE', '单词译文的常见义项不完整，请重试。', true);
+  }
+  const dictionarySenses: WordSense[] = [];
+  const seen = new Set<string>();
+  for (const sense of senses) {
+    if (!record(sense) || typeof sense.partOfSpeech !== 'string' || !sense.partOfSpeech.trim()
+      || typeof sense.meaning !== 'string' || !sense.meaning.trim()) {
+      throw new TranslationFailure('INVALID_RESPONSE', '单词译文的常见义项格式不正确，请重试。', true);
+    }
+    const normalized = { partOfSpeech: sense.partOfSpeech.trim(), meaning: sense.meaning.trim() };
+    const signature = JSON.stringify([normalized.partOfSpeech, normalized.meaning]);
+    if (!seen.has(signature)) {
+      seen.add(signature);
+      dictionarySenses.push(normalized);
+    }
+  }
+  return {
+    kind: 'word', translation: translation.trim(), partOfSpeech: partOfSpeech.trim(),
+    explanation: explanation.trim(), senses: dictionarySenses,
+  };
 }
 
 function finishFailure(reason: string): TranslationFailure {
@@ -131,7 +152,7 @@ export class DeepSeekProvider implements TranslationProvider {
           messages: buildTranslationMessages(input),
           thinking: { type: 'disabled' },
           temperature: 0.2,
-          max_tokens: input.kind === 'word' ? 768 : 8192,
+          max_tokens: input.kind === 'word' ? 2048 : 8192,
           stream: true,
           ...(input.kind === 'word' ? { response_format: { type: 'json_object' } } : {}),
         }),

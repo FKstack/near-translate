@@ -42,7 +42,9 @@ flowchart LR
 
 ## 稳定契约
 
-`TranslationInput` 为 `{ text, context?, kind: 'word' | 'text' }`。`TranslationProvider.translate(input, signal)` 返回 `AsyncIterable<TranslationEvent>`，事件为文本增量 `delta` 与经过校验的最终 `result`。单词结果含 `translation`、`partOfSpeech`、`explanation`；文本结果含 `translation`。
+`TranslationInput` 为 `{ text, context?, kind: 'word' | 'text' }`。`TranslationProvider.translate(input, signal)` 返回 `AsyncIterable<TranslationEvent>`，事件为文本增量 `delta` 与经过校验的最终 `result`。单词结果保留 `translation`、`partOfSpeech`、`explanation` 作为语境义，0.2.0 新增必需的 `senses: WordSense[]`，每项含 `partOfSpeech` 与 `meaning`；文本结果仍含 `translation`。
+
+词典升级风险为R2，变化集中在既有结果契约和展示，未增加生产依赖。provider验证1–10个有效义项并去重；提示词要求不同常见英文含义而非中文近义换词，无上下文不假装确定本句意义。卡片按词性分组，保留所有返回义项，复制由独立纯格式函数处理；卡片展示的上下文与实际发送内容保持一致。结果仅在请求内存中存在，配置不迁移，后台/前台原位更新后刷新网页启用新版卡片。
 
 跨执行环境消息另加 `requestId`，控制消息为 `translate`、`cancel`、`heartbeat`，后台响应为 `started`、`delta`、`result`、`error`。网页不传 API URL、Key、系统提示词或任意 fetch 参数，后台从配置快照构造固定官方请求。
 

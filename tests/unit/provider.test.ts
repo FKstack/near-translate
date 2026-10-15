@@ -70,7 +70,7 @@ describe('DeepSeek provider', () => {
     expect(options?.headers).toMatchObject({ Authorization: 'Bearer test-key' });
     expect(options?.credentials).toBe('omit');
     const body = JSON.parse(String(options?.body));
-    expect(body).toMatchObject({ model: 'deepseek-flash', thinking: { type: 'disabled' }, stream: true });
+    expect(body).toMatchObject({ model: 'deepseek-flash', thinking: { type: 'disabled' }, stream: true, max_tokens: 8192 });
     expect(body).not.toHaveProperty('response_format');
     expect(JSON.parse(body.messages[1].content)).toEqual({ selectedText: textInput.text });
   });
@@ -83,13 +83,100 @@ describe('DeepSeek provider', () => {
   });
 
   it('returns validated word meanings without exposing partial JSON as deltas', async () => {
-    const json = JSON.stringify({ translation: '银行', partOfSpeech: '名词', explanation: '此处指办理存款业务的金融机构。' });
+    const dictionary = {
+      translation: '银行', partOfSpeech: '名词', explanation: '此处指办理存款业务的金融机构。',
+      senses: [
+        { partOfSpeech: '名词', meaning: '银行；金融机构' },
+        { partOfSpeech: '名词', meaning: '河岸' },
+        { partOfSpeech: '名词', meaning: '储备库' },
+        { partOfSpeech: '动词', meaning: '把钱存入银行' },
+        { partOfSpeech: '动词', meaning: '倾斜转弯' },
+      ],
+    };
+    const json = JSON.stringify(dictionary);
     const fetcher = transport(delta(json.slice(0, 9)) + delta(json.slice(9)) + delta(null, 'stop') + 'data: [DONE]\n\n');
     const events = await collect(new DeepSeekProvider({ apiKey: 'test-key', model: 'my-model' }, fetcher), wordInput);
     expect(events).toEqual([{ type: 'result', result: { kind: 'word', ...JSON.parse(json) } }]);
     const body = JSON.parse(String(fetcher.mock.calls[0]?.[1]?.body));
-    expect(body).toMatchObject({ model: 'my-model', response_format: { type: 'json_object' } });
+    expect(body).toMatchObject({ model: 'my-model', response_format: { type: 'json_object' }, max_tokens: 2048 });
     expect(JSON.parse(body.messages[1].content)).toEqual({ selectedText: 'bank', context: wordInput.context });
+  });
+
+  it('retains common noun, adjective, and verb senses even when context selects an adjective', async () => {
+    const dictionary = {
+      translation: '轻的', partOfSpeech: '形容词', explanation: '本句描述行李箱重量小。',
+      senses: [
+        { partOfSpeech: '名词', meaning: '光；光线' },
+        { partOfSpeech: '形容词', meaning: '轻的' },
+        { partOfSpeech: '形容词', meaning: '浅色的' },
+        { partOfSpeech: '动词', meaning: '点燃' },
+      ],
+    };
+    const fetcher = transport(delta(JSON.stringify(dictionary)) + delta(null, 'stop') + 'data: [DONE]\n\n');
+    const events = await collect(new DeepSeekProvider({ apiKey: 'test-key' }, fetcher), { text: 'light', context: 'This suitcase is light.', kind: 'word' });
+    expect(events).toEqual([{ type: 'result', result: { kind: 'word', ...dictionary } }]);
+  });
+
+  it('requests and retains explicit uncertainty when no context was supplied', async () => {
+    const dictionary = {
+      translation: '光；轻的；点燃', partOfSpeech: '名词；形容词；动词', explanation: '未提供上下文，无法判断本句含义与词性。',
+      senses: [{ partOfSpeech: '名词', meaning: '光' }, { partOfSpeech: '形容词', meaning: '轻的' }, { partOfSpeech: '动词', meaning: '点燃' }],
+    };
+    const fetcher = transport(delta(JSON.stringify(dictionary)) + delta(null, 'stop') + 'data: [DONE]\n\n');
+    const events = await collect(new DeepSeekProvider({ apiKey: 'test-key' }, fetcher), { text: 'light', kind: 'word' });
+    expect(events).toEqual([{ type: 'result', result: { kind: 'word', ...dictionary } }]);
+    const body = JSON.parse(String(fetcher.mock.calls[0]?.[1]?.body));
+    expect(body.messages[0].content).toContain('No context is supplied');
+    expect(JSON.parse(body.messages[1].content)).toEqual({ selectedText: 'light' });
+  });
+
+  it('accepts one established sense without inventing additional meanings', async () => {
+    const dictionary = {
+      translation: '氦', partOfSpeech: '名词', explanation: '本句指化学元素氦。',
+      senses: [{ partOfSpeech: '名词', meaning: '氦；一种惰性气体元素' }],
+    };
+    const fetcher = transport(delta(JSON.stringify(dictionary)) + delta(null, 'stop') + 'data: [DONE]\n\n');
+    const events = await collect(new DeepSeekProvider({ apiKey: 'test-key' }, fetcher), { text: 'helium', context: 'Helium is an inert gas.', kind: 'word' });
+    expect(events).toEqual([{ type: 'result', result: { kind: 'word', ...dictionary } }]);
+  });
+
+  it('preserves collocation restrictions inside a dictionary meaning', async () => {
+    const dictionary = {
+      translation: '描述；说明', partOfSpeech: '名词', explanation: '本句指对系统行为的说明。',
+      senses: [{ partOfSpeech: '名词', meaning: '描述；说明' }, { partOfSpeech: '名词', meaning: '种类；类型（常见于 of every description 等搭配）' }],
+    };
+    const fetcher = transport(delta(JSON.stringify(dictionary)) + delta(null, 'stop') + 'data: [DONE]\n\n');
+    const events = await collect(new DeepSeekProvider({ apiKey: 'test-key' }, fetcher), { text: 'description', context: 'Read the description of this system.', kind: 'word' });
+    expect(events).toEqual([{ type: 'result', result: { kind: 'word', ...dictionary } }]);
+  });
+
+  it('trims fields and deduplicates identical meanings within the same part of speech', async () => {
+    const dictionary = {
+      translation: ' 银行 ', partOfSpeech: ' 名词 ', explanation: ' 此处指金融机构。 ',
+      senses: [{ partOfSpeech: ' 名词 ', meaning: ' 银行 ' }, { partOfSpeech: '名词', meaning: '银行' }, { partOfSpeech: '名词', meaning: '河岸' }, { partOfSpeech: '动词', meaning: '把钱存入银行' }],
+    };
+    const fetcher = transport(delta(JSON.stringify(dictionary)) + delta(null, 'stop') + 'data: [DONE]\n\n');
+    const events = await collect(new DeepSeekProvider({ apiKey: 'test-key' }, fetcher), wordInput);
+    expect(events).toEqual([{ type: 'result', result: {
+      kind: 'word', translation: '银行', partOfSpeech: '名词', explanation: '此处指金融机构。',
+      senses: [{ partOfSpeech: '名词', meaning: '银行' }, { partOfSpeech: '名词', meaning: '河岸' }, { partOfSpeech: '动词', meaning: '把钱存入银行' }],
+    } }]);
+  });
+
+  it.each([
+    { name: 'missing', senses: undefined }, { name: 'null', senses: null }, { name: 'empty', senses: [] },
+    { name: 'object', senses: {} }, { name: 'string item', senses: ['银行'] }, { name: 'null item', senses: [null] },
+    { name: 'missing part of speech', senses: [{ meaning: '银行' }] },
+    { name: 'blank part of speech', senses: [{ partOfSpeech: ' ', meaning: '银行' }] },
+    { name: 'missing meaning', senses: [{ partOfSpeech: '名词' }] },
+    { name: 'blank meaning', senses: [{ partOfSpeech: '名词', meaning: ' ' }] },
+    { name: 'non-string meaning', senses: [{ partOfSpeech: '名词', meaning: 3 }] },
+    { name: 'too many entries', senses: Array.from({ length: 11 }, () => ({ partOfSpeech: '名词', meaning: '银行' })) },
+  ])('rejects $name dictionary senses instead of accepting incomplete word results', async ({ senses }) => {
+    const json = JSON.stringify({ translation: '银行', partOfSpeech: '名词', explanation: '此处指金融机构。', senses });
+    const fetcher = transport(delta(json) + delta(null, 'stop') + 'data: [DONE]\n\n');
+    await expect(collect(new DeepSeekProvider({ apiKey: 'test-key' }, fetcher), wordInput))
+      .rejects.toMatchObject({ code: 'INVALID_RESPONSE', retryable: true });
   });
 
   it.each(['{invalid', '[]', '{}', '{"translation":"银行","partOfSpeech":"名词","explanation":""}',

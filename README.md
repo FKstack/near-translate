@@ -18,7 +18,7 @@ PDF：在在线 PDF 标签页点击扩展图标 →「用阅读器打开当前 P
 
 ## 功能
 
-- 单词：中文词义、词性与简短语境解释；句段：流式中文译文、段落保留。
+- 单词：本句含义、词性与语境解释；默认展开按词性分组的常见义项，可查看参考原句并完整复制。句段保持流式中文译文和段落结构。
 - 所在句 / 邻近一句上下文，最多 600 字符，可关闭；选中内容最多 12,000 字符，超限提示分段。
 - 翻译卡片支持复制、Esc 关闭、重试；新选区会取消旧请求。
 - 自带 PDF.js 阅读器支持本地/在线文字型 PDF、翻页、缩放、搜索和密码文件。
@@ -53,4 +53,4 @@ PDF worker、CMaps、字体与解码器由构建前脚本从同一版本 `pdfjs-
 
 架构与新增 provider 指南见 [架构说明](docs/ARCHITECTURE.md)，验收记录见 [验证说明](docs/VALIDATION.md)，真实翻译质量样例见 [质量验收表](docs/QUALITY_SAMPLES.md)。
 
-Git 初版开发分支为 `feat/selection-translation`；0.1.1 原生网络修复保存在 `fix/native-fetch-binding`。按功能阶段提交，Key、依赖、构建产物及浏览器测试配置均不进入 Git。
+Git 初版开发分支为 `feat/selection-translation`；0.1.1 网络修复保存在 `fix/native-fetch-binding`，0.2.0 词典卡片在 `feat/word-dictionary`。按功能阶段提交，Key、依赖、构建产物及浏览器测试配置均不进入 Git。

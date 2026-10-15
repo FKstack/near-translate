@@ -62,14 +62,15 @@ export function mountSelectionTranslator(options: MountSelectionOptions): () => 
   function translate(): void {
     if (view.mode === 'hidden' || disposed || !isAvailable()) return;
     const selection = view.selection;
+    const effectiveInput = { ...selection.input, context: settings.includeContext ? selection.input.context : undefined };
     client.cancel();
     activeRequest = undefined;
     const invalid = selectionError(selection.input.text);
     const error = invalid
       ? { code: 'INVALID_INPUT' as const, message: invalid, retryable: false }
       : !settings.hasApiKey ? { code: 'CONFIG' as const, message: '请先在扩展设置中填写 DeepSeek API Key，再重新选择英文翻译。', retryable: false } : undefined;
-    view = { mode: 'card', selection, status: error ? 'error' : 'loading', streamed: '', error };
-    if (!error) activeRequest = client.start({ ...selection.input, context: settings.includeContext ? selection.input.context : undefined });
+    view = { mode: 'card', selection: { ...selection, input: effectiveInput }, status: error ? 'error' : 'loading', streamed: '', error };
+    if (!error) activeRequest = client.start(effectiveInput);
     render();
   }
 

@@ -4,11 +4,16 @@ export interface TranslationInput {
   context?: string;
   kind: TranslationKind;
 }
+export interface WordSense {
+  partOfSpeech: string;
+  meaning: string;
+}
 export interface WordResult {
   kind: 'word';
   translation: string;
   partOfSpeech: string;
   explanation: string;
+  senses: WordSense[];
 }
 export interface TextResult {
   kind: 'text';

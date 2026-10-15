@@ -13,6 +13,18 @@ await mkdir(destination, { recursive: true });
 assert.equal(await realpath(destination), destination, 'Release destination must be inside workspace.');
 const { version } = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8'));
 assert.match(version, /^\d+\.\d+\.\d+$/);
+const unitReport = JSON.parse(await readFile(path.join(output, 'unit-results.json'), 'utf8'));
+assert.equal(unitReport.success, true, 'Unit tests must pass before packaging.');
+assert.equal(unitReport.numFailedTests, 0);
+const unitTests = unitReport.numPassedTests;
+const browserTests = {};
+for (const browser of ['chrome', 'edge']) {
+  const report = JSON.parse(await readFile(path.join(output, 'e2e-evidence', browser, 'summary.json'), 'utf8'));
+  assert.equal(report.config.metadata.extensionVersion, version, 'Browser evidence must match this release.');
+  assert.equal(report.stats.unexpected, 0, 'Browser tests must pass before packaging.');
+  assert(report.stats.expected > 0);
+  browserTests[browser] = report.stats.expected;
+}
 
 function zipEntries(zip) {
   let end = zip.length - 22;
@@ -80,8 +92,8 @@ try {
   const sample = proof.states?.find(item => item.phase === 'result' && item.version === version && typeof item.result?.translation === 'string');
   if (sample) {
     realApiVerified = true;
-    await writeFile(path.join(destination, 'connection-check.json'), JSON.stringify({ version, sample: 'JavaScript', result: sample.result }, null, 2) + '\n');
+    await writeFile(path.join(destination, 'connection-check.json'), JSON.stringify({ version, sample: sample.sample ?? 'JavaScript', result: sample.result }, null, 2) + '\n');
   }
 } catch (error) { if (error?.code !== 'ENOENT') throw error; }
-await writeFile(path.join(destination, 'release.json'), JSON.stringify({ version, defaultModel: 'deepseek-flash', unitTests: 91, browserTests: { chrome: 15, edge: 15 }, realApiVerified, artifacts }, null, 2) + '\n');
+await writeFile(path.join(destination, 'release.json'), JSON.stringify({ version, defaultModel: 'deepseek-flash', unitTests, browserTests, realApiVerified, artifacts }, null, 2) + '\n');
 console.log(JSON.stringify({ version, artifacts }, null, 2));

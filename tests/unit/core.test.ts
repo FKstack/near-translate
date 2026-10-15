@@ -48,6 +48,45 @@ describe('translation prompts', () => {
     expect(messages[0]?.content).toContain('ambiguity');
     expect(JSON.parse(messages[1]!.content)).toEqual({ selectedText: 'bank' });
   });
+
+  it('separates the contextual sense from common dictionary meanings and parts of speech', () => {
+    const messages = buildTranslationMessages({ text: 'bank', context: 'She deposited money at the bank.', kind: 'word' });
+    const instructions = messages[0]!.content;
+    expect(instructions).toContain('only the contextual sense');
+    expect(instructions).toContain('separate dictionary-reference array of 1 to 10 objects');
+    expect(instructions).toContain('including the contextual meaning and other common parts of speech');
+    expect(instructions).toContain('Do not omit other meanings or parts of speech just because context selects one sense');
+    expect(instructions).toContain('near-synonymous Chinese renderings of the same English sense together');
+    expect(JSON.parse(messages[1]!.content)).toEqual({ selectedText: 'bank', context: 'She deposited money at the bank.' });
+  });
+
+  it('explicitly discloses missing context instead of pretending to know the sentence', () => {
+    const instructions = buildTranslationMessages({ text: 'light', kind: 'word' })[0]!.content;
+    expect(instructions).toContain('No context is supplied');
+    expect(instructions).toContain('the meaning and part of speech in the sentence cannot be determined');
+    expect(instructions).toContain('must not pretend a particular sentence or contextual sense was observed');
+  });
+
+  it('allows a single common sense without fabricating extra entries', () => {
+    const instructions = buildTranslationMessages({ text: 'helium', kind: 'word' })[0]!.content;
+    expect(instructions).toContain('A single-sense word may have exactly one entry');
+    expect(instructions).toContain('Do not pad the list, invent rare meanings, or force extra parts of speech');
+  });
+
+  it('requires phrase-specific meanings to disclose the relevant English collocation', () => {
+    const instructions = buildTranslationMessages({ text: 'description', kind: 'word' })[0]!.content;
+    expect(instructions).toContain('name that English expression and its restriction inside meaning');
+    expect(instructions).toContain('Do not present a phrase-specific meaning as a universal meaning');
+  });
+
+  it('provides a complete, parseable example with multiple senses and parts of speech', () => {
+    const instructions = buildTranslationMessages({ text: 'light', context: 'This suitcase is light.', kind: 'word' })[0]!.content;
+    const example = JSON.parse(instructions.slice(instructions.indexOf('{"translation"')));
+    expect(example).toMatchObject({ translation: '轻的', partOfSpeech: '形容词', explanation: '本句描述行李箱重量小。' });
+    expect(example.senses).toHaveLength(8);
+    expect(new Set(example.senses.map((sense: { partOfSpeech: string }) => sense.partOfSpeech)))
+      .toEqual(new Set(['名词', '形容词', '动词']));
+  });
 });
 
 describe('safe errors', () => {

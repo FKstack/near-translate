@@ -3,6 +3,7 @@ node_modules/
 .wxt/
 artifacts/
 public/pdfjs/
+public/licenses/
 coverage/
 playwright-report/
 test-results/

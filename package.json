@@ -2,6 +2,8 @@
   "name": "near-translate",
   "version": "0.2.0",
   "private": true,
+  "description": "Browser page, selection and PDF translation with configurable model APIs",
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "assets:pdf": "node scripts/copy-pdf-assets.mjs",

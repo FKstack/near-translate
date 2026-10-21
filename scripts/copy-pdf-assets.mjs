@@ -7,6 +7,13 @@ const require = createRequire(import.meta.url);
 const packageRoot = path.dirname(require.resolve('pdfjs-dist/package.json'));
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const destination = path.join(projectRoot, 'public', 'pdfjs');
+const licenses = path.join(projectRoot, 'public', 'licenses');
+await mkdir(licenses, { recursive: true });
+await cp(path.join(projectRoot, 'LICENSE'), path.join(licenses, 'near-translate.txt'));
+for (const dependency of ['react', 'react-dom', 'scheduler', 'pdfjs-dist']) {
+  const dependencyRoot = path.dirname(require.resolve(`${dependency}/package.json`));
+  await cp(path.join(dependencyRoot, 'LICENSE'), path.join(licenses, `${dependency}.txt`));
+}
 await mkdir(destination, { recursive: true });
 const assets = [
   ['build/pdf.worker.mjs', 'pdf.worker.mjs'],

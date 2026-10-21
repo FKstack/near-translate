@@ -2,7 +2,7 @@ import { createRoot } from 'react-dom/client';
 import { browser } from 'wxt/browser';
 import { DEFAULT_MODEL, type PublicSettings, type TranslationServerMessage } from '../shared/contracts';
 import { Translator, translatorStyles, type TranslatorView } from '../ui/translator/Translator';
-import { TranslationClient } from './client';
+import { TranslationClient } from '../platform/translation-client';
 import { selectionError } from './helpers';
 import { takeSelectionSnapshot, type SelectionSnapshot } from './snapshot';
 
@@ -10,7 +10,6 @@ export interface MountSelectionOptions {
   source: 'web' | 'pdf';
   root?: HTMLElement | Document;
 }
-
 /** Shared composition root for ordinary page content and the extension's PDF text layer. */
 export function mountSelectionTranslator(options: MountSelectionOptions): () => void {
   const scope = options.root ?? document;
@@ -25,7 +24,7 @@ export function mountSelectionTranslator(options: MountSelectionOptions): () => 
   shadow.appendChild(container);
   document.documentElement.appendChild(host);
   const react = createRoot(container);
-  let settings: PublicSettings = { enabled: true, includeContext: true, model: DEFAULT_MODEL, hasApiKey: false, webAccess: false };
+  let settings: PublicSettings = { enabled: true, includeContext: true, sentenceAnalysisEnabled: true, model: DEFAULT_MODEL, hasApiKey: false, webAccess: false };
   let settingsReady = false;
   let view: TranslatorView = { mode: 'hidden' };
   let activeRequest: string | undefined;
@@ -68,7 +67,8 @@ export function mountSelectionTranslator(options: MountSelectionOptions): () => 
     const invalid = selectionError(selection.input.text);
     const error = invalid
       ? { code: 'INVALID_INPUT' as const, message: invalid, retryable: false }
-      : !settings.hasApiKey ? { code: 'CONFIG' as const, message: '请先在扩展设置中填写 DeepSeek API Key，再重新选择英文翻译。', retryable: false } : undefined;
+      : !settings.hasApiKey && settings.requiresApiKey !== false ? { code: 'CONFIG' as const, message: '请先在扩展设置中填写 API Key，再重新选择英文翻译。', retryable: false }
+      : settings.apiAccess === false ? { code: 'CONFIG' as const, message: '请在翻译设置中保存并授权当前 API 地址。', retryable: false } : undefined;
     view = { mode: 'card', selection: { ...selection, input: effectiveInput }, status: error ? 'error' : 'loading', streamed: '', error };
     if (!error) activeRequest = client.start(effectiveInput);
     render();
@@ -121,9 +121,11 @@ export function mountSelectionTranslator(options: MountSelectionOptions): () => 
   const onSettings = (message: unknown) => {
     const update = message as { type?: string; settings?: PublicSettings };
     if (update.type !== 'settings-changed' || !update.settings || disposed) return;
+    const connectionChanged = settings.connectionRevision !== update.settings.connectionRevision
+      || settings.provider !== update.settings.provider || settings.model !== update.settings.model;
     settings = update.settings;
     settingsReady = true;
-    if (!isAvailable()) close();
+    if (!isAvailable() || connectionChanged || settings.apiAccess === false) close();
   };
 
   document.addEventListener('mouseup', capture, true);

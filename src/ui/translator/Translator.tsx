@@ -163,13 +163,13 @@ export function Translator({ view, source, onTranslate, onClose, onRetry, onSett
         </header>
         <div className="nt-body">
           <p className="nt-source" title={view.selection.input.text}>{view.selection.input.text}</p>
-          {view.status === 'loading' && <p className="nt-loading" role="status"><span className="nt-dot" />{view.streamed ? '正在翻译…' : '正在连接 DeepSeek…'}</p>}
+          {view.status === 'loading' && <p className="nt-loading" role="status"><span className="nt-dot" />{view.streamed ? '正在翻译…' : '正在连接翻译服务…'}</p>}
           {view.status === 'error' && <p className="nt-error" role="alert">{view.error?.message ?? '翻译失败，请重试。'}</p>}
           {view.result?.kind === 'word' && <WordTranslation result={view.result} context={view.selection.input.context} />}
           {(view.result?.kind === 'text' || view.streamed) && <p className="nt-text">{view.result?.kind === 'text' ? view.result.translation : view.streamed}</p>}
         </div>
         <footer className="nt-footer">
-          <span className="nt-hint" role="status">{copyStatus === 'copied' ? '已复制译文' : copyStatus === 'failed' ? '复制失败，请手动选中译文' : 'DeepSeek · Esc 关闭'}</span>
+          <span className="nt-hint" role="status">{copyStatus === 'copied' ? '已复制译文' : copyStatus === 'failed' ? '复制失败，请手动选中译文' : '近译 · Esc 关闭'}</span>
           <div className="nt-actions">
             {view.status === 'error' && view.error?.code === 'CONFIG' && <button className="nt-action" onClick={onSettings}>打开设置</button>}
             {view.status === 'error' && view.error?.retryable && <button className="nt-action nt-primary" onClick={onRetry}>重试</button>}

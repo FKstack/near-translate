@@ -6,7 +6,7 @@ const root = path.resolve('src');
 const allowed = {
   core: new Set(['core', 'shared']),
   providers: new Set(['providers', 'core', 'shared']),
-  selection: new Set(['selection', 'shared', 'ui']),
+  selection: new Set(['selection', 'core', 'shared', 'ui']),
   platform: new Set(['platform', 'shared']),
 };
 async function check(dir, owner) {
@@ -21,7 +21,9 @@ async function check(dir, owner) {
           : specifier.startsWith('.') ? path.resolve(path.dirname(file), specifier) : undefined;
         if (target) {
           const module = path.relative(root, target).split(path.sep)[0];
-          if (!allowed[owner].has(module)) failures.push(`${file}: ${owner} 不得依赖 ${specifier}`);
+          const sharedTransport = ['selection', 'page'].includes(owner)
+            && target === path.join(root, 'platform', 'translation-client');
+          if (!allowed[owner].has(module) && !sharedTransport) failures.push(`${file}: ${owner} 不得依赖 ${specifier}`);
         } else if (['core', 'providers'].includes(owner) && /^(react|wxt)(\/|$)/.test(specifier)) {
           failures.push(`${file}: ${owner} 不得依赖 UI 或浏览器 API`);
         }

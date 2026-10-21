@@ -1,10 +1,38 @@
 import { browser } from 'wxt/browser';
-import { DEFAULT_MODEL, type EditableSettings, type StoredSettings, type PublicSettings } from '@/shared/contracts';
+import type { ApiProfile, ConnectionSettings, EditableSettings, ProviderId, PublicApiProfile, PublicSettings, StoredSettings } from '@/shared/contracts';
+import { apiOriginPattern, getProvider, isProviderId, normalizeBaseUrl, PROVIDERS } from '@/shared/api-config';
 
 const STORAGE_KEY = 'settings:v1';
 export const WEB_ORIGINS = ['http://*/*', 'https://*/*'];
-const DEFAULTS: StoredSettings = { schemaVersion: 1, enabled: true, includeContext: true, model: DEFAULT_MODEL, apiKey: '' };
+const CONTROL_CHARACTERS = /[\u0000-\u001f\u007f]/;
+const MODEL_NAME = /^[a-zA-Z0-9._:/-]{1,200}$/;
 let accessReady: Promise<void> | undefined;
+let saveQueue = Promise.resolve();
+
+function record(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+function defaultProfile(provider: ProviderId): ApiProfile {
+  const preset = getProvider(provider);
+  return { model: preset.model, baseUrl: preset.baseUrl, jsonMode: preset.jsonMode, apiKey: '' };
+}
+
+function readProfile(value: unknown, provider: ProviderId): ApiProfile {
+  const defaults = defaultProfile(provider);
+  if (!record(value)) return defaults;
+  let baseUrl = defaults.baseUrl;
+  if (value.baseUrl !== undefined) {
+    // An invalid stored address must never move its credential to a preset host.
+    if (typeof value.baseUrl !== 'string') return defaults;
+    try { baseUrl = normalizeBaseUrl(value.baseUrl); } catch { return defaults; }
+  }
+  const model = typeof value.model === 'string' && !CONTROL_CHARACTERS.test(value.model) && MODEL_NAME.test(value.model.trim())
+    ? value.model.trim() : defaults.model;
+  const apiKey = typeof value.apiKey === 'string' && value.apiKey.length <= 4096 && !CONTROL_CHARACTERS.test(value.apiKey)
+    ? value.apiKey.trim() : '';
+  return { model, baseUrl, apiKey, jsonMode: typeof value.jsonMode === 'boolean' ? value.jsonMode : defaults.jsonMode };
+}
 
 export function restrictStorageAccess(): Promise<void> {
   return accessReady ??= browser.storage.local.setAccessLevel({ accessLevel: 'TRUSTED_CONTEXTS' });
@@ -13,42 +41,106 @@ export function restrictStorageAccess(): Promise<void> {
 export async function readSettings(): Promise<StoredSettings> {
   await restrictStorageAccess();
   const data = await browser.storage.local.get(STORAGE_KEY);
-  const saved = data[STORAGE_KEY] as Partial<StoredSettings> | undefined;
+  const saved = record(data[STORAGE_KEY]) ? data[STORAGE_KEY] as Record<string, unknown> : {};
+  const provider = isProviderId(saved.provider) ? saved.provider : 'deepseek';
+  const profiles: Partial<Record<ProviderId, ApiProfile>> = {};
+  if (record(saved.profiles)) {
+    for (const preset of PROVIDERS) {
+      if (Object.hasOwn(saved.profiles, preset.id)) profiles[preset.id] = readProfile(saved.profiles[preset.id], preset.id);
+    }
+  }
+  // v1 had only a flattened DeepSeek profile. v2 keeps the active snapshot
+  // alongside the inactive profiles, all owned by this storage module.
+  const active = saved.provider !== undefined && !isProviderId(saved.provider) ? defaultProfile(provider) : readProfile(saved, provider);
+  profiles[provider] = active;
   return {
-    ...DEFAULTS,
-    enabled: typeof saved?.enabled === 'boolean' ? saved.enabled : DEFAULTS.enabled,
-    includeContext: typeof saved?.includeContext === 'boolean' ? saved.includeContext : DEFAULTS.includeContext,
-    model: typeof saved?.model === 'string' && saved.model.trim() ? saved.model : DEFAULT_MODEL,
-    apiKey: typeof saved?.apiKey === 'string' ? saved.apiKey : '',
+    schemaVersion: 2,
+    connectionRevision: typeof saved.connectionRevision === 'number' && Number.isSafeInteger(saved.connectionRevision) && saved.connectionRevision >= 0
+      ? saved.connectionRevision : 0,
+    enabled: typeof saved.enabled === 'boolean' ? saved.enabled : true,
+    includeContext: typeof saved.includeContext === 'boolean' ? saved.includeContext : true,
+    sentenceAnalysisEnabled: typeof saved.sentenceAnalysisEnabled === 'boolean' ? saved.sentenceAnalysisEnabled : true,
+    provider, ...active, profiles,
+  };
+}
+
+async function projectPublicSettings(settings: StoredSettings): Promise<PublicSettings> {
+  const [webAccess, apiAccess] = await Promise.all([
+    browser.permissions.contains({ origins: WEB_ORIGINS }),
+    browser.permissions.contains({ origins: [apiOriginPattern(settings.baseUrl)] }),
+  ]);
+  return {
+    enabled: settings.enabled,
+    includeContext: settings.includeContext,
+    sentenceAnalysisEnabled: settings.sentenceAnalysisEnabled,
+    model: settings.model,
+    provider: settings.provider,
+    connectionRevision: settings.connectionRevision,
+    hasApiKey: Boolean(settings.apiKey),
+    requiresApiKey: getProvider(settings.provider).requiresApiKey,
+    webAccess, apiAccess,
   };
 }
 
 export async function publicSettings(): Promise<PublicSettings> {
+  return projectPublicSettings(await readSettings());
+}
+
+/** The background exposes this projection only to trusted extension pages. */
+export async function connectionSettings(): Promise<ConnectionSettings> {
   const settings = await readSettings();
+  const profiles: Partial<Record<ProviderId, PublicApiProfile>> = {};
+  for (const preset of PROVIDERS) {
+    const profile = settings.profiles[preset.id];
+    if (profile) profiles[preset.id] = {
+      model: profile.model, baseUrl: profile.baseUrl, jsonMode: profile.jsonMode, hasApiKey: Boolean(profile.apiKey),
+    };
+  }
   return {
-    enabled: settings.enabled,
-    includeContext: settings.includeContext,
-    model: settings.model,
-    hasApiKey: Boolean(settings.apiKey),
-    webAccess: await browser.permissions.contains({ origins: WEB_ORIGINS }),
+    ...await projectPublicSettings(settings),
+    provider: settings.provider, baseUrl: settings.baseUrl, jsonMode: settings.jsonMode, profiles,
   };
 }
 
-export async function saveSettings(value: unknown, keepExistingKey: boolean): Promise<void> {
-  if (!value || typeof value !== 'object') throw new Error('设置格式不正确。');
+/** Serialize read/merge/write so separate options pages cannot lose profiles. */
+export function saveSettings(value: unknown, keepExistingKey: boolean): Promise<void> {
+  const operation = saveQueue.catch(() => undefined).then(() => saveSettingsNow(value, keepExistingKey));
+  saveQueue = operation;
+  return operation;
+}
+
+async function saveSettingsNow(value: unknown, keepExistingKey: boolean): Promise<void> {
+  if (!record(value)) throw new Error('设置格式不正确。');
   const input = value as Partial<EditableSettings>;
   if (typeof input.enabled !== 'boolean' || typeof input.includeContext !== 'boolean' || typeof input.model !== 'string' || typeof input.apiKey !== 'string') throw new Error('设置格式不正确。');
+  if (input.sentenceAnalysisEnabled !== undefined && typeof input.sentenceAnalysisEnabled !== 'boolean') throw new Error('长难句拆解设置格式不正确。');
+  if (input.provider !== undefined && !isProviderId(input.provider)) throw new Error('请选择有效的 API 服务商。');
+  if (input.baseUrl !== undefined && typeof input.baseUrl !== 'string') throw new Error('API 地址格式不正确。');
+  if (input.jsonMode !== undefined && typeof input.jsonMode !== 'boolean') throw new Error('JSON 模式设置格式不正确。');
   const model = input.model.trim();
-  if (!/^[a-zA-Z0-9._:/-]{1,120}$/.test(model)) throw new Error('请填写有效的模型名。');
+  if (CONTROL_CHARACTERS.test(input.model) || !MODEL_NAME.test(model)) throw new Error('请填写有效的模型名。');
   if (input.apiKey.length > 4096) throw new Error('API Key 太长，请检查输入。');
+  if (CONTROL_CHARACTERS.test(input.apiKey)) throw new Error('API Key 不能包含换行或控制字符。');
   const previous = await readSettings();
+  const provider = input.provider ?? previous.provider;
+  const target = previous.profiles[provider] ?? defaultProfile(provider);
+  const baseUrl = normalizeBaseUrl(input.baseUrl ?? target.baseUrl);
+  const profile: ApiProfile = {
+    model, baseUrl,
+    jsonMode: input.jsonMode ?? target.jsonMode,
+    apiKey: input.apiKey.trim() || (keepExistingKey && baseUrl === target.baseUrl ? target.apiKey : ''),
+  };
+  const connectionChanged = provider !== previous.provider || profile.model !== previous.model || profile.apiKey !== previous.apiKey
+    || profile.baseUrl !== previous.baseUrl || profile.jsonMode !== previous.jsonMode;
   await browser.storage.local.set({
     [STORAGE_KEY]: {
-      schemaVersion: 1,
+      schemaVersion: 2,
+      connectionRevision: previous.connectionRevision + (connectionChanged ? 1 : 0),
       enabled: input.enabled,
       includeContext: input.includeContext,
-      model,
-      apiKey: keepExistingKey && !input.apiKey.trim() ? previous.apiKey : input.apiKey.trim(),
+      sentenceAnalysisEnabled: input.sentenceAnalysisEnabled ?? previous.sentenceAnalysisEnabled,
+      provider, ...profile,
+      profiles: { ...previous.profiles, [provider]: profile },
     } satisfies StoredSettings,
   });
 }

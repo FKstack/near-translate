@@ -148,7 +148,7 @@ export function PdfReaderApp() {
         </div>}
         {state.pages > 0 && state.noText && <div className="reader-notice reader-no-text" role="status">当前页没有可选文字，暂不支持 OCR。可切换到含文字的页面后划词翻译。</div>}
       </section>
-      <footer className="reader-footer">双击英文单词 / 拖选句段 → 点击“译”<span>DeepSeek · 简体中文</span></footer>
+      <footer className="reader-footer">双击英文单词 / 拖选句段 → 点击“译”<span>当前模型 · 简体中文</span></footer>
 
       {state.password && <div className="reader-modal-backdrop">
         <form className="reader-password-dialog" role="dialog" aria-modal="true" aria-labelledby="password-title" onSubmit={submitPassword}>

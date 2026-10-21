@@ -2,6 +2,8 @@
 * { box-sizing: border-box; }
 body { margin: 0; }
 button, input, select { font: inherit; }
+fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+select { border: 1px solid #cdd9e6; border-radius: 8px; padding: 11px 12px; background: white; color: #183047; width: 100%; }
 button { cursor: pointer; border: 1px solid #d5dfea; border-radius: 9px; padding: 10px 16px; color: #19334d; background: white; transition: background .15s; }
 button:hover { background: #edf3fb; }
 button:disabled { opacity: .55; cursor: default; }

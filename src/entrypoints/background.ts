@@ -1,14 +1,17 @@
 import { browser } from 'wxt/browser';
-import { DeepSeekProvider } from '@/providers/deepseek';
+import { OpenAICompatibleProvider } from '@/providers/openai-compatible';
+import { apiOriginPattern, getProvider } from '@/shared/api-config';
 import { normalizeTranslationInput } from '@/core/input';
 import { toTranslationError } from '@/core/errors';
 import { REQUEST_TIMEOUT_MS, TRANSLATION_PORT, type TranslationServerMessage } from '@/shared/contracts';
-import { publicSettings, readSettings, restrictStorageAccess, saveSettings, WEB_ORIGINS } from '@/platform/settings';
+import { connectionSettings, publicSettings, readSettings, restrictStorageAccess, saveSettings, WEB_ORIGINS } from '@/platform/settings';
 import { broadcastPublicSettings, synchronizeContentRegistration } from '@/platform/web-access';
 
 export default defineBackground(() => {
   let registrationQueue = Promise.resolve();
+  let settingsQueue = Promise.resolve();
   let activeCount = 0;
+  const requests = new Map<AbortController, () => void>();
   const synchronize = () => {
     registrationQueue = registrationQueue.catch(() => {}).then(synchronizeContentRegistration);
     return registrationQueue;
@@ -24,7 +27,7 @@ export default defineBackground(() => {
     if (sender.id !== browser.runtime.id || !message || typeof message !== 'object') return false;
     const request = message as Record<string, unknown>;
     if (request.type === 'get-settings') {
-      void publicSettings().then(sendResponse).catch(() => sendResponse({ enabled: false, includeContext: true, model: 'deepseek-flash', hasApiKey: false, webAccess: false }));
+      void publicSettings().then(sendResponse).catch(() => sendResponse({ enabled: false, includeContext: true, sentenceAnalysisEnabled: false, model: 'deepseek-flash', hasApiKey: false, webAccess: false }));
       return true;
     }
     if (request.type === 'open-options') {
@@ -32,17 +35,26 @@ export default defineBackground(() => {
       return true;
     }
     const trusted = sender.url?.startsWith(browser.runtime.getURL('')) === true;
+    if (request.type === 'get-connection-settings' && trusted) {
+      void connectionSettings().then(sendResponse).catch(() => sendResponse({ ok: false }));
+      return true;
+    }
     if (request.type === 'save-settings' && trusted) {
-      void (async () => {
+      settingsQueue = settingsQueue.catch(() => {}).then(async () => {
         try {
+          const previous = await readSettings();
           await saveSettings(request.settings, request.keepExistingKey === true);
+          const updated = await readSettings();
+          if (!updated.enabled || previous.connectionRevision !== updated.connectionRevision) {
+            for (const cancel of requests.values()) cancel();
+          }
           await synchronize();
           await broadcastPublicSettings();
-          sendResponse({ ok: true, settings: await publicSettings() });
+          sendResponse({ ok: true, settings: await connectionSettings() });
         } catch (error) {
           sendResponse({ ok: false, error: error instanceof Error ? error.message : '保存设置失败。' });
         }
-      })();
+      });
       return true;
     }
     if (request.type === 'refresh-permissions' && trusted) {
@@ -77,12 +89,18 @@ export default defineBackground(() => {
       if (request.type === 'heartbeat') return;
       if (request.type !== 'translate') return;
       current?.controller.abort();
-      if (activeCount >= 16) {
+      if (activeCount >= 64) {
         current = undefined;
         send({ type: 'error', requestId, error: { code: 'RATE_LIMIT', message: '同时翻译的页面过多，请稍后重试。', retryable: true } });
         return;
       }
       const owner = { requestId, controller: new AbortController() };
+      requests.set(owner.controller, () => {
+        if (!closed && current === owner) send({ type: 'error', requestId, error: {
+          code: 'CONFIG', message: '翻译配置已更改，请使用当前设置重新翻译。', retryable: false,
+        } });
+        owner.controller.abort();
+      });
       current = owner;
       activeCount += 1;
       let timedOut = false;
@@ -99,12 +117,22 @@ export default defineBackground(() => {
             return;
           }
           if (!belongs()) return;
-          if (!settings.enabled || !settings.apiKey) {
-            send({ type: 'error', requestId, error: { code: 'CONFIG', message: settings.enabled ? '请先在扩展设置中填写 DeepSeek API Key。' : '翻译已暂停，请在扩展设置中启用。', retryable: false } });
+          if (!settings.enabled || (!settings.apiKey && getProvider(settings.provider).requiresApiKey)) {
+            send({ type: 'error', requestId, error: { code: 'CONFIG', message: settings.enabled ? '请先在扩展设置中填写 API Key。' : '翻译已暂停，请在扩展设置中启用。', retryable: false } });
             return;
           }
+          if (!await browser.permissions.contains({ origins: [apiOriginPattern(settings.baseUrl)] })) {
+            if (belongs()) send({ type: 'error', requestId, error: { code: 'CONFIG', message: 'API 地址的访问权限尚未授予，请打开翻译设置重新保存并授权。', retryable: false } });
+            return;
+          }
+          if (!belongs()) return;
           if (!settings.includeContext) delete input.context;
-          const provider = new DeepSeekProvider({ apiKey: settings.apiKey, model: settings.model });
+          if (input.task === 'sentence-analysis' && !settings.sentenceAnalysisEnabled) {
+            send({ type: 'error', requestId, error: { code: 'CONFIG', message: '长难句拆解已关闭，可在翻译设置中开启。', retryable: false } });
+            return;
+          }
+          const provider = new OpenAICompatibleProvider({ apiKey: settings.apiKey, model: settings.model,
+            provider: settings.provider, baseUrl: settings.baseUrl, jsonMode: settings.jsonMode });
           send({ type: 'started', requestId });
           for await (const event of provider.translate(input, owner.controller.signal)) {
             if (!belongs()) break;
@@ -116,6 +144,7 @@ export default defineBackground(() => {
           else if (!owner.controller.signal.aborted) send({ type: 'error', requestId, error: toTranslationError(error) });
         } finally {
           clearTimeout(timeout);
+          requests.delete(owner.controller);
           activeCount -= 1;
           if (current === owner) current = undefined;
         }

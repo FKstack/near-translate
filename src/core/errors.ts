@@ -21,7 +21,7 @@ export function toTranslationError(error: unknown): TranslationError {
     return { code: 'DISCONNECTED', message: '翻译请求已取消。', retryable: true };
   }
   if (error instanceof TypeError) {
-    return { code: 'NETWORK', message: '无法连接 DeepSeek，请检查网络后重试。', retryable: true };
+    return { code: 'NETWORK', message: '无法连接翻译服务，请检查网络后重试。', retryable: true };
   }
   // Never send an arbitrary server/browser exception (which may contain secrets) to a page.
   return { code: 'SERVER', message: '翻译暂时失败，请稍后重试。', retryable: true };
@@ -32,16 +32,16 @@ export function httpFailure(status: number): TranslationFailure {
     return new TranslationFailure('AUTH', 'API Key 无效或没有访问权限，请在设置中检查。');
   }
   if (status === 402) {
-    return new TranslationFailure('BALANCE', 'DeepSeek 账户余额不足，请充值后重试。');
+    return new TranslationFailure('BALANCE', '翻译服务账户余额不足，请充值后重试。');
   }
   if (status === 429) {
     return new TranslationFailure('RATE_LIMIT', '请求过于频繁，请稍后重试。', true);
   }
   if (status === 408 || status === 504) {
-    return new TranslationFailure('TIMEOUT', 'DeepSeek 响应超时，请重试。', true);
+    return new TranslationFailure('TIMEOUT', '翻译服务响应超时，请重试。', true);
   }
   if (status === 400 || status === 404 || status === 422) {
-    return new TranslationFailure('CONFIG', 'DeepSeek 拒绝了请求，请检查设置中的模型名称。');
+    return new TranslationFailure('CONFIG', '翻译服务拒绝了请求，请检查 API 地址、模型名称与接口兼容性。');
   }
-  return new TranslationFailure('SERVER', `DeepSeek 服务暂时不可用（HTTP ${status}），请稍后重试。`, true);
+  return new TranslationFailure('SERVER', `翻译服务服务暂时不可用（HTTP ${status}），请稍后重试。`, true);
 }

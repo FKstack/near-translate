@@ -3,6 +3,9 @@ export interface TranslationInput {
   text: string;
   context?: string;
   kind: TranslationKind;
+  /** A bounded set of page passages; never used for dictionary selections. */
+  pageSegments?: string[];
+  task?: 'sentence-analysis';
 }
 export interface WordSense {
   partOfSpeech: string;
@@ -18,10 +21,19 @@ export interface WordResult {
 export interface TextResult {
   kind: 'text';
   translation: string;
+  segments?: string[];
 }
 export type TranslationResult = WordResult | TextResult;
+export type GrammarCategory = 'subject' | 'predicate' | 'object' | 'clause' | 'modifier' | 'other';
+export interface SentenceAnalysis {
+  mainClause: { text: string; translation: string; explanation: string };
+  chunks: Array<{ text: string; role: string; explanation: string; category?: GrammarCategory }>;
+  readingGuide: string;
+}
 export type TranslationEvent =
   | { type: 'delta'; text: string }
+  | { type: 'segment'; index: number; text: string }
+  | { type: 'analysis'; analysis: SentenceAnalysis }
   | { type: 'result'; result: TranslationResult };
 export interface TranslationProvider {
   translate(input: TranslationInput, signal: AbortSignal): AsyncIterable<TranslationEvent>;
@@ -29,16 +41,35 @@ export interface TranslationProvider {
 export interface EditableSettings {
   enabled: boolean;
   includeContext: boolean;
+  sentenceAnalysisEnabled: boolean;
   model: string;
   apiKey: string;
+  provider: ProviderId;
+  baseUrl: string;
+  jsonMode: boolean;
 }
-export interface StoredSettings extends EditableSettings { schemaVersion: 1 }
+export type ProviderId = 'deepseek' | 'openai' | 'gemini' | 'qwen' | 'moonshot' | 'siliconflow' | 'openrouter' | 'ollama' | 'custom';
+export interface ApiProfile { model: string; apiKey: string; baseUrl: string; jsonMode: boolean }
+export interface PublicApiProfile { model: string; hasApiKey: boolean; baseUrl: string; jsonMode: boolean }
+export interface StoredSettings extends EditableSettings { schemaVersion: 2; connectionRevision: number; profiles: Partial<Record<ProviderId, ApiProfile>> }
 export interface PublicSettings {
   enabled: boolean;
   includeContext: boolean;
+  sentenceAnalysisEnabled: boolean;
   model: string;
   hasApiKey: boolean;
   webAccess: boolean;
+  provider?: ProviderId;
+  requiresApiKey?: boolean;
+  apiAccess?: boolean;
+  connectionRevision?: number;
+}
+/** Only returned to trusted extension pages; never contains API keys. */
+export interface ConnectionSettings extends PublicSettings {
+  provider: ProviderId;
+  baseUrl: string;
+  jsonMode: boolean;
+  profiles: Partial<Record<ProviderId, PublicApiProfile>>;
 }
 export type ErrorCode = 'CONFIG' | 'AUTH' | 'BALANCE' | 'RATE_LIMIT' | 'NETWORK' | 'TIMEOUT' | 'INVALID_RESPONSE' | 'INVALID_INPUT' | 'DISCONNECTED' | 'SERVER';
 export interface TranslationError { code: ErrorCode; message: string; retryable: boolean }
@@ -55,6 +86,8 @@ export const TRANSLATION_PORT = 'near-translate:v1';
 export const DEFAULT_MODEL = 'deepseek-flash';
 export const MAX_TEXT_LENGTH = 12_000;
 export const MAX_CONTEXT_LENGTH = 600;
+export const MAX_PAGE_BATCH_ITEMS = 16;
+export const MAX_SENTENCE_ANALYSIS_LENGTH = 2_000;
 export const REQUEST_TIMEOUT_MS = 90_000;
 export const CLIENT_TIMEOUT_MS = 95_000;
 export const HEARTBEAT_MS = 15_000;

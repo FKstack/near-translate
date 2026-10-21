@@ -51,7 +51,7 @@ export class SseDecoder {
 
   private checkLimit(length: number): void {
     if (length > MAX_EVENT_LENGTH) {
-      throw new TranslationFailure('INVALID_RESPONSE', 'DeepSeek 返回的数据过大，请缩短选区后重试。', true);
+      throw new TranslationFailure('INVALID_RESPONSE', '翻译服务返回的数据过大，请缩短选区后重试。', true);
     }
   }
 }

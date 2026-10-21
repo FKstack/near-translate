@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { DeepSeekProvider, HEADER_TIMEOUT_MS, STREAM_IDLE_TIMEOUT_MS } from '../../src/providers/deepseek';
 import { SseDecoder } from '../../src/providers/sse';
 import { TranslationFailure } from '../../src/core/errors';
-import type { TranslationEvent, TranslationInput } from '../../src/shared/contracts';
+import type { SentenceAnalysis, TranslationEvent, TranslationInput } from '../../src/shared/contracts';
 
 const textInput: TranslationInput = { text: 'The result is not significant at 0.05.', kind: 'text' };
 const wordInput: TranslationInput = { text: 'bank', context: 'They deposited money at the bank.', kind: 'word' };
@@ -312,5 +312,192 @@ describe('SSE framing', () => {
 
   it('bounds unterminated event buffers', () => {
     expect(() => new SseDecoder().push('data: ' + 'x'.repeat(256_001))).toThrow(TranslationFailure);
+  });
+});
+
+describe('DeepSeek page batches', () => {
+  const pageSegments = ['First paragraph.', 'Second paragraph.'];
+  const input: TranslationInput = { kind: 'text', text: pageSegments.join('\n'), pageSegments };
+
+  it('streams indexed passages across token and UTF-8 boundaries without exposing raw JSON deltas', async () => {
+    const fetcher = transport(delta('{"i":0,"t":"第一') + delta('段"}\r\n{"i":1,')
+      + delta('"t":"第二段"}') + delta(null, 'stop') + 'data: [DONE]\n\n', Array(300).fill(1));
+    const events = await collect(new DeepSeekProvider({ apiKey: 'test-key' }, fetcher), input);
+    expect(events).toEqual([
+      { type: 'segment', index: 0, text: '第一段' },
+      { type: 'segment', index: 1, text: '第二段' },
+      { type: 'result', result: { kind: 'text', translation: '第一段\n\n第二段', segments: ['第一段', '第二段'] } },
+    ]);
+    const [url, init] = fetcher.mock.calls[0]!;
+    expect(url).toBe('https://api.deepseek.com/chat/completions');
+    const body = JSON.parse(String(init?.body));
+    expect(body.thinking).toEqual({ type: 'disabled' });
+    expect(body.stream).toBe(true);
+    expect(body.response_format).toBeUndefined();
+    expect(body.max_tokens).toBeLessThan(8192);
+    expect(JSON.parse(body.messages[1].content)).toEqual({ segments: pageSegments.map((text, i) => ({ i, text })) });
+  });
+
+  it('delivers the first passage before the rest of the response has arrived', async () => {
+    let sink!: ReadableStreamDefaultController<Uint8Array>;
+    const body = new ReadableStream<Uint8Array>({ start(controller) { sink = controller; } });
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(new Response(body));
+    const iterator = new DeepSeekProvider({ apiKey: 'test-key' }, fetcher)
+      .translate(input, new AbortController().signal)[Symbol.asyncIterator]();
+    const first = iterator.next();
+    sink.enqueue(encoder.encode(delta('{"i":0,"t":"第一段"}\n')));
+    expect((await first).value).toEqual({ type: 'segment', index: 0, text: '第一段' });
+    sink.enqueue(encoder.encode(delta('{"i":1,"t":"第二段"}\n') + delta(null, 'stop') + 'data: [DONE]\n\n'));
+    sink.close();
+    expect((await iterator.next()).value).toEqual({ type: 'segment', index: 1, text: '第二段' });
+    expect((await iterator.next()).value).toMatchObject({ type: 'result', result: { segments: ['第一段', '第二段'] } });
+    expect((await iterator.next()).done).toBe(true);
+    expect(body.locked).toBe(false);
+  });
+
+  it('reports a later service failure without retracting already delivered passages or finalizing the batch', async () => {
+    const fetcher = transport(delta('{"i":0,"t":"已返回"}\n') + 'data: {"error":{"message":"private"}}\n\n');
+    const iterator = new DeepSeekProvider({ apiKey: 'test-key' }, fetcher)
+      .translate(input, new AbortController().signal)[Symbol.asyncIterator]();
+    expect((await iterator.next()).value).toEqual({ type: 'segment', index: 0, text: '已返回' });
+    await expect(iterator.next()).rejects.toMatchObject({ code: 'SERVER', retryable: true });
+  });
+
+  it('commits a valid passage before a malformed later line from the same model delta', async () => {
+    const fetcher = transport(delta('{"i":0,"t":"已返回"}\n{"i":1,"t":false}\n')
+      + delta(null, 'stop') + 'data: [DONE]\n\n');
+    const iterator = new DeepSeekProvider({ apiKey: 'test-key' }, fetcher)
+      .translate(input, new AbortController().signal)[Symbol.asyncIterator]();
+    expect((await iterator.next()).value).toEqual({ type: 'segment', index: 0, text: '已返回' });
+    await expect(iterator.next()).rejects.toMatchObject({ code: 'INVALID_RESPONSE', retryable: true });
+  });
+
+  it('leaves room for complete Chinese output and indexed-record overhead in a typical page batch', async () => {
+    const parts = Array.from({ length: 16 }, () => 'A technical paragraph that preserves all its meaning. '.repeat(2).slice(0, 99));
+    const source = parts.join('\n');
+    const ndjson = parts.map((_, i) => JSON.stringify({ i, t: '完整译文。' })).join('\n') + '\n';
+    const fetcher = transport(delta(ndjson) + delta(null, 'stop') + 'data: [DONE]\n\n');
+    await collect(new DeepSeekProvider({ apiKey: 'test-key' }, fetcher), { kind: 'text', text: source, pageSegments: parts });
+    const body = JSON.parse(String(fetcher.mock.calls[0]?.[1]?.body));
+    expect(source.length).toBe(1599);
+    expect(body.max_tokens).toBeGreaterThanOrEqual(2400);
+    expect(body.max_tokens).toBeLessThanOrEqual(8192);
+  });
+
+  it.each([
+    delta('{"i":0,"t":"只返回一段"}\n') + delta(null, 'stop') + 'data: [DONE]\n\n',
+    delta('{"i":0,"t":"第一段"}\n{"i":0,"t":"重复"}\n') + delta(null, 'stop') + 'data: [DONE]\n\n',
+    delta('{"i":0,"t":"第一段"}\n{"i":1,"t":"第二段"}\n'),
+    delta('{"i":0,"t":"第一段"}\n{"i":1,"t":"第二段"}\n') + delta(null, 'length'),
+  ])('never reports a completed result for incomplete or invalid batches', async (sse) => {
+    const observed: TranslationEvent[] = [];
+    await expect((async () => {
+      for await (const event of new DeepSeekProvider({ apiKey: 'test-key' }, transport(sse))
+        .translate(input, new AbortController().signal)) observed.push(event);
+    })()).rejects.toMatchObject({ code: 'INVALID_RESPONSE' });
+    expect(observed.some(event => event.type === 'result')).toBe(false);
+  });
+
+  it('cancels a batch after its first streamed passage and releases the reader', async () => {
+    const cancel = vi.fn();
+    const body = new ReadableStream<Uint8Array>({
+      start(controller) { controller.enqueue(encoder.encode(delta('{"i":0,"t":"第一段"}\n'))); }, cancel,
+    });
+    const abort = new AbortController();
+    const iterator = new DeepSeekProvider({ apiKey: 'test-key' }, vi.fn<typeof fetch>().mockResolvedValue(new Response(body)))
+      .translate(input, abort.signal)[Symbol.asyncIterator]();
+    expect((await iterator.next()).value).toMatchObject({ type: 'segment', index: 0 });
+    const pending = iterator.next();
+    abort.abort();
+    await expect(pending).rejects.toMatchObject({ name: 'AbortError' });
+    expect(cancel).toHaveBeenCalledOnce();
+    expect(body.locked).toBe(false);
+  });
+});
+
+describe('DeepSeek sentence analysis', () => {
+  const source = 'The server, which handles incoming requests, can recover after a failure.';
+  const input: TranslationInput = { kind: 'text', text: source, task: 'sentence-analysis' };
+  const analysis: SentenceAnalysis = {
+    mainClause: { text: 'The server can recover', translation: '服务器能够恢复。', explanation: '主语加情态动词和谓语。' },
+    chunks: [
+      { text: 'The server,', role: '主语', explanation: '说明句子的主体。' },
+      { text: 'which handles incoming requests,', role: '定语从句', explanation: '补充说明服务器。' },
+      { text: 'can recover after a failure.', role: '谓语和状语', explanation: '说明能够在故障后恢复。' },
+    ],
+    readingGuide: '先读主干，再把补充说明和时间状语放回句中。',
+  };
+
+  it('keeps analysis JSON private until validated and emits only the independent terminal analysis event', async () => {
+    const json = JSON.stringify(analysis);
+    const fetcher = transport(delta(json.slice(0, 23)) + delta(json.slice(23, 95)) + delta(json.slice(95))
+      + delta(null, 'stop') + 'data: [DONE]\n\n', Array(400).fill(1));
+    const events = await collect(new DeepSeekProvider({ apiKey: 'test-key' }, fetcher), input);
+    expect(events).toEqual([{ type: 'analysis', analysis }]);
+    const [url, init] = fetcher.mock.calls[0]!;
+    expect(url).toBe('https://api.deepseek.com/chat/completions');
+    const body = JSON.parse(String(init?.body));
+    expect(body.model).toBe('deepseek-flash');
+    expect(body.thinking).toEqual({ type: 'disabled' });
+    expect(body.max_tokens).toBe(4096);
+    expect(body.response_format).toEqual({ type: 'json_object' });
+    expect(JSON.parse(body.messages[1].content)).toEqual({ task: 'sentence-analysis', selectedText: source });
+  });
+
+  it('retains validated grammar categories in the same analysis response without an extra API call', async () => {
+    const categorized: SentenceAnalysis = { ...analysis, chunks: [
+      { ...analysis.chunks[0]!, category: 'subject' },
+      { ...analysis.chunks[1]!, category: 'clause' },
+      { ...analysis.chunks[2]!, category: 'predicate' },
+    ] };
+    const fetcher = transport(delta(JSON.stringify(categorized)) + delta(null, 'stop') + 'data: [DONE]\n\n');
+    expect(await collect(new DeepSeekProvider({ apiKey: 'test-key' }, fetcher), input)).toEqual([{ type: 'analysis', analysis: categorized }]);
+    expect(fetcher).toHaveBeenCalledOnce();
+  });
+
+  it.each([
+    'not JSON', '{}',
+    JSON.stringify({ ...analysis, chunks: [{ text: 'The server,', role: '主语', explanation: '遗漏了后半句。' }] }),
+    JSON.stringify({ ...analysis, mainClause: { ...analysis.mainClause, text: 'The server must recover' } }),
+  ])('fails malformed analysis without producing a translation replacement or raw model output', async (json) => {
+    const observed: TranslationEvent[] = [];
+    await expect((async () => {
+      for await (const event of new DeepSeekProvider({ apiKey: 'test-key' }, transport(delta(json) + delta(null, 'stop') + 'data: [DONE]\n\n'))
+        .translate(input, new AbortController().signal)) observed.push(event);
+    })()).rejects.toMatchObject({ code: 'INVALID_RESPONSE', retryable: true });
+    expect(observed).toEqual([]);
+  });
+
+  it('requires a complete SSE response before exposing analysis', async () => {
+    await expect(collect(new DeepSeekProvider({ apiKey: 'test-key' }, transport(delta(JSON.stringify(analysis)))), input))
+      .rejects.toMatchObject({ code: 'INVALID_RESPONSE' });
+  });
+
+  it('rejects ineligible analysis input before calling DeepSeek', async () => {
+    const fetcher = vi.fn<typeof fetch>();
+    await expect(collect(new DeepSeekProvider({ apiKey: 'test-key' }, fetcher), { kind: 'text', text: 'Too short.', task: 'sentence-analysis' }))
+      .rejects.toMatchObject({ code: 'INVALID_INPUT' });
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
+  it('cancels partially generated analysis without leaking JSON deltas or a late terminal event', async () => {
+    const cancel = vi.fn();
+    const body = new ReadableStream<Uint8Array>({
+      start(controller) { controller.enqueue(encoder.encode(delta('{"mainClause":{"text":"The server'))); }, cancel,
+    });
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(new Response(body));
+    const abort = new AbortController();
+    const observed: TranslationEvent[] = [];
+    const pending = (async () => {
+      for await (const event of new DeepSeekProvider({ apiKey: 'test-key' }, fetcher).translate(input, abort.signal)) observed.push(event);
+    })();
+    for (let turn = 0; turn < 20 && !body.locked; turn++) await Promise.resolve();
+    expect(body.locked).toBe(true);
+    const reason = new TranslationFailure('TIMEOUT', '分析已取消', true);
+    abort.abort(reason);
+    await expect(pending).rejects.toBe(reason);
+    expect(observed).toEqual([]);
+    expect(cancel).toHaveBeenCalledOnce();
+    expect(body.locked).toBe(false);
   });
 });

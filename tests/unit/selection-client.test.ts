@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { CLIENT_TIMEOUT_MS, HEARTBEAT_MS, type TranslationServerMessage } from '../../src/shared/contracts';
+import { CLIENT_TIMEOUT_MS, HEARTBEAT_MS, type TranslationServerMessage, type SentenceAnalysis } from '../../src/shared/contracts';
 
 const mock = vi.hoisted(() => ({ connect: vi.fn() }));
 vi.mock('wxt/browser', () => ({ browser: { runtime: { connect: mock.connect } } }));
@@ -79,6 +79,37 @@ describe('selection request lifecycle', () => {
     port.receive({ type: 'error', requestId, error: { code: 'SERVER', message: 'late', retryable: true } });
     vi.advanceTimersByTime(CLIENT_TIMEOUT_MS);
     expect(events).not.toHaveBeenCalled();
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('finishes an analysis event and rejects subsequent duplicate or cancelled callbacks', () => {
+    const port = fakePort();
+    mock.connect.mockReturnValue(port);
+    const events = vi.fn();
+    const client = new TranslationClient(events);
+    const requestId = client.start({ kind: 'text', text: 'The server can recover after a failure.', task: 'sentence-analysis' });
+    const analysis: SentenceAnalysis = { mainClause: { text: 'The server can recover', translation: '服务器可以恢复。', explanation: '主干说明。' },
+      chunks: [{ text: 'The server can recover after a failure.', role: '主句', explanation: '结构说明。' }], readingGuide: '先读主干。' };
+    port.receive({ type: 'analysis', requestId, analysis });
+    port.receive({ type: 'analysis', requestId, analysis });
+    expect(events).toHaveBeenCalledExactlyOnceWith({ type: 'analysis', requestId, analysis });
+    expect(vi.getTimerCount()).toBe(0);
+    client.dispose();
+  });
+
+  it('allows a terminal callback to start an independent analysis without clearing its new timers', () => {
+    const port = fakePort();
+    mock.connect.mockReturnValue(port);
+    let analysisId: string | undefined;
+    const client = new TranslationClient(event => {
+      if (event.type === 'result') analysisId = client.start({ kind: 'text', text: 'The server can recover after a failure.', task: 'sentence-analysis' });
+    });
+    const translated = client.start({ kind: 'text', text: 'The server can recover after a failure.' });
+    port.receive({ type: 'result', requestId: translated, result: { kind: 'text', translation: '服务器可以在故障后恢复。' } });
+    expect(analysisId).toBeDefined();
+    vi.advanceTimersByTime(HEARTBEAT_MS);
+    expect(port.postMessage).toHaveBeenLastCalledWith({ type: 'heartbeat', requestId: analysisId });
+    client.dispose();
     expect(vi.getTimerCount()).toBe(0);
   });
 });

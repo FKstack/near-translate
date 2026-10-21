@@ -15,6 +15,7 @@ function Options() {
   const [apiKey, setApiKey] = useState('');
   const [enabled, setEnabled] = useState(true);
   const [includeContext, setIncludeContext] = useState(true);
+  const [sentenceAnalysisEnabled, setSentenceAnalysisEnabled] = useState(true);
   const [hasApiKey, setHasApiKey] = useState(false);
   const [webAccess, setWebAccess] = useState(false);
   const [ready, setReady] = useState(false);
@@ -24,6 +25,7 @@ function Options() {
   const [removeKey, setRemoveKey] = useState(false);
   const apply = (settings: ConnectionSettings) => {
     setModel(settings.model); setEnabled(settings.enabled); setIncludeContext(settings.includeContext);
+    setSentenceAnalysisEnabled(settings.sentenceAnalysisEnabled);
     setHasApiKey(settings.hasApiKey); setWebAccess(settings.webAccess);
     setProvider(settings.provider); setBaseUrl(settings.baseUrl); setJsonMode(settings.jsonMode); setProfiles(settings.profiles);
   };
@@ -52,7 +54,7 @@ function Options() {
       // Request from the submit gesture, before awaiting any other operation.
       const granted = removeKey || !enabled || await browser.permissions.request({ origins: [apiOriginPattern(normalizedUrl)] });
       if (!granted) throw new Error('未获得此 API 地址的访问权限，设置尚未保存。');
-      const result = await browser.runtime.sendMessage({ type: 'save-settings', settings: { provider, baseUrl: normalizedUrl, jsonMode, model, apiKey, enabled, includeContext }, keepExistingKey: !removeKey });
+      const result = await browser.runtime.sendMessage({ type: 'save-settings', settings: { provider, baseUrl: normalizedUrl, jsonMode, model, apiKey, enabled, includeContext, sentenceAnalysisEnabled }, keepExistingKey: !removeKey });
       if (!result?.ok) throw new Error(result?.error ?? '保存失败，请重试。');
       apply(result.settings); setApiKey(''); setRemoveKey(false); setNotice('设置已保存。已打开的网页如未出现按钮，请刷新一次。');
     } catch (reason) { setError(reason instanceof Error ? reason.message : '保存失败。'); }
@@ -82,9 +84,11 @@ function Options() {
         </div>
         <div className="field"><label htmlFor="model">模型名</label><input id="model" type="text" value={model} onChange={event => setModel(event.target.value)} required maxLength={200} placeholder="填写你有权访问的模型 ID" /><div className="muted">按服务文档填写完整模型 ID；聚合服务可能包含厂商前缀，本地模型须已下载。DeepSeek 默认 deepseek-flash，关闭思考。</div></div>
         <label className="check"><input type="checkbox" checked={jsonMode} onChange={event => setJsonMode(event.target.checked)} />JSON 模式</label>
-        <p className="muted">仅对词典请求启用 JSON 输出约束。服务不支持 response_format 时请关闭；关闭后仍会校验结果格式。</p>
+        <p className="muted">仅对词典和长难句拆解请求启用 JSON 输出约束。服务不支持 response_format 时请关闭；关闭后仍会校验结果格式。</p>
         <label className="check"><input type="checkbox" checked={enabled} onChange={event => setEnabled(event.target.checked)} />启用翻译</label>
         <label className="check"><input type="checkbox" checked={includeContext} onChange={event => setIncludeContext(event.target.checked)} />附带所在句或附近一句上下文，提高词义判断准确度</label>
+        <label className="check"><input type="checkbox" checked={sentenceAnalysisEnabled} onChange={event => setSentenceAnalysisEnabled(event.target.checked)} />长难句拆解</label>
+        <p className="muted">选中单个英文长句翻译后，展示句子主干、分块阅读和阅读顺序，并用不同颜色标出主语、谓语、宾语和从句，在卡片原句中高亮对照。关闭此项会同时关闭拆解和所有彩色标注。译文先显示，拆解随后补充，会额外调用一次当前模型；彩色对照不增加请求。单词和整页翻译不触发，多句内容请分句选择。</p>
         <p className="muted">划词额外上下文最多 600 字符；整页翻译逐段发送英文正文，代码块、图片与输入区域会跳过。仅点击翻译后调用 API。</p>
         <div className="actions"><button className="primary" disabled={busy || !ready} type="submit">{busy ? '正在保存…' : '保存设置'}</button><span className="muted">{keepsKey ? '✓ 已配置 Key' : preset.requiresApiKey ? '尚未配置 Key' : '支持无 Key 连接'}</span></div>
       </fieldset>

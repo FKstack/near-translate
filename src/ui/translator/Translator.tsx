@@ -3,6 +3,9 @@ import type { TranslationError, TranslationResult, WordResult } from '../../shar
 import { placeOverlay, type Point } from '../../selection/helpers';
 import type { SelectionSnapshot } from '../../selection/snapshot';
 import { formatTranslationForCopy, groupWordSenses, MISSING_CONTEXT_NOTE } from './word-result';
+import { SentenceAnalysisPanel, sentenceAnalysisStyles, type SentenceAnalysisView } from './SentenceAnalysis';
+import { AnnotatedSentence, annotatedSentenceStyles } from './AnnotatedSentence';
+import { mapSentenceHighlights } from './sentence-highlights';
 
 export type TranslatorView =
   | { mode: 'hidden' }
@@ -10,6 +13,7 @@ export type TranslatorView =
   | {
       mode: 'card'; selection: SelectionSnapshot; status: 'loading' | 'done' | 'error';
       streamed: string; result?: TranslationResult; error?: TranslationError;
+      analysis?: SentenceAnalysisView;
     };
 
 export const translatorStyles = `
@@ -60,6 +64,8 @@ button:disabled { opacity: .5; cursor: default; }
 .nt-action:hover { background: #e6efe5; }
 .nt-primary { color: #fff; background: #186551; border-color: #186551; }
 .nt-primary:hover { background: #114e3e; }
+${sentenceAnalysisStyles}
+${annotatedSentenceStyles}
 `;
 
 function viewportSize(): { width: number; height: number } {
@@ -93,18 +99,23 @@ function WordTranslation({ result, context }: { result: WordResult; context?: st
   </div>;
 }
 
-export function Translator({ view, source, onTranslate, onClose, onRetry, onSettings }: {
+export function Translator({ view, source, onTranslate, onClose, onRetry, onSettings, onRetryAnalysis }: {
   view: TranslatorView;
   source: 'web' | 'pdf';
   onTranslate: () => void;
   onClose: () => void;
   onRetry: () => void;
   onSettings: () => void;
+  onRetryAnalysis: () => void;
 }) {
   const floating = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState<Point>({ x: 10, y: 10 });
   const [copyStatus, setCopyStatus] = useState<'idle' | 'copied' | 'failed'>('idle');
+  const [activeChunk, setActiveChunk] = useState<number>();
   const selection = view.mode === 'hidden' ? undefined : view.selection;
+  const analysis = view.mode === 'card' && view.selection.input.kind === 'text' && view.analysis?.status === 'done'
+    ? view.analysis.result : undefined;
+  const highlights = selection && analysis ? mapSentenceHighlights(selection.input.text, analysis) : undefined;
 
   useLayoutEffect(() => {
     if (!selection || !floating.current) return;
@@ -128,8 +139,32 @@ export function Translator({ view, source, onTranslate, onClose, onRetry, onSett
   }, [selection, view.mode]);
 
   useLayoutEffect(() => { setCopyStatus('idle'); }, [selection]);
+  useLayoutEffect(() => { setActiveChunk(undefined); }, [selection, analysis]);
 
   if (view.mode === 'hidden') return null;
+  // Restrict all navigation to the card's two scrollers, keeping the webpage and its selection intact.
+  const selectChunk = (index: number, target: 'source' | 'chunk') => {
+    if (!highlights?.some(item => item.index === index)) return;
+    setActiveChunk(index);
+    const card = floating.current;
+    if (!card) return;
+    if (target === 'chunk') {
+      const details = card.querySelector<HTMLDetailsElement>('.nt-analysis');
+      if (details) details.open = true;
+    }
+    const element = card.querySelector<HTMLElement>(target === 'source'
+      ? `.nt-source-mark[data-analysis-chunk="${index}"]`
+      : `.nt-analysis-chunk[data-analysis-chunk="${index}"]`);
+    const scroller = card.querySelector<HTMLElement>(target === 'source' ? '.nt-source-analyzed' : '.nt-body');
+    if (!element || !scroller) return;
+    const bounds = scroller.getBoundingClientRect();
+    const rectangle = element.getBoundingClientRect();
+    const sticky = target === 'chunk' ? card.querySelector<HTMLElement>('.nt-source-analyzed')?.getBoundingClientRect() : undefined;
+    const top = sticky ? Math.max(bounds.top, sticky.bottom) + 10 : bounds.top + scroller.clientTop + 4;
+    const bottom = bounds.bottom - 4;
+    if (rectangle.height > bottom - top || rectangle.top < top) scroller.scrollTop += rectangle.top - top;
+    else if (rectangle.bottom > bottom) scroller.scrollTop += rectangle.bottom - bottom;
+  };
   const copy = async () => {
     if (view.mode !== 'card' || !view.result) return;
     const text = formatTranslationForCopy(view.result, Boolean(view.selection.input.context?.trim()));
@@ -162,11 +197,14 @@ export function Translator({ view, source, onTranslate, onClose, onRetry, onSett
           <button className="nt-close" aria-label="关闭翻译" title="关闭 · Esc" onClick={onClose}>×</button>
         </header>
         <div className="nt-body">
-          <p className="nt-source" title={view.selection.input.text}>{view.selection.input.text}</p>
+          <AnnotatedSentence source={view.selection.input.text} highlights={highlights} activeChunk={activeChunk}
+            onSelectChunk={index => selectChunk(index, 'chunk')} />
           {view.status === 'loading' && <p className="nt-loading" role="status"><span className="nt-dot" />{view.streamed ? '正在翻译…' : '正在连接翻译服务…'}</p>}
           {view.status === 'error' && <p className="nt-error" role="alert">{view.error?.message ?? '翻译失败，请重试。'}</p>}
           {view.result?.kind === 'word' && <WordTranslation result={view.result} context={view.selection.input.context} />}
           {(view.result?.kind === 'text' || view.streamed) && <p className="nt-text">{view.result?.kind === 'text' ? view.result.translation : view.streamed}</p>}
+          {view.selection.input.kind === 'text' && view.analysis && <SentenceAnalysisPanel view={view.analysis} onRetry={onRetryAnalysis}
+            highlights={highlights} activeChunk={activeChunk} onSelectChunk={index => selectChunk(index, 'source')} />}
         </div>
         <footer className="nt-footer">
           <span className="nt-hint" role="status">{copyStatus === 'copied' ? '已复制译文' : copyStatus === 'failed' ? '复制失败，请手动选中译文' : '近译 · Esc 关闭'}</span>

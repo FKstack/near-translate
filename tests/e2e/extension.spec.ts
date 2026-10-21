@@ -4,7 +4,50 @@ import { resolve, relative } from 'node:path';
 import { pdfFixture } from './pdf-fixture';
 
 const BASE = 'http://127.0.0.1:4177';
-type CapturedRequest = { selectedText: string; context?: string; model: string; thinking: { type: string } };
+const LONG_SENTENCE = 'The report that the researchers published after the experiment was completed explains why the new method works.';
+const LONG_TRANSLATION = '实验完成后，研究人员发表的那份报告解释了新方法为何有效。';
+const SENTENCE_ANALYSIS = {
+  mainClause: {
+    text: 'The report explains why the new method works.',
+    translation: '这份报告解释了新方法为何有效。',
+    explanation: 'The report 是主语，explains 是谓语，why 引导的宾语从句说明报告解释的内容。',
+  },
+  chunks: [
+    { text: 'The report', role: '主语核心', category: 'subject', explanation: '先找到报告这个句子主语。' },
+    { text: 'that the researchers published', role: '定语从句', category: 'clause', explanation: 'that 指代 report，说明这份报告是研究人员发表的。' },
+    { text: 'after the experiment was completed', role: '时间状语从句', category: 'clause', explanation: 'after 引出实验完成这一时间条件，修饰 published。' },
+    { text: 'explains', role: '主句谓语', category: 'predicate', explanation: '主句的动作是解释。' },
+    { text: 'why the new method works.', role: '宾语从句', category: 'clause', explanation: 'why 引导从句，说明 explains 的内容。' },
+  ],
+  readingGuide: '先读 The report explains 这个主干，再把 that 定语从句放回 report 后，最后理解 after 时间状语和 why 宾语从句。',
+};
+const COLOR_SENTENCE = 'The scientist who leads the team explained the result.';
+const COLOR_SPACED_SENTENCE = 'The scientist  who leads  the team explained   the result.';
+const COLOR_TRANSLATION = '领导该团队的科学家解释了这个结果。';
+const COLOR_ANALYSIS = {
+  mainClause: {
+    text: 'The scientist explained the result.',
+    translation: '科学家解释了这个结果。',
+    explanation: 'The scientist 是主语，explained 是谓语，the result 是宾语。',
+  },
+  chunks: [
+    { text: 'The scientist', role: '主语', category: 'subject', explanation: '句子的主语是这位科学家。' },
+    { text: 'who leads the team', role: '定语从句', category: 'clause', explanation: 'who 指代 scientist，补充说明他领导着该团队。' },
+    { text: 'explained', role: '谓语', category: 'predicate', explanation: 'explained 表示主语完成了解释这个动作。' },
+    { text: 'the result.', role: '宾语', category: 'object', explanation: '解释的对象是这个结果。' },
+  ],
+  readingGuide: '先读 The scientist explained the result，再把 who 定语从句补回 scientist 后面。',
+};
+type CapturedRequest = { selectedText: string; context?: string; task?: 'sentence-analysis'; model: string; thinking: { type: string } };
+type FakeApiState = {
+  requests: CapturedRequest[];
+  cancellations: number;
+  analysisCancellations: number;
+  failNext: boolean;
+  failAnalysis: boolean;
+  analysisDelayMs: number;
+  unsafeAnalysis: boolean;
+};
 let context: BrowserContext;
 let worker: Worker;
 let extensionId: string;
@@ -13,12 +56,13 @@ let options: Page;
 let page: Page;
 
 async function installFakeApi(background: Worker): Promise<void> {
-  await background.evaluate(() => {
+  await background.evaluate(({ sentence, analysis, sentenceTranslation, colorSentence, colorAnalysis, colorTranslation }) => {
     const global = globalThis as typeof globalThis & {
-      __nearTest: { requests: Array<Record<string, unknown>>; cancellations: number; failNext: boolean };
+      __nearTest: FakeApiState;
     };
     const nativeFetch = global.fetch.bind(global);
-    global.__nearTest = { requests: [], cancellations: 0, failNext: false };
+    global.__nearTest = { requests: [], cancellations: 0, analysisCancellations: 0,
+      failNext: false, failAnalysis: false, analysisDelayMs: 900, unsafeAnalysis: false };
     global.fetch = async function (this: typeof globalThis, input, init) {
       // Match the native WorkerGlobalScope receiver contract; arrow mocks hide illegal invocations.
       if (this !== globalThis) throw new TypeError("Failed to execute 'fetch' on 'WorkerGlobalScope': Illegal invocation");
@@ -27,11 +71,16 @@ async function installFakeApi(background: Worker): Promise<void> {
       const request = JSON.parse(String(init?.body));
       const envelope = JSON.parse(request.messages[1].content);
       global.__nearTest.requests.push({ ...envelope, model: request.model, thinking: request.thinking });
+      const analyzing = envelope.task === 'sentence-analysis';
+      if (analyzing && global.__nearTest.failAnalysis) {
+        global.__nearTest.failAnalysis = false;
+        return new Response('{}', { status: 503 });
+      }
       if (global.__nearTest.failNext) {
         global.__nearTest.failNext = false;
         return new Response('{}', { status: 503 });
       }
-      const word = request.response_format?.type === 'json_object';
+      const word = !analyzing && request.response_format?.type === 'json_object';
       const entry = envelope.selectedText === 'bank' ? {
         translation: '银行', partOfSpeech: '名词', explanation: '此处指金融机构。',
         senses: [
@@ -56,10 +105,14 @@ async function installFakeApi(background: Worker): Promise<void> {
         translation: '准确性', partOfSpeech: '名词', explanation: '此处采用技术文档中的常见词义。',
         senses: [{ partOfSpeech: '名词', meaning: '准确性；精确度' }],
       };
-      const translated = word ? JSON.stringify({
+      const colorFixture = envelope.selectedText.replace(/\s+/g, ' ').trim() === colorSentence;
+      const selectedAnalysis = colorFixture ? colorAnalysis : analysis;
+      const translated = analyzing ? JSON.stringify({ ...selectedAnalysis,
+        readingGuide: global.__nearTest.unsafeAnalysis ? '<img src=x onerror="window.analysisExecuted=true">阅读顺序保持纯文本。' : selectedAnalysis.readingGuide,
+      }) : word ? JSON.stringify({
         ...entry,
         explanation: envelope.context ? entry.explanation : '未提供上下文，此为常见参考释义，需结合原句判断。',
-      }) : envelope.selectedText.startsWith('Render translated HTML')
+      }) : envelope.selectedText === sentence ? sentenceTranslation : colorFixture ? colorTranslation : envelope.selectedText.startsWith('Render translated HTML')
         ? '<img src=x onerror="window.translationExecuted=true">译文保持纯文本。'
         : envelope.selectedText.startsWith('Slow selection') ? '旧请求部分译文；旧请求最终译文。'
         : '并发并不意味着并行。\n\n在 0.05 水平下，结果不具有统计学显著性。';
@@ -77,10 +130,11 @@ async function installFakeApi(background: Worker): Promise<void> {
             done = true;
             sink.enqueue(encoder.encode(event(translated.slice(boundary)) + event(null, 'stop') + 'data: [DONE]\n\n'));
             sink.close();
-          }, envelope.selectedText.startsWith('Slow selection') ? 1_500 : word ? 80 : 700);
+          }, analyzing ? global.__nearTest.analysisDelayMs : envelope.selectedText.startsWith('Slow selection') ? 1_500 : word ? 80 : 700);
           init?.signal?.addEventListener('abort', () => {
             if (done) return;
             done = true; clearTimeout(timer); global.__nearTest.cancellations++;
+            if (analyzing) global.__nearTest.analysisCancellations++;
             sink.error(new DOMException('Aborted', 'AbortError'));
           }, { once: true });
         },
@@ -88,20 +142,22 @@ async function installFakeApi(background: Worker): Promise<void> {
       });
       return new Response(body, { headers: { 'Content-Type': 'text/event-stream' } });
     };
-  });
+  }, { sentence: LONG_SENTENCE, analysis: SENTENCE_ANALYSIS, sentenceTranslation: LONG_TRANSLATION,
+    colorSentence: COLOR_SENTENCE, colorAnalysis: COLOR_ANALYSIS, colorTranslation: COLOR_TRANSLATION });
 }
 
 async function requests(): Promise<CapturedRequest[]> {
   return worker.evaluate(() => (globalThis as unknown as { __nearTest: { requests: CapturedRequest[] } }).__nearTest.requests);
 }
 
-async function saveSettings(values: { key?: string; enabled?: boolean; includeContext?: boolean; removeKey?: boolean } = {}): Promise<void> {
+async function saveSettings(values: { key?: string; enabled?: boolean; includeContext?: boolean; removeKey?: boolean; analysis?: boolean } = {}): Promise<void> {
   await options.goto(`chrome-extension://${extensionId}/options.html`);
   await expect(options.getByRole('button', { name: '保存设置', exact: true })).toBeEnabled();
   if (values.removeKey) await options.getByRole('button', { name: '删除已保存的 Key' }).click();
   if (values.key !== undefined) await options.getByLabel('DeepSeek API Key', { exact: true }).fill(values.key);
   if (values.enabled !== undefined) await options.getByLabel('启用翻译', { exact: true }).setChecked(values.enabled);
   if (values.includeContext !== undefined) await options.getByLabel('附带所在句或附近一句上下文，提高词义判断准确度').setChecked(values.includeContext);
+  await options.getByRole('checkbox', { name: '长难句拆解', exact: true }).setChecked(values.analysis ?? false);
   await options.getByRole('button', { name: '保存设置', exact: true }).click();
   await expect(options.getByRole('status')).toContainText('设置已保存');
 }
@@ -115,6 +171,32 @@ async function selectElement(surface: Page | Frame, selector: string): Promise<v
     element.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, composed: true, clientX: rect.right - 4, clientY: rect.bottom - 4 }));
   });
   await expect(surface.getByRole('button', { name: '翻译选中的英文' })).toBeVisible();
+}
+
+async function addSentenceFixture(sentence = LONG_SENTENCE): Promise<void> {
+  await page.locator('main').evaluate((element, sentence) => {
+    const paragraph = document.createElement('p');
+    paragraph.id = 'long-sentence';
+    paragraph.style.whiteSpace = 'pre-wrap';
+    paragraph.textContent = sentence;
+    const heading = element.querySelector('h1');
+    if (heading) heading.after(paragraph);
+    else element.prepend(paragraph);
+  }, sentence);
+}
+
+async function startSentenceTranslation(sentence = LONG_SENTENCE): Promise<void> {
+  await addSentenceFixture(sentence);
+  await selectElement(page, '#long-sentence');
+  await page.getByRole('button', { name: '翻译选中的英文' }).click();
+}
+
+async function analysisRequests(): Promise<CapturedRequest[]> {
+  return (await requests()).filter(request => request.task === 'sentence-analysis');
+}
+
+async function analysisCancellations(): Promise<number> {
+  return worker.evaluate(() => (globalThis as unknown as { __nearTest: FakeApiState }).__nearTest.analysisCancellations);
 }
 
 test.beforeAll(async () => {
@@ -147,8 +229,9 @@ test.beforeAll(async () => {
 test.beforeEach(async () => {
   for (const openPage of context.pages()) if (openPage !== options) await openPage.close();
   await worker.evaluate(() => {
-    const state = (globalThis as unknown as { __nearTest: { requests: unknown[]; cancellations: number; failNext: boolean } }).__nearTest;
-    state.requests = []; state.cancellations = 0; state.failNext = false;
+    const state = (globalThis as unknown as { __nearTest: FakeApiState }).__nearTest;
+    state.requests = []; state.cancellations = 0; state.analysisCancellations = 0;
+    state.failNext = false; state.failAnalysis = false; state.analysisDelayMs = 900; state.unsafeAnalysis = false;
   });
   await saveSettings({ key: 'fake-test-key', enabled: true, includeContext: true });
   page = await context.newPage();
@@ -196,7 +279,7 @@ test('double-click word translates with context, copy and close', async ({}, tes
   await context.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: BASE });
   await page.bringToFront();
   await page.getByRole('button', { name: '复制', exact: true }).click();
-  await expect(page.getByRole('status')).toContainText('已复制译文');
+  await expect(page.locator('near-translate').getByRole('status')).toContainText('已复制译文');
   const copied = (await page.evaluate(() => navigator.clipboard.readText())).replace(/\r\n/g, '\n');
   expect(copied).toContain('本句含义');
   expect(copied).toContain('词性：名词');
@@ -287,7 +370,7 @@ test('missing key offers settings and sends no request', async () => {
   await saveSettings({ removeKey: true });
   await page.locator('#bank').dblclick();
   await page.getByRole('button', { name: '翻译选中的英文' }).click();
-  await expect(page.getByRole('alert')).toContainText('填写 DeepSeek API Key');
+  await expect(page.getByRole('alert')).toContainText('填写 API Key');
   await expect(page.getByRole('button', { name: '打开设置' })).toBeVisible();
   expect(await requests()).toEqual([]);
 });
@@ -356,6 +439,223 @@ test('a larger dictionary keeps different parts of speech accessible in a small 
   await expect(page.getByRole('button', { name: '复制', exact: true })).toBeInViewport();
   await expect(page.getByRole('button', { name: '关闭翻译' })).toBeInViewport();
   await page.screenshot({ path: testInfo.outputPath('dictionary-small-viewport.png'), fullPage: true });
+});
+
+test('sentence analysis is saved and appears after the ordinary translation', async ({}, testInfo) => {
+  await saveSettings({ analysis: true });
+  await options.reload();
+  await expect(options.getByRole('checkbox', { name: '长难句拆解', exact: true })).toBeChecked();
+  await startSentenceTranslation();
+  await expect(page.locator('.nt-text')).toContainText('实验完成后');
+  expect(await analysisRequests()).toEqual([]);
+  await expect(page.locator('.nt-source mark')).toHaveCount(0);
+  await expect(page.locator('.nt-analysis-legend')).toHaveCount(0);
+  await expect(page.locator('.nt-text')).toHaveText(LONG_TRANSLATION);
+  await expect(page.locator('.nt-analysis')).toContainText('正在拆解句子');
+  await expect.poll(async () => (await analysisRequests()).length).toBe(1);
+  await expect(page.getByRole('region', { name: '句子主干', exact: true })).toBeVisible();
+  await expect(page.getByRole('region', { name: '分块阅读', exact: true })).toBeVisible();
+  await expect(page.getByRole('region', { name: '阅读顺序', exact: true })).toBeVisible();
+  await expect(page.locator('.nt-analysis-title')).toHaveText('长难句拆解');
+  await expect(page.getByRole('region', { name: '句子主干', exact: true })).toContainText(SENTENCE_ANALYSIS.mainClause.text);
+  await expect(page.getByRole('region', { name: '分块阅读', exact: true })).toContainText('定语从句');
+  await expect(page.getByRole('region', { name: '分块阅读', exact: true })).toContainText('时间状语从句');
+  await expect(page.locator('.nt-source mark')).toHaveCount(5);
+  expect(await page.locator('.nt-source').textContent()).toBe(LONG_SENTENCE);
+  const captured = await requests();
+  expect(captured).toHaveLength(2);
+  expect(captured[0]).toMatchObject({ selectedText: LONG_SENTENCE, model: 'deepseek-flash' });
+  expect(captured[0]).not.toHaveProperty('task');
+  expect(captured[1]).toMatchObject({ selectedText: LONG_SENTENCE, task: 'sentence-analysis', thinking: { type: 'disabled' } });
+  await page.locator('.nt-card').screenshot({ path: testInfo.outputPath('sentence-analysis-card.png') });
+});
+
+test('disabling sentence analysis persists and word translations never request analysis', async () => {
+  await saveSettings({ analysis: true });
+  await page.locator('#bank').dblclick();
+  await page.getByRole('button', { name: '翻译选中的英文' }).click();
+  await expect(page.locator('.nt-word')).toHaveText('银行');
+  expect(await analysisRequests()).toEqual([]);
+  await expect(page.locator('.nt-analysis')).toHaveCount(0);
+  await expect(page.locator('.nt-source mark')).toHaveCount(0);
+  await expect(page.locator('.nt-analysis-legend')).toHaveCount(0);
+  await page.getByRole('button', { name: '关闭翻译' }).click();
+  await saveSettings({ analysis: false });
+  await options.reload();
+  await expect(options.getByRole('checkbox', { name: '长难句拆解', exact: true })).not.toBeChecked();
+  await startSentenceTranslation();
+  await expect(page.locator('.nt-text')).toHaveText(LONG_TRANSLATION);
+  await page.waitForTimeout(250);
+  await expect(page.locator('.nt-analysis')).toHaveCount(0);
+  await expect(page.locator('.nt-source mark')).toHaveCount(0);
+  await expect(page.locator('.nt-analysis-legend')).toHaveCount(0);
+  expect(await analysisRequests()).toEqual([]);
+  expect(await requests()).toHaveLength(2);
+});
+
+test('an analysis failure keeps the translation and retries only the analysis request', async () => {
+  await saveSettings({ analysis: true });
+  await worker.evaluate(() => { (globalThis as unknown as { __nearTest: FakeApiState }).__nearTest.failAnalysis = true; });
+  await startSentenceTranslation();
+  await expect(page.locator('.nt-text')).toHaveText(LONG_TRANSLATION);
+  await expect(page.locator('.nt-analysis')).toContainText('拆解暂未完成');
+  await expect(page.locator('.nt-analysis')).toContainText('HTTP 503');
+  await expect(page.locator('.nt-source mark')).toHaveCount(0);
+  await expect(page.locator('.nt-analysis-legend')).toHaveCount(0);
+  expect(await requests()).toHaveLength(2);
+  await page.getByRole('button', { name: '重试拆解', exact: true }).click();
+  await expect(page.getByRole('region', { name: '句子主干', exact: true })).toBeVisible();
+  await expect(page.locator('.nt-text')).toHaveText(LONG_TRANSLATION);
+  expect(await analysisRequests()).toHaveLength(2);
+  expect((await requests()).filter(request => !request.task)).toHaveLength(1);
+});
+
+test('closing the card cancels sentence analysis and suppresses its late output', async () => {
+  await saveSettings({ analysis: true });
+  await worker.evaluate(() => { (globalThis as unknown as { __nearTest: FakeApiState }).__nearTest.analysisDelayMs = 1_500; });
+  await startSentenceTranslation();
+  await expect(page.locator('.nt-text')).toHaveText(LONG_TRANSLATION);
+  await expect.poll(async () => (await analysisRequests()).length).toBe(1);
+  await page.getByRole('button', { name: '关闭翻译' }).click();
+  await expect.poll(analysisCancellations).toBe(1);
+  await page.waitForTimeout(1_600);
+  await expect(page.getByRole('dialog', { name: '英文翻译结果' })).toHaveCount(0);
+  await expect(page.locator('.nt-analysis')).toHaveCount(0);
+});
+
+test('a new selection cancels sentence analysis without replacing the new word result', async () => {
+  await saveSettings({ analysis: true });
+  await worker.evaluate(() => { (globalThis as unknown as { __nearTest: FakeApiState }).__nearTest.analysisDelayMs = 1_500; });
+  await startSentenceTranslation();
+  await expect(page.locator('.nt-text')).toHaveText(LONG_TRANSLATION);
+  await expect.poll(async () => (await analysisRequests()).length).toBe(1);
+  await page.locator('#bank').dblclick();
+  await page.getByRole('button', { name: '翻译选中的英文' }).click();
+  await expect(page.locator('.nt-word')).toHaveText('银行');
+  await expect.poll(analysisCancellations).toBe(1);
+  await page.waitForTimeout(1_600);
+  await expect(page.locator('.nt-word')).toHaveText('银行');
+  await expect(page.locator('.nt-analysis')).toHaveCount(0);
+  await expect(page.locator('.nt-source mark')).toHaveCount(0);
+  await expect(page.locator('.nt-analysis-legend')).toHaveCount(0);
+  expect((await requests()).map(request => request.task ?? request.selectedText)).toEqual([LONG_SENTENCE, 'sentence-analysis', 'bank']);
+});
+
+test('turning off sentence analysis cancels its request while keeping the completed translation', async () => {
+  await saveSettings({ analysis: true });
+  await worker.evaluate(() => { (globalThis as unknown as { __nearTest: FakeApiState }).__nearTest.analysisDelayMs = 1_500; });
+  await startSentenceTranslation();
+  await expect(page.locator('.nt-text')).toHaveText(LONG_TRANSLATION);
+  await expect.poll(async () => (await analysisRequests()).length).toBe(1);
+  await saveSettings({ analysis: false });
+  await expect.poll(analysisCancellations).toBe(1);
+  await expect(page.locator('.nt-text')).toHaveText(LONG_TRANSLATION);
+  await expect(page.locator('.nt-analysis')).toHaveCount(0);
+  await page.waitForTimeout(1_600);
+  await expect(page.locator('.nt-analysis')).toHaveCount(0);
+  expect(await analysisRequests()).toHaveLength(1);
+});
+
+test('sentence analysis scrolls inside a small card and treats model markup as plain text', async ({}, testInfo) => {
+  await saveSettings({ analysis: true });
+  await page.setViewportSize({ width: 480, height: 360 });
+  await worker.evaluate(() => { (globalThis as unknown as { __nearTest: FakeApiState }).__nearTest.unsafeAnalysis = true; });
+  await startSentenceTranslation();
+  await expect(page.getByRole('region', { name: '阅读顺序', exact: true })).toBeVisible();
+  await expect(page.locator('.nt-analysis')).toContainText('<img src=x onerror="window.analysisExecuted=true">阅读顺序保持纯文本。');
+  await expect(page.locator('.nt-card img')).toHaveCount(0);
+  expect(await page.evaluate(() => (window as typeof window & { analysisExecuted?: boolean }).analysisExecuted)).toBeUndefined();
+  const box = await page.getByRole('dialog', { name: '英文翻译结果' }).boundingBox();
+  expect(box).not.toBeNull();
+  expect(box!.x).toBeGreaterThanOrEqual(0); expect(box!.y).toBeGreaterThanOrEqual(0);
+  expect(box!.x + box!.width).toBeLessThanOrEqual(480); expect(box!.y + box!.height).toBeLessThanOrEqual(360);
+  expect(await page.locator('.nt-body').evaluate(element => element.scrollHeight > element.clientHeight)).toBe(true);
+  await page.getByRole('region', { name: '阅读顺序', exact: true }).scrollIntoViewIfNeeded();
+  await expect(page.getByRole('region', { name: '阅读顺序', exact: true })).toBeInViewport();
+  await expect(page.getByRole('button', { name: '复制', exact: true })).toBeInViewport();
+  await expect(page.getByRole('button', { name: '关闭翻译' })).toBeInViewport();
+  await page.screenshot({ path: testInfo.outputPath('sentence-analysis-small-viewport.png'), fullPage: true });
+});
+
+test('grammar colors match the original and chunks and disappear when sentence analysis is switched off', async ({}, testInfo) => {
+  await saveSettings({ analysis: true });
+  await startSentenceTranslation(COLOR_SENTENCE);
+  await expect(page.locator('.nt-text')).toHaveText(COLOR_TRANSLATION);
+  await expect(page.locator('.nt-source mark')).toHaveCount(0);
+  await expect(page.locator('.nt-analysis-legend')).toHaveCount(0);
+  await expect(page.getByRole('region', { name: '分块阅读', exact: true })).toBeVisible();
+  await expect(page.locator('.nt-source mark')).toHaveCount(4);
+  await expect(page.locator('.nt-analysis-legend')).toBeVisible();
+  expect(await page.locator('.nt-source').textContent()).toBe(COLOR_SENTENCE);
+  const colors: string[] = [];
+  for (const [index, chunk] of COLOR_ANALYSIS.chunks.entries()) {
+    const source = page.locator(`.nt-source mark[data-analysis-chunk="${index}"]`);
+    const block = page.locator(`.nt-analysis-chunk[data-analysis-chunk="${index}"]`);
+    await expect(source).toHaveAttribute('data-category', chunk.category);
+    await expect(block).toHaveAttribute('data-category', chunk.category);
+    const sourceColor = await source.evaluate(element => getComputedStyle(element).backgroundColor);
+    const blockColor = await block.locator('.nt-analysis-english').evaluate(element => getComputedStyle(element).backgroundColor);
+    expect(sourceColor).not.toBe('rgba(0, 0, 0, 0)');
+    expect(sourceColor).toBe(blockColor);
+    colors.push(sourceColor);
+  }
+  expect(new Set(colors).size).toBe(4);
+  expect(await analysisRequests()).toHaveLength(1);
+  expect(await requests()).toHaveLength(2);
+  await page.locator('.nt-card').screenshot({ path: testInfo.outputPath('sentence-analysis-colors.png') });
+  await saveSettings({ analysis: false });
+  await expect(page.locator('.nt-source mark')).toHaveCount(0);
+  await expect(page.locator('.nt-analysis-legend')).toHaveCount(0);
+  await expect(page.locator('.nt-analysis')).toHaveCount(0);
+  expect(await page.locator('.nt-source').textContent()).toBe(COLOR_SENTENCE);
+  await expect(page.locator('.nt-text')).toHaveText(COLOR_TRANSLATION);
+  await page.waitForTimeout(250);
+  expect(await analysisRequests()).toHaveLength(1);
+  expect(await requests()).toHaveLength(2);
+});
+
+test('grammar marks and chunks synchronize mouse and keyboard focus without changing the source text', async () => {
+  await saveSettings({ analysis: true });
+  await startSentenceTranslation(COLOR_SPACED_SENTENCE);
+  await expect(page.locator('.nt-source mark')).toHaveCount(4);
+  expect(await page.locator('.nt-source').textContent()).toBe(COLOR_SPACED_SENTENCE);
+  const clause = page.locator('.nt-source mark[data-analysis-chunk="1"]');
+  const clauseBlock = page.locator('.nt-analysis-chunk[data-analysis-chunk="1"]');
+  await clause.click();
+  await expect(clause).toHaveAttribute('aria-pressed', 'true');
+  await expect(clause).toHaveAttribute('data-active', 'true');
+  await expect(clauseBlock).toHaveAttribute('data-active', 'true');
+  await expect(clauseBlock).toBeInViewport();
+  const object = page.locator('.nt-source mark[data-analysis-chunk="3"]');
+  const objectBlock = page.locator('.nt-analysis-chunk[data-analysis-chunk="3"]');
+  await objectBlock.getByRole('button').click();
+  await expect(object).toHaveAttribute('data-active', 'true');
+  await expect(object).toHaveAttribute('aria-pressed', 'true');
+  await expect(objectBlock).toHaveAttribute('data-active', 'true');
+  await expect(object).toBeInViewport();
+  await expect(clause).toHaveAttribute('data-active', 'false');
+  const subject = page.locator('.nt-source mark[data-analysis-chunk="0"]');
+  const subjectBlock = page.locator('.nt-analysis-chunk[data-analysis-chunk="0"]');
+  await subject.press('Enter');
+  await expect(subject).toHaveAttribute('data-active', 'true');
+  await expect(subjectBlock).toHaveAttribute('data-active', 'true');
+  await expect(subjectBlock).toBeInViewport();
+  const predicate = page.locator('.nt-source mark[data-analysis-chunk="2"]');
+  const predicateBlock = page.locator('.nt-analysis-chunk[data-analysis-chunk="2"]');
+  await predicateBlock.getByRole('button').press('Space');
+  await expect(predicate).toHaveAttribute('data-active', 'true');
+  await expect(predicateBlock).toHaveAttribute('data-active', 'true');
+  await expect(predicate).toBeInViewport();
+  expect(await page.locator('.nt-source').textContent()).toBe(COLOR_SPACED_SENTENCE);
+  expect(await requests()).toHaveLength(2);
+  await page.locator('#bank').dblclick();
+  await expect(page.locator('.nt-source mark')).toHaveCount(0);
+  await expect(page.locator('.nt-analysis-legend')).toHaveCount(0);
+  await page.getByRole('button', { name: '翻译选中的英文' }).click();
+  await expect(page.locator('.nt-word')).toHaveText('银行');
+  await expect(page.locator('.nt-source mark')).toHaveCount(0);
+  await expect(page.locator('.nt-analysis-legend')).toHaveCount(0);
+  expect(await analysisRequests()).toHaveLength(1);
 });
 
 test('local PDF text layer translates, zooms, searches, and changes pages', async ({}, testInfo) => {

@@ -3,6 +3,7 @@ import { browser } from 'wxt/browser';
 import { DEFAULT_MODEL, type PublicSettings, type TranslationServerMessage } from '../shared/contracts';
 import { Translator, translatorStyles, type TranslatorView } from '../ui/translator/Translator';
 import { TranslationClient } from '../platform/translation-client';
+import { canAnalyzeSentence } from '../core/sentence-analysis';
 import { selectionError } from './helpers';
 import { takeSelectionSnapshot, type SelectionSnapshot } from './snapshot';
 
@@ -28,6 +29,7 @@ export function mountSelectionTranslator(options: MountSelectionOptions): () => 
   let settingsReady = false;
   let view: TranslatorView = { mode: 'hidden' };
   let activeRequest: string | undefined;
+  let activeAnalysis: string | undefined;
   let disposed = false;
   let captureTimer: ReturnType<typeof setTimeout> | undefined;
   let selectionPath: EventTarget[] = [];
@@ -35,7 +37,7 @@ export function mountSelectionTranslator(options: MountSelectionOptions): () => 
 
   const render = () => {
     if (disposed) return;
-    react.render(<Translator view={view} source={options.source} onTranslate={translate} onClose={close} onRetry={translate}
+    react.render(<Translator view={view} source={options.source} onTranslate={translate} onClose={close} onRetry={translate} onRetryAnalysis={() => startAnalysis(true)}
       onSettings={() => { void browser.runtime.sendMessage({ type: 'open-options' }).catch(() => undefined); }} />);
   };
   const client = new TranslationClient((event: TranslationServerMessage) => {
@@ -44,15 +46,52 @@ export function mountSelectionTranslator(options: MountSelectionOptions): () => 
     else if (event.type === 'result') {
       view = { ...view, status: 'done', result: event.result };
       activeRequest = undefined;
+      startAnalysis();
     } else if (event.type === 'error') {
       view = { ...view, status: 'error', error: event.error };
       activeRequest = undefined;
     }
     render();
   });
+  const analysisClient = new TranslationClient((event: TranslationServerMessage) => {
+    if (event.requestId !== activeAnalysis || view.mode !== 'card' || disposed || !settings.sentenceAnalysisEnabled) return;
+    if (event.type === 'analysis') {
+      view = { ...view, analysis: { status: 'done', result: event.analysis } };
+      activeAnalysis = undefined;
+    } else if (event.type === 'error') {
+      view = { ...view, analysis: { status: 'error', error: event.error } };
+      activeAnalysis = undefined;
+    } else if (event.type === 'result') {
+      view = { ...view, analysis: { status: 'error', error: {
+        code: 'INVALID_RESPONSE', message: '拆解响应格式不正确；若扩展刚更新，请刷新网页后重试。', retryable: true,
+      } } };
+      activeAnalysis = undefined;
+    }
+    render();
+  });
+
+  function cancelAnalysis(): void {
+    analysisClient.cancel();
+    activeAnalysis = undefined;
+    if (view.mode === 'card' && view.analysis) view = { ...view, analysis: undefined };
+  }
+
+  function startAnalysis(retry = false): void {
+    if (disposed || !isAvailable() || !settings.sentenceAnalysisEnabled || view.mode !== 'card'
+      || view.status !== 'done' || view.result?.kind !== 'text' || view.selection.input.kind !== 'text'
+      || !canAnalyzeSentence(view.selection.input.text) || (!retry && view.analysis)) return;
+    analysisClient.cancel();
+    activeAnalysis = undefined;
+    const input = view.selection.input;
+    view = { ...view, analysis: { status: 'loading' } };
+    activeAnalysis = analysisClient.start({ text: input.text, kind: 'text', task: 'sentence-analysis',
+      ...(settings.includeContext && input.context ? { context: input.context } : {}) });
+    render();
+  }
 
   function close(): void {
     client.cancel();
+    cancelAnalysis();
     activeRequest = undefined;
     view = { mode: 'hidden' };
     render();
@@ -63,6 +102,7 @@ export function mountSelectionTranslator(options: MountSelectionOptions): () => 
     const selection = view.selection;
     const effectiveInput = { ...selection.input, context: settings.includeContext ? selection.input.context : undefined };
     client.cancel();
+    cancelAnalysis();
     activeRequest = undefined;
     const invalid = selectionError(selection.input.text);
     const error = invalid
@@ -89,6 +129,7 @@ export function mountSelectionTranslator(options: MountSelectionOptions): () => 
       if (!selection) { close(); return; }
       if (view.mode !== 'hidden' && sameSelection(view.selection, selection)) return;
       client.cancel();
+      cancelAnalysis();
       activeRequest = undefined;
       view = { mode: 'button', selection };
       render();
@@ -126,6 +167,8 @@ export function mountSelectionTranslator(options: MountSelectionOptions): () => 
     settings = update.settings;
     settingsReady = true;
     if (!isAvailable() || connectionChanged || settings.apiAccess === false) close();
+    else if (!settings.sentenceAnalysisEnabled) { cancelAnalysis(); render(); }
+    else startAnalysis();
   };
 
   document.addEventListener('mouseup', capture, true);
@@ -151,7 +194,9 @@ export function mountSelectionTranslator(options: MountSelectionOptions): () => 
     if (disposed) return;
     clearTimeout(captureTimer);
     client.dispose();
+    analysisClient.dispose();
     activeRequest = undefined;
+    activeAnalysis = undefined;
     disposed = true;
     document.removeEventListener('mouseup', capture, true);
     document.removeEventListener('dblclick', capture, true);

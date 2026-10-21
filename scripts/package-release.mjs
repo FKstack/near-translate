@@ -56,7 +56,7 @@ for (const browser of ['chrome', 'edge']) {
   const source = path.join(output, `near-translate-${version}-${browser}.zip`);
   const bytes = await readFile(source);
   const entries = zipEntries(bytes);
-  for (const required of ['manifest.json', 'background.js', 'options.html', 'popup.html', 'reader.html', 'content-scripts/selection.js', 'pdfjs/pdf.worker.mjs', 'pdfjs/version.json']) assert(entries.has(required), `Missing ${required}`);
+  for (const required of ['manifest.json', 'background.js', 'options.html', 'popup.html', 'reader.html', 'content-scripts/selection.js', 'pdfjs/pdf.worker.mjs', 'pdfjs/version.json', 'licenses/near-translate.txt', 'licenses/react.txt', 'licenses/react-dom.txt', 'licenses/scheduler.txt', 'licenses/pdfjs-dist.txt']) assert(entries.has(required), `Missing ${required}`);
   const manifest = JSON.parse(entries.get('manifest.json').toString());
   assert.equal(manifest.version, version);
   assert.equal(manifest.manifest_version, 3);
@@ -79,6 +79,11 @@ for (const browser of ['chrome', 'edge']) {
     ['extension-double-click-wor-251bb-with-context-copy-and-close', 'web-word-card.png'],
     ['extension-context-switch-r-34695-est-and-settings-show-Flash', 'options.png'],
     ['extension-local-PDF-text-l-6df69--searches-and-changes-pages', 'pdf-reader-card.png'],
+    ['page-translation-whole-pag-06966-hidden-and-editable-content', 'page-bilingual.png'],
+    ['page-translation-dark-page-58008--model-output-is-inert-text', 'page-dark.png'],
+    ['extension-sentence-analysi-f1754-er-the-ordinary-translation', 'sentence-analysis-card.png'],
+    ['extension-sentence-analysi-bc939--model-markup-as-plain-text', 'sentence-analysis-small-viewport.png'],
+    ['extension-grammar-colors-m-c0aae-ce-analysis-is-switched-off', 'sentence-analysis-colors.png'],
   ];
   await mkdir(path.join(destination, 'screenshots'), { recursive: true });
   for (const [folder, file] of screenshots) await copyFile(path.join(evidence, 'test-results', folder, file), path.join(destination, 'screenshots', `${browser}-${file}`));
@@ -95,5 +100,46 @@ try {
     await writeFile(path.join(destination, 'connection-check.json'), JSON.stringify({ version, sample: sample.sample ?? 'JavaScript', result: sample.result }, null, 2) + '\n');
   }
 } catch (error) { if (error?.code !== 'ENOENT') throw error; }
-await writeFile(path.join(destination, 'release.json'), JSON.stringify({ version, defaultModel: 'deepseek-flash', unitTests, browserTests, realApiVerified, artifacts }, null, 2) + '\n');
+try {
+  const pageProof = JSON.parse(await readFile(path.join(output, 'go-page-optimized-repeat.json'), 'utf8'));
+  const result = pageProof.result;
+  if (result?.phase === 'complete' && result.version === version && result.failed === 0 && result.completed === result.total && result.total > 0) {
+    realApiVerified = true;
+    await writeFile(path.join(destination, 'connection-check.json'), JSON.stringify({
+      version, kind: 'whole-page', url: pageProof.sourceUrl, model: result.model,
+      elapsedMs: result.elapsedMs, firstMs: result.firstMs, completed: result.completed,
+      failed: result.failed, translatedChars: result.translatedChars,
+    }, null, 2) + '\n');
+    const baseline = JSON.parse(await readFile(path.join(output, 'go-page-baseline.json'), 'utf8'));
+    const optimized = JSON.parse(await readFile(path.join(output, 'go-page-optimized-32.json'), 'utf8'));
+    const metric = run => Object.fromEntries(['version', 'elapsedMs', 'firstMs', 'completed', 'total', 'failed', 'translatedChars']
+      .filter(key => run.result[key] !== undefined).map(key => [key, run.result[key]]));
+    await writeFile(path.join(destination, `performance-go-v${version}.json`), JSON.stringify({
+      url: pageProof.sourceUrl, realApi: true, model: result.model, localTranslationCache: false,
+      baseline: metric(baseline), optimized: [metric(optimized), metric(pageProof)],
+    }, null, 2) + '\n');
+    await copyFile(path.join(root, 'docs', 'PERFORMANCE.md'), path.join(destination, '性能实测.md'));
+  }
+} catch (error) { if (error?.code !== 'ENOENT') throw error; }
+try {
+  const proof = JSON.parse(await readFile(path.join(output, 'installed-sentence-check.json'), 'utf8'));
+  const result = proof.result;
+  if (proof.realApi === true && result?.phase === 'complete' && result.version === version
+    && typeof result.translation === 'string' && result.analysis?.mainClause?.text && result.analysis?.chunks?.length) {
+    realApiVerified = true;
+    await writeFile(path.join(destination, `sentence-analysis-example-v${version}.json`), JSON.stringify({
+      version, realApi: true, model: result.model, source: result.source, translation: result.translation,
+      analysis: result.analysis, timing: result.timing,
+    }, null, 2) + '\n');
+    await writeFile(path.join(destination, 'connection-check.json'), JSON.stringify({
+      version, kind: 'sentence-analysis', model: result.model, timing: result.timing,
+      chunks: result.analysis.chunks.length,
+    }, null, 2) + '\n');
+  }
+} catch (error) { if (error?.code !== 'ENOENT') throw error; }
+await writeFile(path.join(destination, 'release.json'), JSON.stringify({
+  version, defaultModel: 'deepseek-flash', protocol: 'openai-chat-completions',
+  providers: ['deepseek', 'openai', 'gemini', 'qwen', 'moonshot', 'siliconflow', 'openrouter', 'ollama', 'custom'],
+  unitTests, browserTests, realApiVerified, artifacts,
+}, null, 2) + '\n');
 console.log(JSON.stringify({ version, artifacts }, null, 2));

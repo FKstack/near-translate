@@ -16,12 +16,14 @@ export class TranslationClient {
   private timeout?: ReturnType<typeof setTimeout>;
   private heartbeat?: ReturnType<typeof setInterval>;
   private disposed = false;
+  // Requests are scoped to this client's Port; keep IDs distinct across retries and reconnects.
+  private requestSequence = 0;
 
   constructor(private readonly onEvent: (event: TranslationServerMessage) => void) {}
 
   start(input: TranslationInput): string {
     this.cancel();
-    const requestId = crypto.randomUUID();
+    const requestId = `request-${++this.requestSequence}`;
     if (this.disposed) return requestId;
     this.active = requestId;
     try {

@@ -259,6 +259,29 @@ test('production keeps website permissions optional', async () => {
   expect(production.permissions).not.toContain('tabs');
 });
 
+test('ordinary HTTP pages translate selected words', async ({}, info) => {
+  const url = 'http://selection-fixture.invalid/';
+  const errors: string[] = [];
+  page.on('pageerror', error => errors.push(error.message));
+  await context.route(url, route => route.fulfill({ status: 200, contentType: 'text/html', body:
+    '<!doctype html><html lang="en"><head><meta charset="utf-8"></head><body><p>The <span id="http-bank">bank</span> approved the technical report.</p></body></html>',
+  }));
+  await page.goto(url);
+  expect(await page.evaluate(() => window.isSecureContext)).toBe(false);
+  await expect(page.locator('near-translate')).toHaveCount(1);
+  await page.locator('#http-bank').dblclick();
+  await page.getByRole('button', { name: '翻译选中的英文' }).click();
+  await expect.soft.poll(requests).toHaveLength(1);
+  await expect.soft(page.locator('.nt-word')).toHaveText('银行');
+  await info.attach('ordinary-http-selection.json', {
+    body: JSON.stringify({ url: page.url(), secureContext: await page.evaluate(() => window.isSecureContext),
+      requests: await requests(), card: await page.locator('near-translate').evaluate(element => element.shadowRoot?.textContent), errors }, null, 2),
+    contentType: 'application/json',
+  });
+  expect((await requests())[0]).toMatchObject({ selectedText: 'bank', context: 'The bank approved the technical report.' });
+  expect(errors).toEqual([]);
+});
+
 test('double-click word translates with context, copy and close', async ({}, testInfo) => {
   await page.locator('#bank').dblclick();
   const trigger = page.getByRole('button', { name: '翻译选中的英文' });

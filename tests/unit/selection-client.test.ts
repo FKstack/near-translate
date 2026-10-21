@@ -19,7 +19,65 @@ function fakePort() {
 
 describe('selection request lifecycle', () => {
   beforeEach(() => { vi.useFakeTimers(); mock.connect.mockReset(); });
-  afterEach(() => { vi.useRealTimers(); });
+  afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); });
+
+  it('does not require Web Crypto to send translation requests', () => {
+    vi.stubGlobal('crypto', undefined);
+    const port = fakePort();
+    mock.connect.mockReturnValue(port);
+    const events = vi.fn();
+    const client = new TranslationClient(events);
+    const input = { text: 'bank', kind: 'word' as const };
+    const requestId = client.start(input);
+    expect(requestId).toMatch(/^[a-zA-Z0-9:_-]{1,100}$/);
+    expect(port.postMessage).toHaveBeenCalledWith({ type: 'translate', requestId, input });
+    port.receive({ type: 'result', requestId, result: { kind: 'text', translation: '银行' } });
+    expect(events).toHaveBeenCalledExactlyOnceWith({ type: 'result', requestId, result: { kind: 'text', translation: '银行' } });
+    client.dispose();
+  });
+
+  it('keeps completed and cancelled requests distinct from a later request', () => {
+    const port = fakePort();
+    mock.connect.mockReturnValue(port);
+    const events = vi.fn();
+    const client = new TranslationClient(events);
+    const completed = client.start({ text: 'first', kind: 'word' });
+    port.receive({ type: 'result', requestId: completed, result: { kind: 'text', translation: '完成' } });
+    const cancelled = client.start({ text: 'second', kind: 'word' });
+    client.cancel();
+    const active = client.start({ text: 'third', kind: 'word' });
+    expect(new Set([completed, cancelled, active]).size).toBe(3);
+    events.mockClear();
+    for (const requestId of [completed, cancelled]) {
+      port.receive({ type: 'result', requestId, result: { kind: 'text', translation: '迟到' } });
+    }
+    expect(events).not.toHaveBeenCalled();
+    port.receive({ type: 'result', requestId: active, result: { kind: 'text', translation: '当前' } });
+    expect(events).toHaveBeenCalledExactlyOnceWith({ type: 'result', requestId: active, result: { kind: 'text', translation: '当前' } });
+    client.dispose();
+  });
+
+  it('isolates simultaneous clients by their own Ports', () => {
+    const firstPort = fakePort();
+    const secondPort = fakePort();
+    mock.connect.mockReturnValueOnce(firstPort).mockReturnValueOnce(secondPort);
+    const firstEvents = vi.fn();
+    const secondEvents = vi.fn();
+    const firstClient = new TranslationClient(firstEvents);
+    const secondClient = new TranslationClient(secondEvents);
+    const first = firstClient.start({ text: 'first', kind: 'word' });
+    const second = secondClient.start({ text: 'second', kind: 'word' });
+    firstPort.receive({ type: 'result', requestId: first, result: { kind: 'text', translation: '第一路' } });
+    expect(firstEvents).toHaveBeenCalledExactlyOnceWith({ type: 'result', requestId: first, result: { kind: 'text', translation: '第一路' } });
+    expect(secondEvents).not.toHaveBeenCalled();
+    firstClient.dispose();
+    vi.advanceTimersByTime(HEARTBEAT_MS);
+    expect(secondPort.postMessage).toHaveBeenLastCalledWith({ type: 'heartbeat', requestId: second });
+    secondPort.receive({ type: 'result', requestId: second, result: { kind: 'text', translation: '第二路' } });
+    expect(secondEvents).toHaveBeenCalledExactlyOnceWith({ type: 'result', requestId: second, result: { kind: 'text', translation: '第二路' } });
+    secondClient.dispose();
+    expect(vi.getTimerCount()).toBe(0);
+  });
 
   it('sends heartbeats only while active and suppresses cancelled results', () => {
     const port = fakePort();
@@ -62,10 +120,15 @@ describe('selection request lifecycle', () => {
     const first = client.start({ text: 'connection', kind: 'word' });
     firstPort.disconnect();
     expect(events).toHaveBeenCalledWith(expect.objectContaining({ type: 'error', requestId: first, error: expect.objectContaining({ code: 'DISCONNECTED' }) }));
-    client.start({ text: 'retry', kind: 'word' });
+    const second = client.start({ text: 'retry', kind: 'word' });
+    expect(second).not.toBe(first);
     expect(mock.connect).toHaveBeenCalledTimes(2);
-    client.dispose();
+    firstPort.receive({ type: 'result', requestId: first, result: { kind: 'text', translation: '重连前的旧结果' } });
     expect(events).toHaveBeenCalledTimes(1);
+    secondPort.receive({ type: 'result', requestId: second, result: { kind: 'text', translation: '重试结果' } });
+    expect(events).toHaveBeenLastCalledWith({ type: 'result', requestId: second, result: { kind: 'text', translation: '重试结果' } });
+    client.dispose();
+    expect(events).toHaveBeenCalledTimes(2);
     expect(secondPort.disconnect).toHaveBeenCalledOnce();
   });
 

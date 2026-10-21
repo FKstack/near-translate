@@ -209,6 +209,27 @@ test.afterAll(async () => {
   await rm(actual, { recursive: true, force: true });
 });
 
+test('ordinary HTTP pages translate the whole page', async ({}, info) => {
+  const url = 'http://page-fixture.invalid/';
+  const errors: string[] = [];
+  page.on('pageerror', error => errors.push(error.message));
+  await context.route(url, route => route.fulfill({ status: 200, contentType: 'text/html',
+    body: documentHtml('<p>Another paragraph succeeds immediately.</p>'),
+  }));
+  await page.goto(url);
+  expect(await page.evaluate(() => window.isSecureContext)).toBe(false);
+  await page.getByRole('button', { name: '翻译整个页面', exact: true }).click();
+  await expect.soft.poll(async () => (await state()).requests).toHaveLength(1);
+  await expect.soft(page.getByText('另一段立即翻译成功。', { exact: true })).toBeVisible();
+  await info.attach('ordinary-http-page.json', {
+    body: JSON.stringify({ url: page.url(), secureContext: await page.evaluate(() => window.isSecureContext),
+      state: await state(), bar: await page.locator('near-page-translate').evaluate(element => element.shadowRoot?.textContent), errors }, null, 2),
+    contentType: 'application/json',
+  });
+  expect((await state()).requests[0]).toMatchObject({ selectedText: 'Another paragraph succeeds immediately.' });
+  expect(errors).toEqual([]);
+});
+
 test('whole page stays bilingual and skips code, images, hidden and editable content', async ({}, info) => {
   const code = await page.locator('#code').innerHTML();
   const image = await page.locator('#diagram').evaluate(element => element.outerHTML);

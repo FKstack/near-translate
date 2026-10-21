@@ -65,11 +65,11 @@ function Options() {
       if (!granted) { setNotice('网页访问权限尚未启用，你仍可使用 PDF 阅读器。'); return; }
       const settings = await browser.runtime.sendMessage({ type: 'refresh-permissions' });
       if (typeof settings?.webAccess !== 'boolean') throw new Error('权限已授予，但网页启用失败，请重试。');
-      setWebAccess(settings.webAccess); setNotice('网页划词已启用。请刷新之前打开的网页，然后双击英文或拖选句段。');
+      setWebAccess(settings.webAccess); setNotice('网页翻译已启用。请刷新之前打开的网页，点击右侧青色按钮翻译整页，或选择英文划词翻译。');
     } catch (reason) { setError(reason instanceof Error ? reason.message : '授权失败。'); }
   }
   return <main className="page">
-    <header className="brand"><span className="brand-icon" aria-hidden="true">译</span><div><h1>近译 · 英文划词翻译</h1><div className="muted">选中，点击，读懂。网页与 PDF 共用你的翻译设置。</div></div></header>
+    <header className="brand"><span className="brand-icon" aria-hidden="true">译</span><div><h1>近译 · 整页与划词翻译</h1><div className="muted">点击右侧翻译栏，阅读中英对照全文。网页与 PDF 共用当前模型设置。</div></div></header>
     <section className="panel"><h2>1. 连接模型 API</h2>
       <form onSubmit={save}><fieldset disabled={busy || !ready}>
         <div className="field"><label htmlFor="provider">API 服务商</label><select id="provider" value={provider} onChange={event => selectProvider(event.target.value as ProviderId)}>{PROVIDERS.map(value => <option key={value.id} value={value.id}>{value.label}</option>)}</select>
@@ -85,12 +85,12 @@ function Options() {
         <p className="muted">仅对词典请求启用 JSON 输出约束。服务不支持 response_format 时请关闭；关闭后仍会校验结果格式。</p>
         <label className="check"><input type="checkbox" checked={enabled} onChange={event => setEnabled(event.target.checked)} />启用翻译</label>
         <label className="check"><input type="checkbox" checked={includeContext} onChange={event => setIncludeContext(event.target.checked)} />附带所在句或附近一句上下文，提高词义判断准确度</label>
-        <p className="muted">额外上下文最多 600 字符，只在你点击翻译时发送；只翻译选中内容，保持术语、数字和代码标识符。</p>
+        <p className="muted">划词额外上下文最多 600 字符；整页翻译逐段发送英文正文，代码块、图片与输入区域会跳过。仅点击翻译后调用 API。</p>
         <div className="actions"><button className="primary" disabled={busy || !ready} type="submit">{busy ? '正在保存…' : '保存设置'}</button><span className="muted">{keepsKey ? '✓ 已配置 Key' : preset.requiresApiKey ? '尚未配置 Key' : '支持无 Key 连接'}</span></div>
       </fieldset>
       </form>
     </section>
-    <section className="panel"><h2>2. 启用网页划词</h2><p className="muted">自动在选区旁显示按钮，需要网页访问权限。双击英文单词或拖选句段，点击「译」查看结果。</p><button type="button" className="primary" onClick={() => void grantAccess()} disabled={webAccess}>{webAccess ? '✓ 网页权限已启用' : '启用网页划词'}</button><p className="muted">浏览器设置页和内置 PDF 页无法直接显示按钮。PDF 请从工具栏打开近译阅读器。</p></section>
+    <section className="panel"><h2>2. 启用网页翻译</h2><p className="muted">授予网页访问权限后，网页右侧会显示翻译栏。点击青色按钮翻译整页，英文下方显示中文；可停止、显示原文或重试失败段落。双击英文或拖选句段仍可划词翻译。</p><button type="button" className="primary" onClick={() => void grantAccess()} disabled={webAccess}>{webAccess ? '✓ 网页权限已启用' : '启用网页划词'}</button><p className="muted">代码块与图片保持原样，不做图片 OCR。浏览器设置页和内置 PDF 页无法直接显示按钮。PDF 请从工具栏打开近译阅读器。</p></section>
     <section className="panel"><h2>3. 翻译 PDF</h2><p className="muted">在线 PDF：在 PDF 标签页点击扩展图标，再点击「用阅读器打开当前 PDF」。本地 PDF：进入阅读器后选择文件。支持可选择文字的文档。</p><button onClick={() => void browser.tabs.create({ url: browser.runtime.getURL('/reader.html') })}>打开 PDF 阅读器</button></section>
     <div role="status" className="status success">{notice}</div>{error && <div role="alert" className="status notice error">{error}</div>}
   </main>;

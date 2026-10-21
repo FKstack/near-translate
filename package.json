@@ -17,6 +17,7 @@
     "pretest:e2e": "node scripts/prepare-e2e.mjs",
     "test:e2e": "playwright test",
     "check:boundaries": "node scripts/check-boundaries.mjs",
+    "benchmark:installed": "node scripts/benchmark-installed-page.mjs",
     "postinstall": "wxt prepare"
   },
   "dependencies": {

@@ -7,7 +7,7 @@
     "stage": "server package validation",
     "message": "The uploaded package consists of a compressed file. Please remove the file and try uploading the package again.",
     "matchingLocalResource": "fonts/NearDocumentSans.ttf.gz",
-    "conclusion": "The old package contains an actual gzip font. The new package removes this matching cause; Microsoft revalidation is still required."
+    "conclusion": "The old package contains a gzip font matching the compressed-file rejection. After building v0.11.2 with the identical raw font, the user supplied a Partner Center screenshot showing package version 0.11.2 Complete and verified."
   },
   "change": {
     "compressedRepositorySourceRetained": true,
@@ -142,6 +142,16 @@
     "backgroundUnchangedFrom0111": true,
     "newPermissions": false
   },
-  "storeValidationStatus": "Awaiting upload and Microsoft revalidation of v0.11.2; not submitted for certification or approved.",
-  "privateBrowserLogsOrAccountContactIncluded": false
+  "storeValidationStatus": "Microsoft package validation passed for v0.11.2, confirmed by the user-provided Partner Center screenshot on 2026-10-24. Certification has not yet been submitted or approved.",
+  "privateBrowserLogsOrAccountContactIncluded": false,
+  "storeValidationEvidence": {
+    "source": "User-provided screenshot; the screenshot itself is not published.",
+    "date": "2026-10-24",
+    "package": "near-translate-edge-v0.11.2.zip",
+    "version": "0.11.2",
+    "status": "Complete",
+    "visibleConfirmation": "Your current package has been verified",
+    "certificationSubmitted": false,
+    "storeApprovalClaimed": false
+  }
 }

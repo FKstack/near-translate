@@ -5,6 +5,7 @@
 | 内容 | 文件 |
 | --- | --- |
 | 中英文商品介绍与搜索词 | [LISTING.md](LISTING.md) |
+| 可供自动填写读取的公开资料 | [edge-submission.json](edge-submission.json) |
 | Edge 权限、数据用途与审核测试步骤 | [EDGE_REVIEW.md](EDGE_REVIEW.md) |
 | Edge 公开隐私页 | [PRIVACY_EDGE.md](PRIVACY_EDGE.md) |
 | Chrome 初次核对与整改记录 | [CHROME_REVIEW.md](CHROME_REVIEW.md) |

@@ -1,0 +1,147 @@
+{
+  "version": "0.11.2",
+  "verifiedAt": "2026-10-23T16:30:29.200Z",
+  "purpose": "Store package compatibility fix for a nested gzip font resource; local validation does not substitute for Microsoft store validation or certification.",
+  "observedStoreError": {
+    "priorVersion": "0.11.1",
+    "stage": "server package validation",
+    "message": "The uploaded package consists of a compressed file. Please remove the file and try uploading the package again.",
+    "matchingLocalResource": "fonts/NearDocumentSans.ttf.gz",
+    "conclusion": "The old package contains an actual gzip font. The new package removes this matching cause; Microsoft revalidation is still required."
+  },
+  "change": {
+    "compressedRepositorySourceRetained": true,
+    "buildDecodesAndVerifiesFont": true,
+    "installedFont": "fonts/NearDocumentSans.ttf",
+    "fontBytesUnchanged": true,
+    "runtimeFontDecompression": false,
+    "fontLoadedOnDemand": true,
+    "remoteFontDownloads": false,
+    "newDependencies": false,
+    "nestedArchiveFilenameAndMagicGate": true,
+    "runtimeMemoryMeasurementClaimed": false
+  },
+  "unitEvidence": {
+    "path": ".output/store-v0.11.2-unit.json",
+    "sha256": "97fb03f6c192f49672e0cbd1d1f162a46c7bc6bc3a83fcf7bd1b411ce97afe1b",
+    "files": 55,
+    "tests": 1380,
+    "passed": 1380,
+    "success": true
+  },
+  "browserRegressionScope": "Six affected direct-PDF and multi-page Chinese PDF export/read-back scenarios per browser, including lazy local font loading and cancellation/retry. This is not a rerun of every prior browser scenario.",
+  "browserEvidence": [
+    {
+      "browser": "chrome",
+      "reportPath": ".output/font-v0.11.2-chrome-report.json",
+      "reportSha256": "dbc79d5c5d2e7c2ca0af368260ab5b207546cf6f621fcb49ff8ebc2d6bd4ad48",
+      "passed": 6,
+      "failed": 0,
+      "skipped": 0,
+      "actualExtensionVersion": "0.11.2",
+      "actualFontRequestScheme": "chrome-extension:",
+      "actualFontRequestPath": "/fonts/NearDocumentSans.ttf",
+      "fontBytes": 10642808,
+      "fontSha256": "40d7aa23a3cb25765a3b019136fdfe70a9f08f428d8e1042f0d472fde376132a"
+    },
+    {
+      "browser": "edge",
+      "reportPath": ".output/font-v0.11.2-edge-report.json",
+      "reportSha256": "44fa3be0c1201d8737b44633e64e5cc3b8926701ecfaa0aeab3af56778a10575",
+      "passed": 6,
+      "failed": 0,
+      "skipped": 0,
+      "actualExtensionVersion": "0.11.2",
+      "actualFontRequestScheme": "chrome-extension:",
+      "actualFontRequestPath": "/fonts/NearDocumentSans.ttf",
+      "fontBytes": 10642808,
+      "fontSha256": "40d7aa23a3cb25765a3b019136fdfe70a9f08f428d8e1042f0d472fde376132a"
+    }
+  ],
+  "artifacts": [
+    {
+      "browser": "chrome",
+      "filename": "near-translate-chrome-v0.11.2.zip",
+      "bytes": 10407102,
+      "sha256": "ab5ec874f23f7bd6011469a31425245e8afa2f2d8518a922a81b43575d5eb1a2",
+      "zipEntries": 334,
+      "files": 334,
+      "buildFiles": 334,
+      "unpackedBytes": 19616185,
+      "fileTreeSha256": "cd763f9d793ac20319b65cd1605040744f713d886d7cb288ecbfd4fd00b97d12",
+      "crcAllPassed": true,
+      "safePathsAllPassed": true,
+      "buildHashesAllMatched": true,
+      "mandatoryHostPermissions": [],
+      "optionalHostPermissions": [
+        "http://*/*",
+        "https://*/*"
+      ],
+      "licenses": 19,
+      "documentFontBytes": 10642808,
+      "documentFontSha256": "40d7aa23a3cb25765a3b019136fdfe70a9f08f428d8e1042f0d472fde376132a",
+      "nestedArchivesAbsent": true,
+      "cryptoMarkers": {
+        "pbkdf2": true,
+        "sha256": true,
+        "aesGcm": true,
+        "iterations600000": true,
+        "versionedAad": true,
+        "localVault": true,
+        "sessionKey": true,
+        "deriveBits": true,
+        "trustedContexts": true
+      },
+      "previousZipBytes": 10406916,
+      "zipBytesChange": 186,
+      "previousUnpackedBytes": 15292187,
+      "unpackedBytesChange": 4323998
+    },
+    {
+      "browser": "edge",
+      "filename": "near-translate-edge-v0.11.2.zip",
+      "bytes": 10407102,
+      "sha256": "ab5ec874f23f7bd6011469a31425245e8afa2f2d8518a922a81b43575d5eb1a2",
+      "zipEntries": 334,
+      "files": 334,
+      "buildFiles": 334,
+      "unpackedBytes": 19616185,
+      "fileTreeSha256": "cd763f9d793ac20319b65cd1605040744f713d886d7cb288ecbfd4fd00b97d12",
+      "crcAllPassed": true,
+      "safePathsAllPassed": true,
+      "buildHashesAllMatched": true,
+      "mandatoryHostPermissions": [],
+      "optionalHostPermissions": [
+        "http://*/*",
+        "https://*/*"
+      ],
+      "licenses": 19,
+      "documentFontBytes": 10642808,
+      "documentFontSha256": "40d7aa23a3cb25765a3b019136fdfe70a9f08f428d8e1042f0d472fde376132a",
+      "nestedArchivesAbsent": true,
+      "cryptoMarkers": {
+        "pbkdf2": true,
+        "sha256": true,
+        "aesGcm": true,
+        "iterations600000": true,
+        "versionedAad": true,
+        "localVault": true,
+        "sessionKey": true,
+        "deriveBits": true,
+        "trustedContexts": true
+      },
+      "previousZipBytes": 10406916,
+      "zipBytesChange": 186,
+      "previousUnpackedBytes": 15292187,
+      "unpackedBytesChange": 4323998
+    }
+  ],
+  "securityBaseline": {
+    "previousEvidence": "store-readiness-2026-10-23.json",
+    "backgroundSha256": "970774aaab4a34cd3b61e88ef0d648a1112a5c68617d5c83eca4231846c504b7",
+    "backgroundUnchangedFrom0111": true,
+    "newPermissions": false
+  },
+  "storeValidationStatus": "Awaiting upload and Microsoft revalidation of v0.11.2; not submitted for certification or approved.",
+  "privateBrowserLogsOrAccountContactIncluded": false
+}

@@ -1,13 +1,13 @@
-# 商店文案：近译 v0.11.1
+# 商店文案：近译 v0.11.2
 
-准备日期：2026-10-23。以下为提交草稿，不表示已通过审核或已在商店上线。功能依据当前 `v0.11.1` 商店版代码；上传前须完成该版本安装包验收。第三方翻译服务的可用性、费用和数据政策由相应服务决定。当前优先提交 Microsoft Edge，Chrome 暂缓至发布者有 Google 开发者账号。
+准备日期：2026-10-24。以下为提交草稿，不表示已通过审核或已在商店上线。功能依据当前 `v0.11.2` 商店版代码；上传前须完成该版本安装包验收。第三方翻译服务的可用性、费用和数据政策由相应服务决定。当前优先提交 Microsoft Edge，Chrome 暂缓至发布者有 Google 开发者账号。
 
 ## 共用资料
 
 | 字段 | 内容 |
 | --- | --- |
 | 当前包内名称 | 近译 · 阅读与翻译 |
-| 版本 | 0.11.1 |
+| 版本 | 0.11.2 |
 | 建议分类 | Productivity / 生产力；以控制台实际提供的分类为准 |
 | 主页 | https://github.com/FKstack/near-translate |
 | 支持 | https://github.com/FKstack/near-translate/issues |
@@ -109,6 +109,6 @@ bilingual reading; translation; reader mode; PDF reader; contextual dictionary; 
 ## 提交时的使用边界
 
 - Edge 商店使用上面的 Edge 专用长描述，不加入其他浏览器名称；该要求见 [Microsoft Edge 开发者政策 1.1.2](https://learn.microsoft.com/en-us/legal/microsoft-edge/extensions/developer-policies)。
-- 这份英文文案只提供英文商品介绍，不代表 v0.11.1 的界面已完成英文国际化。
+- 这份英文文案只提供英文商品介绍，不代表 v0.11.2 的界面已完成英文国际化。
 - 截图应来自实际界面。使用预置文章／译文演示时，保留“示例内容”说明，不把模拟译文宣称为实时模型效果。
 - 继续保留第三方账号、费用、限流和 PDF/OCR 边界，避免以“完全免费”“无限翻译”“全文 PDF 翻译”或固定延迟作宣传。

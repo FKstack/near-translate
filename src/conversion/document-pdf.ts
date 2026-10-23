@@ -16,7 +16,7 @@ type Surface = { box: Box; fill?: RGB; borders: Array<{ width: number; color?: R
 type Picture = { box: Box; image: PDFImage };
 type Link = { box: Box; href: string };
 const POINTS_PER_PIXEL = 72 / 96;
-const FONT_PATH = '/fonts/NearDocumentSans.ttf.gz';
+const FONT_PATH = '/fonts/NearDocumentSans.ttf';
 const MAX_FONT_BYTES = 32 * 1024 * 1024;
 const MAX_CHARACTERS = 300_000;
 let cachedFont: Uint8Array | undefined;
@@ -52,15 +52,18 @@ function relativeBox(rect: DOMRect, origin: DOMRect): Box {
   return { x: rect.left - origin.left, y: rect.top - origin.top, width: rect.width, height: rect.height };
 }
 
-/** Load the complete local font on demand; only its decoded TTF bytes are cached. */
+/** Load the complete local TTF on demand; only its font bytes are cached. */
 export async function loadDocumentFont(signal?: AbortSignal): Promise<Uint8Array> {
   if (cachedFont) { throwIfAborted(signal); return cachedFont; }
   throwIfAborted(signal);
   const response = await fetch(new URL(FONT_PATH, window.location.href), { signal, cache: 'force-cache', credentials: 'omit' });
   if (!response.ok) throw new ConversionError('本地 PDF 字体加载失败，请重新加载扩展后重试。');
   if (!response.body) throw new ConversionError('本地 PDF 字体文件不完整，请重新加载扩展。');
-  const reader = response.body.pipeThrough(new DecompressionStream('gzip'), { signal }).getReader();
+  const reader = response.body.getReader();
+  const cancel = () => { void reader.cancel().catch(() => {}); };
+  signal?.addEventListener('abort', cancel, { once: true });
   try {
+    throwIfAborted(signal);
     const chunks: Uint8Array[] = [];
     let length = 0;
     while (true) {
@@ -75,6 +78,10 @@ export async function loadDocumentFont(signal?: AbortSignal): Promise<Uint8Array
     const bytes = new Uint8Array(length);
     let offset = 0;
     for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
+    // This bundled font is a TrueType sfnt; reject a renamed gzip or bad payload.
+    if (bytes[0] !== 0 || bytes[1] !== 1 || bytes[2] !== 0 || bytes[3] !== 0) {
+      throw new ConversionError('本地 PDF 字体文件不完整，请重新加载扩展。');
+    }
     throwIfAborted(signal);
     cachedFont = bytes;
     return bytes;
@@ -83,7 +90,8 @@ export async function loadDocumentFont(signal?: AbortSignal): Promise<Uint8Array
     if (error instanceof ConversionError) throw error;
     throw new ConversionError('本地 PDF 字体文件不完整，请重新加载扩展。');
   } finally {
-    void reader.cancel().catch(() => {});
+    signal?.removeEventListener('abort', cancel);
+    cancel();
     reader.releaseLock();
   }
 }

@@ -1,5 +1,7 @@
 import type { Download, Page, Route, TestInfo } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import { resolve } from 'node:path';
 import {
   PDFDict, PDFDocument, PDFHexString, PDFName, PDFRawStream, PDFString,
 } from 'pdf-lib';
@@ -245,31 +247,49 @@ test('a single very long code line and oversized table cell paginate without los
 });
 
 test('cancelling delayed local font loading prevents late downloads after switching tools and supports a clean retry', async ({ conversionPage: page }, info) => {
+  expect(await page.evaluate(() => performance.getEntriesByType('resource')
+    .some(entry => new URL(entry.name).pathname === '/fonts/NearDocumentSans.ttf'))).toBe(false);
   const downloads: Download[] = [];
   const record = (download: Download) => { downloads.push(download); };
   page.on('download', record);
   let release!: () => void;
   const held = new Promise<void>(resolve => { release = resolve; });
   let intercepted = 0;
+  let fontRequestUrl = '';
   const work: Promise<void>[] = [];
   const handler = (route: Route): Promise<void> => {
     intercepted++;
+    fontRequestUrl = route.request().url();
     const task = held.then(async () => { try { await route.continue(); } catch { /* The cancelled request may already have been disposed. */ } });
     work.push(task);
     return task;
   };
-  await page.route('**/fonts/**', handler);
+  await page.route('**/fonts/NearDocumentSans.ttf', handler);
   try {
     await prepareDocument(page, '# 旧任务\n\nCANCEL_OLD_FONT_DOWNLOAD', 'cancelled-old-font');
     await page.getByRole('button', { name: '下载 PDF', exact: true }).click();
     await expect.poll(() => intercepted, { timeout: 15_000, message: 'The first direct conversion must request its packaged local font' }).toBeGreaterThan(0);
+    const extension = resolve(process.env.NEAR_CONVERSION_EXTENSION ?? '.output/edge-mv3');
+    const manifest = JSON.parse(await readFile(resolve(extension, 'manifest.json'), 'utf8')) as { version: string };
+    const version = await page.evaluate(() => (globalThis as unknown as {
+      chrome: { runtime: { getManifest(): { version: string } } };
+    }).chrome.runtime.getManifest().version);
+    expect(version).toBe(manifest.version);
+    const fontBytes = await readFile(resolve(extension, 'fonts/NearDocumentSans.ttf'));
+    const sha256 = createHash('sha256').update(fontBytes).digest('hex');
+    expect(fontBytes.length).toBe(10_642_808);
+    expect(sha256).toBe('40d7aa23a3cb25765a3b019136fdfe70a9f08f428d8e1042f0d472fde376132a');
+    await info.attach('local-font-request-and-integrity.json', {
+      body: JSON.stringify({ version, fontRequestUrl, productionResource: 'fonts/NearDocumentSans.ttf', bytes: fontBytes.length, sha256 }, null, 2),
+      contentType: 'application/json',
+    });
     await page.getByRole('button', { name: '取消', exact: true }).click();
     await expect(page.getByRole('status')).toContainText('已取消');
     await page.getByRole('navigation', { name: '转换工具' }).getByRole('button', { name: /^PDF → Markdown/ }).click();
     await expect(page.getByRole('heading', { name: 'PDF → Markdown', exact: true })).toBeVisible();
     release();
     await Promise.all(work);
-    await page.unroute('**/fonts/**', handler);
+    await page.unroute('**/fonts/NearDocumentSans.ttf', handler);
     expect(downloads).toHaveLength(0);
     await expect(page.getByRole('link', { name: /^下载 / })).toHaveCount(0);
 
@@ -283,7 +303,7 @@ test('cancelling delayed local font loading prevents late downloads after switch
   } finally {
     release();
     await Promise.allSettled(work);
-    await page.unroute('**/fonts/**', handler);
+    await page.unroute('**/fonts/NearDocumentSans.ttf', handler);
     page.off('download', record);
   }
 });

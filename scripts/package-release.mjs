@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 import { inflateRawSync } from 'node:zlib';
 import assert from 'node:assert/strict';
+import { assertStorePackageResources } from './lib/release-resources.mjs';
 
 const root = await realpath(path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'));
 const output = await realpath(path.join(root, '.output'));
@@ -52,10 +53,12 @@ function zipEntries(zip) {
 }
 
 const artifacts = [];
+const validatedPackages = [];
 for (const browser of ['chrome', 'edge']) {
   const source = path.join(output, `near-translate-${version}-${browser}.zip`);
   const bytes = await readFile(source);
   const entries = zipEntries(bytes);
+  assertStorePackageResources(entries);
   for (const required of ['manifest.json', 'background.js', 'options.html', 'popup.html', 'reader.html', 'content-scripts/selection.js', 'pdfjs/pdf.worker.mjs', 'pdfjs/version.json', 'licenses/near-translate.txt', 'licenses/react.txt', 'licenses/react-dom.txt', 'licenses/scheduler.txt', 'licenses/pdfjs-dist.txt']) assert(entries.has(required), `Missing ${required}`);
   const manifest = JSON.parse(entries.get('manifest.json').toString());
   assert.equal(manifest.version, version);
@@ -68,6 +71,10 @@ for (const browser of ['chrome', 'edge']) {
     assert(!name.includes('chrome-runtime') && !name.includes('e2e-') && !name.includes('node_modules'));
     if (/\.(js|html)$/.test(name)) assert(!content.includes(Buffer.from('fake-test-key')), 'Test credential must not be shipped.');
   }
+  validatedPackages.push({ browser, source, bytes, entries });
+}
+// Validate both browser packages before copying either release ZIP.
+for (const { browser, source, bytes, entries } of validatedPackages) {
   const filename = `near-translate-${browser}-v${version}.zip`;
   await copyFile(source, path.join(destination, filename));
   artifacts.push({ browser, filename, bytes: bytes.length, sha256: createHash('sha256').update(bytes).digest('hex'), entries: entries.size });

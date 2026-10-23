@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
-import { gzipSync } from 'node:zlib';
+import { gunzipSync } from 'node:zlib';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { paginateDocument } from '../../src/conversion/document-pdf';
 
@@ -27,17 +27,25 @@ describe('direct document PDF pagination', () => {
   });
 });
 
-describe('local compressed document font', () => {
+function fontSample(length = 1024): Uint8Array<ArrayBuffer> {
+  const bytes = new Uint8Array(length);
+  bytes.set([0, 1, 0, 0]);
+  return bytes;
+}
+
+describe('local TrueType document font', () => {
   beforeEach(() => {
     vi.resetModules();
     vi.stubGlobal('window', { location: { href: 'chrome-extension://sample/convert.html' } });
   });
   afterEach(() => vi.unstubAllGlobals());
 
-  it('decodes the complete source font unchanged and caches only its decoded bytes', async () => {
+  it('loads and caches the complete local TTF unchanged without a browser decompressor', async () => {
     const compressed = await readFile(new URL('../../third_party/fonts/NearDocumentSans.ttf.gz', import.meta.url));
-    const fetchFont = vi.fn(async () => new Response(compressed));
+    const source = gunzipSync(compressed);
+    const fetchFont = vi.fn(async () => new Response(source));
     vi.stubGlobal('fetch', fetchFont);
+    vi.stubGlobal('DecompressionStream', undefined);
     const { loadDocumentFont } = await import('../../src/conversion/document-pdf');
     const decoded = await loadDocumentFont();
     expect(decoded.length).toBe(10_642_808);
@@ -45,15 +53,16 @@ describe('local compressed document font', () => {
     expect(await loadDocumentFont()).toBe(decoded);
     expect(fetchFont).toHaveBeenCalledOnce();
     expect(fetchFont).toHaveBeenCalledWith(
-      new URL('chrome-extension://sample/fonts/NearDocumentSans.ttf.gz'),
+      new URL('chrome-extension://sample/fonts/NearDocumentSans.ttf'),
       expect.objectContaining({ cache: 'force-cache', credentials: 'omit' }),
     );
   });
 
-  it('rejects a corrupt gzip without caching failed font data', async () => {
+  it('rejects a gzip merely renamed to TTF without caching the failed font data', async () => {
+    const compressed = await readFile(new URL('../../third_party/fonts/NearDocumentSans.ttf.gz', import.meta.url));
     const fetchFont = vi.fn()
-      .mockResolvedValueOnce(new Response(new Uint8Array([1, 2, 3])))
-      .mockResolvedValueOnce(new Response(gzipSync(new Uint8Array(1024))));
+      .mockResolvedValueOnce(new Response(compressed))
+      .mockResolvedValueOnce(new Response(fontSample()));
     vi.stubGlobal('fetch', fetchFont);
     const { loadDocumentFont } = await import('../../src/conversion/document-pdf');
     await expect(loadDocumentFont()).rejects.toThrow('字体文件不完整');
@@ -61,10 +70,20 @@ describe('local compressed document font', () => {
     expect(fetchFont).toHaveBeenCalledTimes(2);
   });
 
-  it('bounds the decoded byte count for short and oversized gzip assets', async () => {
+  it('rejects an invalid TrueType header', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(new Uint8Array(1024))));
+    const { loadDocumentFont } = await import('../../src/conversion/document-pdf');
+    await expect(loadDocumentFont()).rejects.toThrow('字体文件不完整');
+  });
+
+  it('bounds the byte count for short and oversized TTF streams', async () => {
     vi.stubGlobal('fetch', vi.fn()
-      .mockResolvedValueOnce(new Response(gzipSync(new Uint8Array(999))))
-      .mockResolvedValueOnce(new Response(gzipSync(new Uint8Array(32 * 1024 * 1024 + 1)))));
+      .mockResolvedValueOnce(new Response(fontSample(999)))
+      .mockResolvedValueOnce(new Response(new ReadableStream<Uint8Array>({ start(controller) {
+        controller.enqueue(fontSample(32 * 1024 * 1024));
+        controller.enqueue(new Uint8Array(1));
+        controller.close();
+      } }))));
     const { loadDocumentFont } = await import('../../src/conversion/document-pdf');
     await expect(loadDocumentFont()).rejects.toThrow('字体文件不完整');
     await expect(loadDocumentFont()).rejects.toThrow('字体文件不完整');
@@ -79,10 +98,10 @@ describe('local compressed document font', () => {
     expect(fetchFont).not.toHaveBeenCalled();
   });
 
-  it('cancels and releases an unfinished compressed stream', async () => {
+  it('cancels and releases an unfinished font stream', async () => {
     const cancelled = vi.fn();
     const response = new Response(new ReadableStream<Uint8Array>({
-      start(controller) { controller.enqueue(gzipSync(new Uint8Array(1024)).subarray(0, 12)); },
+      start(controller) { controller.enqueue(fontSample().subarray(0, 12)); },
       cancel: cancelled,
     }));
     const fetchFont = vi.fn(async () => response);
@@ -95,5 +114,17 @@ describe('local compressed document font', () => {
     controller.abort();
     await rejected;
     await vi.waitFor(() => expect(cancelled).toHaveBeenCalledOnce());
+    expect(response.body?.locked).toBe(false);
+  });
+
+  it('releases the stream when cancellation races with a completed fetch', async () => {
+    const controller = new AbortController();
+    const cancelled = vi.fn();
+    const response = new Response(new ReadableStream<Uint8Array>({ cancel: cancelled }));
+    vi.stubGlobal('fetch', vi.fn(async () => { controller.abort(); return response; }));
+    const { loadDocumentFont } = await import('../../src/conversion/document-pdf');
+    await expect(loadDocumentFont(controller.signal)).rejects.toMatchObject({ name: 'AbortError' });
+    expect(cancelled).toHaveBeenCalledOnce();
+    expect(response.body?.locked).toBe(false);
   });
 });

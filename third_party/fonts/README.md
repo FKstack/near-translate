@@ -1,6 +1,6 @@
 # Near Document Sans
 
-`NearDocumentSans.ttf.gz` contains a local, static Regular TrueType derivative of Noto Sans SC 2.004. It is bundled for native PDF text drawing; it is not fetched from the network at conversion time. The build copies this source asset to `public/fonts/`, and the conversion page uses the browser's native `DecompressionStream('gzip')` only when a PDF is requested. Browser layout and pdf-lib both receive the original complete TTF.
+`NearDocumentSans.ttf.gz` is the repository's compact source for a local, static Regular TrueType derivative of Noto Sans SC 2.004. The build decompresses and verifies it, then writes the real `NearDocumentSans.ttf` to `public/fonts/`; only the ordinary TTF is included in the extension package. Native PDF generation loads the complete local TTF on demand, without downloading a font or decompressing an archive in the browser. Browser layout and pdf-lib receive identical TTF bytes.
 
 - Compressed source size: **6,319,428 bytes** (gzip level 9).
 - Decoded TTF file size: **10,642,808 bytes**.
@@ -44,7 +44,9 @@ font.save("NearDocumentSans.ttf")
 
 The generated font's modification timestamp can differ between runs. The published binary is identified by its SHA-256 above.
 
-The complete TTF is stored with lossless gzip compression, without removing or changing any glyph, table, metadata or alignment. Reproduce compression with Node.js `gzipSync(ttfBytes, { level: 9 })`; after decompression, verify the decoded size and SHA-256 above. Packaging the compressed source saves 4,323,380 bytes of installed files. It does not reduce the decoded font memory needed for PDF generation, and release ZIP compression already compresses a raw TTF.
+The repository source uses lossless gzip compression, without removing or changing any glyph, table, metadata or alignment. Reproduce that source with Node.js `gzipSync(ttfBytes, { level: 9 })`. During `npm run assets:pdf`, bounded Node.js decompression must match the decoded size and SHA-256 above before the ordinary TTF is written. The build removes any obsolete generated `.ttf.gz` so an incremental build cannot accidentally ship a nested archive.
+
+Store packages use the outer extension ZIP to compress the ordinary TTF. This increases installed asset bytes by 4,323,380 compared with shipping gzip, while preserving the font, PDF glyph coverage and the same on-demand font memory. It avoids the nested compressed resource rejected by the Microsoft Edge Add-ons package validator; a `.gz` resource must not be restored to the published package or merely renamed to `.ttf`.
 
 ## PDF embedding and validation
 

@@ -15,7 +15,7 @@
 | pako | MIT AND Zlib | `licenses/pako.txt` |
 | tslib | 0BSD | `licenses/tslib.txt` |
 
-构建前脚本从已安装依赖与 `third_party/licenses/` 复制完整许可证，同时将近译许可证复制为 `licenses/near-translate.txt`。生成目录 `public/licenses/` 不提交 Git；干净克隆后构建会重建全部声明。完整字体源以无损 gzip 保存在 [`third_party/fonts/`](third_party/fonts/README.md)，构建复制至发布包，导出 PDF 时才在本地解压。PDF.js 随附字体、图片及解码器的许可证保留在对应资源目录中。构建工具与测试依赖不打包进扩展，具体版本和依赖关系见 `package-lock.json`。
+构建前脚本从已安装依赖与 `third_party/licenses/` 复制完整许可证，同时将近译许可证复制为 `licenses/near-translate.txt`。生成目录 `public/licenses/` 不提交 Git；干净克隆后构建会重建全部声明。完整字体源以无损 gzip 保存在 [`third_party/fonts/`](third_party/fonts/README.md)，构建时在 Node.js 中有界解压并核对原始大小与 SHA-256，发布包只包含普通 `NearDocumentSans.ttf`，由最外层扩展 ZIP 压缩。导出 PDF 时才按需读取本地 TTF，不需要浏览器解压或远程下载字体。PDF.js 随附字体、图片及解码器的许可证保留在对应资源目录中。构建工具与测试依赖不打包进扩展，具体版本和依赖关系见 `package-lock.json`。
 
 Readability 用于网页阅读模式的本地正文提取。其上游版权声明从已安装依赖复制，Apache-2.0 正文源保存在 `third_party/licenses/`，构建时随扩展分发；提取器的安全白名单、源位置映射和阅读界面由近译实现。
 

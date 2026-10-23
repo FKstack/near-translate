@@ -1,5 +1,5 @@
 {
-  "version": "0.11.1",
+  "version": "0.11.2",
   "platform": "Microsoft Edge Add-ons",
   "name": "近译 · 阅读与翻译",
   "shortDescription": "本地阅读模式、双语网页与划词翻译、PDF 文字选择翻译，也支持自定义模型 API。",
@@ -10,10 +10,10 @@
   "supportUrl": "https://github.com/FKstack/near-translate/issues",
   "privacyPolicyUrl": "https://github.com/FKstack/near-translate/blob/main/docs/store/PRIVACY_EDGE.md",
   "package": {
-    "url": "https://github.com/FKstack/near-translate/releases/download/v0.11.1/near-translate-edge-v0.11.1.zip",
-    "filename": "near-translate-edge-v0.11.1.zip",
-    "bytes": 10406916,
-    "sha256": "9f2b9b14e9b78892d6320b4fd44731019cb1681dd70603f887077173eef5d97a"
+    "url": "https://github.com/FKstack/near-translate/releases/download/v0.11.2/near-translate-edge-v0.11.2.zip",
+    "filename": "near-translate-edge-v0.11.2.zip",
+    "bytes": 10407102,
+    "sha256": "ab5ec874f23f7bd6011469a31425245e8afa2f2d8518a922a81b43575d5eb1a2"
   },
   "localizedDescriptions": {
     "zh-CN": "读外文，留在文章里。\n\n近译把网页双语、语境查词与专注阅读放在一起。读技术文档、外文文章或文字型 PDF 时，可以先按自己的节奏阅读，需要理解时再开启翻译。\n\n【保留原文，随时对照】\n在网页段落下方查看译文，回看原句、术语与代码。进入阅读模式后，可以切换原文、双语或仅译文。点击“翻译正文”才开始翻译，过程中可以停止，已完成的译文保留在当前页面。\n\n【查这个句子里的意思】\n选中文字，就地查看译文。模型模式下，英语单词可展示本句含义、词性和常见义项；符合条件的英文长句可查看句子主干、语法标注与分块提示。语境词典支持英语到简体／繁体中文，长句拆解目前支持英语到简体中文。其他语言方向使用普通文本翻译。\n\n【把长文章调成喜欢的样子】\n本地提取文章正文，配合目录、进度和段落专注阅读。选择“舒适长读”“技术文档”或“夜间阅读”，再调整主题、字号、行距、栏宽等外观；喜欢的设置可保存为“我的样式”，也可导入、导出版式。阅读模式保留文章中的代码、表格、图片与列表，无需近译账号或翻译 API Key。\n\n【PDF 与本地文档】\n打开本地或在线文字型 PDF，翻页、搜索、缩放，选中文字后使用翻译卡片。当前 PDF 翻译针对所选文字，不提供整份 PDF 自动翻译或 OCR。文档工具还支持 Markdown／文本／HTML 导出带文字层的 PDF，以及 PDF 合并、拆分、重排和文字／图片导出；这些文档转换在本机处理。\n\n【选择自己的翻译服务】\n可启用实验性 DeepL 免费翻译，无需 API Key，但可能限流或发生服务调整；也可配置 DeepSeek、OpenAI、Gemini、Qwen 等兼容 API，或连接已部署的 Ollama。普通翻译提供 16 种源／目标语言选项，源语言可自动识别。自带模型服务可能需要相应账号、API Key 和付费额度，扩展不包含这些费用，也不保证翻译速度或结果。\n\n【数据去向清楚】\n本地阅读与文档转换不上传文档到近译服务器。点击翻译时，所选文字或相应正文直接发送到你选择的服务；模型模式开启上下文后还会发送有限的相邻文字。可选连接加速开启时，可能提前向 DeepL 发送不含正文的连接准备请求。API Key 使用独立口令加密保存在本机，浏览器重启后解锁使用；口令无法找回，免费翻译不要求解锁密钥库。原文、译文和 PDF 不作为历史记录持久保存。近译没有自有翻译中转、广告或遥测，第三方服务仍按各自政策处理收到的数据。\n\n安装后，固定近译到工具栏，打开一篇文章，点击“阅读当前网页”即可开始。需要翻译时，在“翻译设置”启用服务并按提示授权，然后点击“翻译正文”或选区旁的“译”。\n\n近译以 MIT 许可证开源。项目说明、隐私政策与反馈入口见本页面的相关链接。当前产品界面主要为简体中文。",

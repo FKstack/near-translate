@@ -1,6 +1,6 @@
 # Edge Add-ons 提交与审核资料
 
-准备日期：2026-10-23。适用于近译 v0.11.1 商店版的提交准备；实际账户、上传、提交和审核状态应以 Partner Center 为准。本文件不包含密码、API Key 或身份资料。该版本引入口令加密密钥库并移除必选 API 主机权限，须上传经过对应版本验收的新 ZIP。
+准备日期：2026-10-24。适用于近译 v0.11.2 商店版的提交准备；实际账户、上传、提交和审核状态应以 Partner Center 为准。本文件不包含密码、API Key 或身份资料。当前版本沿用口令加密密钥库和可选 API 主机权限，并将发布字体改为普通 TTF，以处理商店对包内 gzip 资源的拒绝；须上传经过对应版本验收的新 ZIP，实际通过状态以商店重新校验为准。
 
 ## 官方入口与当前要求
 
@@ -82,7 +82,7 @@ All executable JavaScript, PDF.js workers, WebAssembly resources, fonts, and dic
 
 ## Notes for certification（英文可复制）
 
-Near Translate v0.11.1 is a Manifest V3 reading and translation extension. Its interface is primarily in Simplified Chinese. No Near Translate account is required. No developer API key or test password is embedded in the package. All API host permissions are optional.
+Near Translate v0.11.2 is a Manifest V3 reading and translation extension. Its interface is primarily in Simplified Chinese. No Near Translate account is required. No developer API key or test password is embedded in the package. All API host permissions are optional.
 
 1. Local reader: open a normal public article, for example https://go.dev/doc/effective_go . Open the extension popup and select 阅读当前网页. The article should open in reader mode without an API key. Change theme, text size, line spacing, and width; test the table of contents and the original/bilingual/translation-only view selector. Switching view alone should not send translation requests. Press Escape to leave reader mode.
 

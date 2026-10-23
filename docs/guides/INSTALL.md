@@ -2,14 +2,14 @@
 
 适用于当前桌面版 Chrome / Edge。普通用户下载 Release 中的 ZIP 即可安装，无需 Node.js、npm 或编译工具。
 
-## 下载 v0.11.1
+## 下载 v0.11.2
 
-打开 [v0.11.1 Release](https://github.com/FKstack/near-translate/releases/tag/v0.11.1)，在 **Assets** 中选择与你的浏览器对应的安装包：
+打开 [v0.11.2 Release](https://github.com/FKstack/near-translate/releases/tag/v0.11.2)，在 **Assets** 中选择与你的浏览器对应的安装包：
 
 | 浏览器 | 安装包 | 扩展管理页 |
 | --- | --- | --- |
-| Chrome | [near-translate-chrome-v0.11.1.zip](https://github.com/FKstack/near-translate/releases/download/v0.11.1/near-translate-chrome-v0.11.1.zip) | `chrome://extensions` |
-| Edge | [near-translate-edge-v0.11.1.zip](https://github.com/FKstack/near-translate/releases/download/v0.11.1/near-translate-edge-v0.11.1.zip) | `edge://extensions` |
+| Chrome | [near-translate-chrome-v0.11.2.zip](https://github.com/FKstack/near-translate/releases/download/v0.11.2/near-translate-chrome-v0.11.2.zip) | `chrome://extensions` |
+| Edge | [near-translate-edge-v0.11.2.zip](https://github.com/FKstack/near-translate/releases/download/v0.11.2/near-translate-edge-v0.11.2.zip) | `edge://extensions` |
 
 请选择上表中的安装包；GitHub 自动提供的 **Source code (zip / tar.gz)** 是源码，不能直接加载为扩展。近译目前采用开发者模式加载安装包，尚未提供浏览器商店安装。
 
@@ -19,18 +19,18 @@
 2. 在地址栏输入 `chrome://extensions`（Chrome）或 `edge://extensions`（Edge），按回车。
 3. 开启「开发者模式」，点击「加载已解压的扩展程序」。
 4. 选择**直接包含 `manifest.json` 的文件夹**。如果解压工具多创建了一层文件夹，请继续进入，直到能看到 `manifest.json`；不要选择 ZIP 文件。
-5. 在扩展列表确认显示「近译 · 阅读与翻译」及版本 **0.11.1**。通过浏览器的「扩展」菜单将近译固定到工具栏。
+5. 在扩展列表确认显示「近译 · 阅读与翻译」及版本 **0.11.2**。通过浏览器的「扩展」菜单将近译固定到工具栏。
 6. 打开或刷新一篇普通网页，点击近译图标 →「阅读当前网页」，即可先体验本地阅读。
 
 如果显示「无法加载清单」，先检查是否完整解压、选择的文件夹是否直接包含 `manifest.json`。浏览器设置页、扩展商店等受限页面不能开启网页阅读或划词，请换成普通文章页。
 
 ### 可选：校验下载文件
 
-同一 Release 提供 [SHA256SUMS.txt](https://github.com/FKstack/near-translate/releases/download/v0.11.1/SHA256SUMS.txt)。下载后可在 PowerShell 中计算安装包的 SHA-256，与文件中对应包名的值比较：
+同一 Release 提供 [SHA256SUMS.txt](https://github.com/FKstack/near-translate/releases/download/v0.11.2/SHA256SUMS.txt)。下载后可在 PowerShell 中计算安装包的 SHA-256，与文件中对应包名的值比较：
 
 ```powershell
-Get-FileHash .\near-translate-chrome-v0.11.1.zip -Algorithm SHA256
-# Edge 用户改为 near-translate-edge-v0.11.1.zip
+Get-FileHash .\near-translate-chrome-v0.11.2.zip -Algorithm SHA256
+# Edge 用户改为 near-translate-edge-v0.11.2.zip
 ```
 
 ## 已有用户升级
@@ -42,7 +42,7 @@ Get-FileHash .\near-translate-chrome-v0.11.1.zip -Algorithm SHA256
 1. 下载与你原安装浏览器对应的新 ZIP，先解压到另一临时文件夹，确认其中存在 `manifest.json`。
 2. 备份原扩展程序文件夹，再将新包的程序文件完整替换到**原来加载的同一路径**。注意保持 `manifest.json` 直接位于原加载目录，不要多嵌套一层文件夹。
 3. 在扩展管理页点击原近译卡片的「重新加载」。不要先移除原扩展，也不要从另一路径另装一份。
-4. 确认版本为 **0.11.1**、扩展 ID 与升级前一致，再核对翻译方式、模型、语言方向和阅读样式。刷新已打开的网页；PDF 阅读器请关闭后重新打开。
+4. 确认版本为 **0.11.2**、扩展 ID 与升级前一致，再核对翻译方式、模型、语言方向和阅读样式。刷新已打开的网页；PDF 阅读器请关闭后重新打开。
 
 设置保存在浏览器的扩展存储中。沿用原浏览器配置、原加载路径和原扩展身份通常可继续使用已有设置；更换目录、浏览器配置或移除后重装可能改变扩展身份或清除数据，不能保证配置自动迁移。若需恢复版式，使用「导入版式」；翻译设置请按自己的记录重新配置。
 

@@ -1,5 +1,7 @@
 import { cp, mkdir, readFile, realpath, unlink, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
+import { createHash } from 'node:crypto';
+import { gunzipSync } from 'node:zlib';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -39,11 +41,18 @@ await mkdir(fonts, { recursive: true });
 if (await realpath(fonts) !== path.join(await realpath(projectRoot), 'public', 'fonts')) {
   throw new Error('Generated fonts must remain inside the project public directory.');
 }
-for (const filename of ['NearDocumentSans.ttf.gz', 'README.md']) {
-  await cp(path.join(projectRoot, 'third_party', 'fonts', filename), path.join(fonts, filename));
+// The repository keeps a compact source; store packages must contain the real
+// TTF, with the outer extension ZIP providing compression instead of nesting gzip.
+const sourceFonts = path.join(projectRoot, 'third_party', 'fonts');
+const font = gunzipSync(await readFile(path.join(sourceFonts, 'NearDocumentSans.ttf.gz')), { maxOutputLength: 32 * 1024 * 1024 });
+if (font.length !== 10_642_808
+  || createHash('sha256').update(font).digest('hex') !== '40d7aa23a3cb25765a3b019136fdfe70a9f08f428d8e1042f0d472fde376132a') {
+  throw new Error('The local document font does not match the verified TrueType source.');
 }
-// Upgraded workspaces may still have the obsolete, generated uncompressed copy.
-await unlink(path.join(fonts, 'NearDocumentSans.ttf')).catch(error => { if (error.code !== 'ENOENT') throw error; });
+await writeFile(path.join(fonts, 'NearDocumentSans.ttf'), font);
+await cp(path.join(sourceFonts, 'README.md'), path.join(fonts, 'README.md'));
+// Clear the obsolete generated archive after the safe destination was verified.
+await unlink(path.join(fonts, 'NearDocumentSans.ttf.gz')).catch(error => { if (error.code !== 'ENOENT') throw error; });
 await mkdir(destination, { recursive: true });
 const assets = [
   // Keep the stable local URL while shipping the upstream production worker.

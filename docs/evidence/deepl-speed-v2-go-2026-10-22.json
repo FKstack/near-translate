@@ -1,0 +1,2114 @@
+{
+  "at": "2026-10-21T17:42:07.034Z",
+  "sourceUrl": "https://go.dev/talks/2012/splash.article?utm_source=chatgpt.com",
+  "browser": "Microsoft Edge 155.0.4283.62 / existing Default profile",
+  "extensionId": "dbdooijmbinjmnbmgglajigaoiinolnc",
+  "version": "0.7.0",
+  "endpoint": "https://oneshot-free.www.deepl.com/v1/translate",
+  "loginRequired": false,
+  "apiKeyUsedByDeepLRequests": false,
+  "cookieAccessAdded": false,
+  "productionPermissionsAddedThisTurn": false,
+  "acceptedPolicy": {
+    "maxConcurrent": 6,
+    "intervalMs": 350,
+    "maxItems": 32,
+    "maxChars": 1500,
+    "firstBatchSoftMaxItems": 2,
+    "firstBatchSoftChars": 800,
+    "packing": "fill",
+    "viewportPriority": true,
+    "everyFourthBatch": "oldest-first"
+  },
+  "observations": [
+    "Both accepted runs used new foreground tabs and sent all 53505 source characters in 38 real HTTP200 requests; no warm/cache repeat was requested.",
+    "Next visible requestAnimationFrame is an approximation, not an OS paint timestamp. Initial viewport targets remain frozen before insertion.",
+    "Historical 7.704s first-screen measurement used a different definition/background tab and is not a like-for-like first-screen speed ratio.",
+    "Connection setup is included. The two accepted first requests report 1.865s and 1.911s connect time including TLS; no hidden pretranslation.",
+    "Upstream caching, quota windows and load cannot be controlled. This is the fastest configuration that passed this local bounded investigation, not a proof of global optimum.",
+    "The rejected 8/100 trial is partial, has no fullDoneMs, and its submitted char count must not be treated as successful input.",
+    "The failed harness lateRequestCount default was not used as evidence; requests after the actual 429 response were independently recounted.",
+    "A 429 stopped the failed trial immediately; its local cooldown was allowed to expire naturally before a changed policy was deployed. No identity/IP rotation or automatic retries.",
+    "Different response fingerprints across independent network runs are allowed; response count, source mapping and nonempty output are validated per run."
+  ],
+  "trials": [
+    {
+      "name": "aggressive-rejected",
+      "qualification": "rejected-rate-limit",
+      "rawEvidence": {
+        "path": ".output/go-page-deepl-v2-cold-a08cddd8158c85f5736287398d54e16a125e519b.json",
+        "sha256": "4b973b7541cc83cc080483eb3a729e2c53ae8ce9efb1f618d41f9e46bea3a87f"
+      },
+      "policy": {
+        "maxConcurrent": 8,
+        "intervalMs": 100
+      },
+      "newTab": true,
+      "extensionTranslationCacheUsed": false,
+      "warmRepeatRequested": false,
+      "timerOrigin": "translation-click",
+      "navigationToClickMs": 4573.89990234375,
+      "navigationToFullDoneMs": null,
+      "firstVisibleProseDomReadyMs": 2747.4000000059605,
+      "firstVisibleProseRafMs": 2779.5999999940395,
+      "initialViewportAllDoneMs": 3249.7999999970198,
+      "fullDoneMs": null,
+      "rateLimitResponseMs": 8903.10009765625,
+      "initialViewportSourceIds": [
+        24,
+        25,
+        26,
+        27
+      ],
+      "completed": 182,
+      "failed": 7,
+      "pending": 62,
+      "sourceSegments": 251,
+      "sourceChars": 53505,
+      "sourceChanged": false,
+      "visible": true,
+      "focused": true,
+      "visibilityFailures": 0,
+      "renderedSegments": 182,
+      "unexpectedTranslations": 0,
+      "mappingConflicts": 0,
+      "terminalObservationMs": 2000,
+      "independentlyCountedRequestsAfterCompletionOr429": 0,
+      "successfulInputTexts": 182,
+      "successfulInputChars": 34581,
+      "metrics": {
+        "requestCount": 32,
+        "totalTexts": 230,
+        "totalChars": 46508,
+        "activeRequests": 0,
+        "maxConcurrent": 8,
+        "statusCounts": {
+          "200": 24,
+          "429": 1
+        },
+        "errorCounts": {
+          "ABORTED": 7
+        },
+        "requests": [
+          {
+            "sequence": 1,
+            "startedAt": 1792603619477,
+            "textCount": 1,
+            "charCount": 137,
+            "endedAt": 1792603622154,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 1297,
+              "tlsMs": 1295.9,
+              "waitMs": 1377.1,
+              "downloadMs": 3,
+              "totalMs": 2678.8,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 2,
+            "startedAt": 1792603619578,
+            "textCount": 8,
+            "charCount": 1499,
+            "endedAt": 1792603622600,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1823,
+              "downloadMs": 4,
+              "totalMs": 3025.1,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 3,
+            "startedAt": 1792603619678,
+            "textCount": 29,
+            "charCount": 1498,
+            "endedAt": 1792603622962,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2185,
+              "downloadMs": 7,
+              "totalMs": 3289.8,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 4,
+            "startedAt": 1792603619777,
+            "textCount": 10,
+            "charCount": 1500,
+            "endedAt": 1792603622935,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2158.4,
+              "downloadMs": 10.7,
+              "totalMs": 3167.7,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 5,
+            "startedAt": 1792603619879,
+            "textCount": 7,
+            "charCount": 1499,
+            "endedAt": 1792603623167,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2390,
+              "downloadMs": 2.9,
+              "totalMs": 3289.9,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 6,
+            "startedAt": 1792603619979,
+            "textCount": 5,
+            "charCount": 1494,
+            "endedAt": 1792603622923,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2146.3,
+              "downloadMs": 11.9,
+              "totalMs": 2954.8,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 7,
+            "startedAt": 1792603620078,
+            "textCount": 6,
+            "charCount": 1499,
+            "endedAt": 1792603622757,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1980.3,
+              "downloadMs": 4.7,
+              "totalMs": 2682.5,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 8,
+            "startedAt": 1792603620180,
+            "textCount": 10,
+            "charCount": 1499,
+            "endedAt": 1792603622987,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2210.2,
+              "downloadMs": 0.8,
+              "totalMs": 2806.7,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 9,
+            "startedAt": 1792603622205,
+            "textCount": 6,
+            "charCount": 1493,
+            "endedAt": 1792603624424,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2217.1,
+              "downloadMs": 0.7,
+              "totalMs": 2218.6,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 10,
+            "startedAt": 1792603622675,
+            "textCount": 7,
+            "charCount": 1492,
+            "endedAt": 1792603624668,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1989.7,
+              "downloadMs": 0.7,
+              "totalMs": 1991.4,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 11,
+            "startedAt": 1792603622775,
+            "textCount": 7,
+            "charCount": 1499,
+            "endedAt": 1792603624827,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2049.9,
+              "downloadMs": 0.7,
+              "totalMs": 2051.5,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 12,
+            "startedAt": 1792603622968,
+            "textCount": 6,
+            "charCount": 1497,
+            "endedAt": 1792603625232,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2262,
+              "downloadMs": 0.7,
+              "totalMs": 2263.6,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 13,
+            "startedAt": 1792603623070,
+            "textCount": 6,
+            "charCount": 1497,
+            "endedAt": 1792603625256,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2183.7,
+              "downloadMs": 8,
+              "totalMs": 2193.2,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 14,
+            "startedAt": 1792603623170,
+            "textCount": 4,
+            "charCount": 1500,
+            "endedAt": 1792603625078,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1906,
+              "downloadMs": 8.9,
+              "totalMs": 1915.7,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 15,
+            "startedAt": 1792603623270,
+            "textCount": 6,
+            "charCount": 1500,
+            "endedAt": 1792603625408,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2135.1,
+              "downloadMs": 8,
+              "totalMs": 2144.4,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 16,
+            "startedAt": 1792603623371,
+            "textCount": 7,
+            "charCount": 1498,
+            "endedAt": 1792603625627,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2253.8,
+              "downloadMs": 0.7,
+              "totalMs": 2255.5,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 17,
+            "startedAt": 1792603624458,
+            "textCount": 5,
+            "charCount": 1497,
+            "endedAt": 1792603626515,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2054.4,
+              "downloadMs": 0.9,
+              "totalMs": 2056.2,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 18,
+            "startedAt": 1792603624693,
+            "textCount": 9,
+            "charCount": 1498,
+            "endedAt": 1792603626514,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1819.3,
+              "downloadMs": 0.8,
+              "totalMs": 1821,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 19,
+            "startedAt": 1792603624841,
+            "textCount": 6,
+            "charCount": 1499,
+            "endedAt": 1792603627031,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2187.8,
+              "downloadMs": 2,
+              "totalMs": 2190.8,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 20,
+            "startedAt": 1792603625110,
+            "textCount": 9,
+            "charCount": 1495,
+            "endedAt": 1792603627165,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2053.4,
+              "downloadMs": 0.7,
+              "totalMs": 2055,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 21,
+            "startedAt": 1792603625244,
+            "textCount": 5,
+            "charCount": 1497,
+            "endedAt": 1792603627341,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2094.9,
+              "downloadMs": 7.8,
+              "totalMs": 2103.6,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 22,
+            "startedAt": 1792603625344,
+            "textCount": 7,
+            "charCount": 1500,
+            "endedAt": 1792603627308,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1961.6,
+              "downloadMs": 0.7,
+              "totalMs": 1963.3,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 23,
+            "startedAt": 1792603625446,
+            "textCount": 5,
+            "charCount": 1497,
+            "endedAt": 1792603627473,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2025.4,
+              "downloadMs": 3.8,
+              "totalMs": 2030.1,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 24,
+            "startedAt": 1792603625650,
+            "textCount": 11,
+            "charCount": 1497,
+            "endedAt": 1792603627497,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1845.2,
+              "downloadMs": 9.2,
+              "totalMs": 1855.2,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 25,
+            "startedAt": 1792603626536,
+            "textCount": 7,
+            "charCount": 1500,
+            "endedAt": 1792603628315,
+            "errorCode": "ABORTED"
+          },
+          {
+            "sequence": 26,
+            "startedAt": 1792603626637,
+            "textCount": 7,
+            "charCount": 1500,
+            "endedAt": 1792603628315,
+            "errorCode": "ABORTED"
+          },
+          {
+            "sequence": 27,
+            "startedAt": 1792603627054,
+            "textCount": 3,
+            "charCount": 1492,
+            "endedAt": 1792603628315,
+            "errorCode": "ABORTED"
+          },
+          {
+            "sequence": 28,
+            "startedAt": 1792603627182,
+            "textCount": 8,
+            "charCount": 1496,
+            "endedAt": 1792603628315,
+            "errorCode": "ABORTED"
+          },
+          {
+            "sequence": 29,
+            "startedAt": 1792603627320,
+            "textCount": 5,
+            "charCount": 1497,
+            "endedAt": 1792603628315,
+            "errorCode": "ABORTED"
+          },
+          {
+            "sequence": 30,
+            "startedAt": 1792603627420,
+            "textCount": 7,
+            "charCount": 1491,
+            "endedAt": 1792603628315,
+            "errorCode": "ABORTED"
+          },
+          {
+            "sequence": 31,
+            "startedAt": 1792603627519,
+            "textCount": 6,
+            "charCount": 1480,
+            "endedAt": 1792603628315,
+            "errorCode": "ABORTED"
+          },
+          {
+            "sequence": 32,
+            "startedAt": 1792603627621,
+            "textCount": 5,
+            "charCount": 1471,
+            "endedAt": 1792603628314,
+            "status": 429,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 691.1,
+              "downloadMs": 1.9,
+              "totalMs": 694,
+              "protocol": "h2"
+            }
+          }
+        ],
+        "rateLimitDiagnostics": [
+          {
+            "at": 1792603628314,
+            "httpStatus": 429,
+            "bodyOutcome": "json",
+            "bodyCompletedAt": 1792603628316
+          }
+        ]
+      }
+    },
+    {
+      "name": "balanced-cold",
+      "qualification": "complete-pass",
+      "rawEvidence": {
+        "path": ".output/go-page-deepl-v2-balanced-9e55c71a4b48843da6a0bf87e0ce7febee5e02c9.json",
+        "sha256": "10f77c42137c5fdd46a833c8fc98e0d824346ca7150fe451da652677dd526f94"
+      },
+      "policy": {
+        "maxConcurrent": 6,
+        "intervalMs": 350
+      },
+      "newTab": true,
+      "extensionTranslationCacheUsed": false,
+      "warmRepeatRequested": false,
+      "timerOrigin": "translation-click",
+      "navigationToClickMs": 5132.699951171875,
+      "navigationToFullDoneMs": 23278.999951183796,
+      "firstVisibleProseDomReadyMs": 3185.7000000029802,
+      "firstVisibleProseRafMs": 3205.800000011921,
+      "initialViewportAllDoneMs": 3913.2000000029802,
+      "fullDoneMs": 18146.30000001192,
+      "rateLimitResponseMs": null,
+      "initialViewportSourceIds": [
+        24,
+        25,
+        26,
+        27
+      ],
+      "completed": 251,
+      "failed": 0,
+      "pending": 0,
+      "sourceSegments": 251,
+      "sourceChars": 53505,
+      "sourceChanged": false,
+      "visible": true,
+      "focused": true,
+      "visibilityFailures": 0,
+      "renderedSegments": 251,
+      "unexpectedTranslations": 0,
+      "mappingConflicts": 0,
+      "outputFingerprint": "a18079856c9f7c943e682e5d86c7c386e76e5c85d63a1cefe793d9b6ff49aaa6",
+      "terminalObservationMs": 1998.2999999970198,
+      "independentlyCountedRequestsAfterCompletionOr429": 0,
+      "successfulInputTexts": 251,
+      "successfulInputChars": 53505,
+      "metrics": {
+        "requestCount": 38,
+        "totalTexts": 251,
+        "totalChars": 53505,
+        "activeRequests": 0,
+        "maxConcurrent": 6,
+        "statusCounts": {
+          "200": 38
+        },
+        "errorCounts": {},
+        "requests": [
+          {
+            "sequence": 1,
+            "startedAt": 1792604082488,
+            "textCount": 1,
+            "charCount": 137,
+            "endedAt": 1792604085599,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 1865.3,
+              "tlsMs": 1864.4,
+              "waitMs": 1242.6,
+              "downloadMs": 0.9,
+              "totalMs": 3110.5,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 2,
+            "startedAt": 1792604082838,
+            "textCount": 8,
+            "charCount": 1499,
+            "endedAt": 1792604086297,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1940.3,
+              "downloadMs": 0.8,
+              "totalMs": 3457.8,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 3,
+            "startedAt": 1792604083190,
+            "textCount": 29,
+            "charCount": 1498,
+            "endedAt": 1792604086312,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1956.3,
+              "downloadMs": 0.7,
+              "totalMs": 3122.1,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 4,
+            "startedAt": 1792604083540,
+            "textCount": 10,
+            "charCount": 1500,
+            "endedAt": 1792604086422,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2065.4,
+              "downloadMs": 73.1,
+              "totalMs": 2953.1,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 5,
+            "startedAt": 1792604083892,
+            "textCount": 7,
+            "charCount": 1499,
+            "endedAt": 1792604086781,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2424.3,
+              "downloadMs": 0.7,
+              "totalMs": 2888.3,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 6,
+            "startedAt": 1792604084242,
+            "textCount": 5,
+            "charCount": 1494,
+            "endedAt": 1792604086342,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1985.5,
+              "downloadMs": 0.7,
+              "totalMs": 2098.7,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 7,
+            "startedAt": 1792604085653,
+            "textCount": 6,
+            "charCount": 1499,
+            "endedAt": 1792604087652,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1996,
+              "downloadMs": 0.8,
+              "totalMs": 1997.8,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 8,
+            "startedAt": 1792604086349,
+            "textCount": 10,
+            "charCount": 1499,
+            "endedAt": 1792604088856,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2505,
+              "downloadMs": 0.6,
+              "totalMs": 2506.5,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 9,
+            "startedAt": 1792604086701,
+            "textCount": 6,
+            "charCount": 1493,
+            "endedAt": 1792604089243,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2540,
+              "downloadMs": 0.7,
+              "totalMs": 2541.6,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 10,
+            "startedAt": 1792604087052,
+            "textCount": 7,
+            "charCount": 1492,
+            "endedAt": 1792604088933,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1877.9,
+              "downloadMs": 0.5,
+              "totalMs": 1879.4,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 11,
+            "startedAt": 1792604087403,
+            "textCount": 7,
+            "charCount": 1499,
+            "endedAt": 1792604089755,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2350,
+              "downloadMs": 0.7,
+              "totalMs": 2351.8,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 12,
+            "startedAt": 1792604087753,
+            "textCount": 6,
+            "charCount": 1497,
+            "endedAt": 1792604089812,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2056.9,
+              "downloadMs": 0.6,
+              "totalMs": 2058.5,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 13,
+            "startedAt": 1792604088105,
+            "textCount": 6,
+            "charCount": 1497,
+            "endedAt": 1792604090358,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2250.6,
+              "downloadMs": 0.6,
+              "totalMs": 2252.2,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 14,
+            "startedAt": 1792604088882,
+            "textCount": 4,
+            "charCount": 1500,
+            "endedAt": 1792604090945,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2061.1,
+              "downloadMs": 0.7,
+              "totalMs": 2062.7,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 15,
+            "startedAt": 1792604089234,
+            "textCount": 6,
+            "charCount": 1500,
+            "endedAt": 1792604091470,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2233.5,
+              "downloadMs": 0.8,
+              "totalMs": 2235.2,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 16,
+            "startedAt": 1792604089585,
+            "textCount": 7,
+            "charCount": 1498,
+            "endedAt": 1792604091935,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2347.1,
+              "downloadMs": 0.8,
+              "totalMs": 2349,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 17,
+            "startedAt": 1792604089936,
+            "textCount": 5,
+            "charCount": 1497,
+            "endedAt": 1792604091917,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1978.5,
+              "downloadMs": 0.7,
+              "totalMs": 1980.1,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 18,
+            "startedAt": 1792604090287,
+            "textCount": 9,
+            "charCount": 1498,
+            "endedAt": 1792604092022,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1732.3,
+              "downloadMs": 0.6,
+              "totalMs": 1733.9,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 19,
+            "startedAt": 1792604090637,
+            "textCount": 6,
+            "charCount": 1499,
+            "endedAt": 1792604092909,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2269,
+              "downloadMs": 0.8,
+              "totalMs": 2270.7,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 20,
+            "startedAt": 1792604090989,
+            "textCount": 9,
+            "charCount": 1495,
+            "endedAt": 1792604092829,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1837.5,
+              "downloadMs": 0.7,
+              "totalMs": 1839.3,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 21,
+            "startedAt": 1792604091494,
+            "textCount": 5,
+            "charCount": 1497,
+            "endedAt": 1792604093986,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2489.5,
+              "downloadMs": 0.9,
+              "totalMs": 2491.3,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 22,
+            "startedAt": 1792604091954,
+            "textCount": 7,
+            "charCount": 1500,
+            "endedAt": 1792604094009,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2045.5,
+              "downloadMs": 0.9,
+              "totalMs": 2047.6,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 23,
+            "startedAt": 1792604092306,
+            "textCount": 5,
+            "charCount": 1497,
+            "endedAt": 1792604094363,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2053.9,
+              "downloadMs": 0.8,
+              "totalMs": 2055.7,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 24,
+            "startedAt": 1792604092657,
+            "textCount": 11,
+            "charCount": 1497,
+            "endedAt": 1792604094583,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1923.2,
+              "downloadMs": 0.8,
+              "totalMs": 1925,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 25,
+            "startedAt": 1792604093007,
+            "textCount": 7,
+            "charCount": 1500,
+            "endedAt": 1792604095078,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2065.3,
+              "downloadMs": 3,
+              "totalMs": 2069.2,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 26,
+            "startedAt": 1792604093359,
+            "textCount": 7,
+            "charCount": 1500,
+            "endedAt": 1792604095544,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2181.8,
+              "downloadMs": 1,
+              "totalMs": 2184.3,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 27,
+            "startedAt": 1792604094030,
+            "textCount": 3,
+            "charCount": 1492,
+            "endedAt": 1792604096262,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2228.5,
+              "downloadMs": 0.9,
+              "totalMs": 2230.9,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 28,
+            "startedAt": 1792604094380,
+            "textCount": 8,
+            "charCount": 1496,
+            "endedAt": 1792604096319,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1932.1,
+              "downloadMs": 1.2,
+              "totalMs": 1935,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 29,
+            "startedAt": 1792604094730,
+            "textCount": 5,
+            "charCount": 1497,
+            "endedAt": 1792604097187,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2453.9,
+              "downloadMs": 0.9,
+              "totalMs": 2456,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 30,
+            "startedAt": 1792604095080,
+            "textCount": 7,
+            "charCount": 1491,
+            "endedAt": 1792604097404,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2321.2,
+              "downloadMs": 3,
+              "totalMs": 2325.6,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 31,
+            "startedAt": 1792604095431,
+            "textCount": 6,
+            "charCount": 1480,
+            "endedAt": 1792604097636,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2201.6,
+              "downloadMs": 3,
+              "totalMs": 2206,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 32,
+            "startedAt": 1792604095781,
+            "textCount": 5,
+            "charCount": 1471,
+            "endedAt": 1792604098149,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2365,
+              "downloadMs": 1,
+              "totalMs": 2366.9,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 33,
+            "startedAt": 1792604096291,
+            "textCount": 6,
+            "charCount": 1412,
+            "endedAt": 1792604098505,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2211,
+              "downloadMs": 1.9,
+              "totalMs": 2214.2,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 34,
+            "startedAt": 1792604096647,
+            "textCount": 4,
+            "charCount": 1486,
+            "endedAt": 1792604098768,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2117.8,
+              "downloadMs": 9,
+              "totalMs": 2128.5,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 35,
+            "startedAt": 1792604097217,
+            "textCount": 3,
+            "charCount": 1341,
+            "endedAt": 1792604099300,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2081.5,
+              "downloadMs": 1.9,
+              "totalMs": 2084.4,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 36,
+            "startedAt": 1792604097569,
+            "textCount": 4,
+            "charCount": 1212,
+            "endedAt": 1792604099418,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1846.2,
+              "downloadMs": 16.2,
+              "totalMs": 1863.4,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 37,
+            "startedAt": 1792604097919,
+            "textCount": 3,
+            "charCount": 1063,
+            "endedAt": 1792604099709,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1787.6,
+              "downloadMs": 8.9,
+              "totalMs": 1797.7,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 38,
+            "startedAt": 1792604098271,
+            "textCount": 1,
+            "charCount": 483,
+            "endedAt": 1792604100554,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2279.5,
+              "downloadMs": 1,
+              "totalMs": 2282,
+              "protocol": "h2"
+            }
+          }
+        ],
+        "rateLimitDiagnostics": []
+      }
+    },
+    {
+      "name": "balanced-new-tab-confirmation",
+      "qualification": "complete-pass",
+      "rawEvidence": {
+        "path": ".output/go-page-deepl-v2-confirm-b50748dcf2cb731beb18c2b8368dd5f1cf15d60d.json",
+        "sha256": "c43cb7b5e34a89a991849a32c12e95e8addc844579abd7f9726aec645527ff60"
+      },
+      "policy": {
+        "maxConcurrent": 6,
+        "intervalMs": 350
+      },
+      "newTab": true,
+      "extensionTranslationCacheUsed": false,
+      "warmRepeatRequested": false,
+      "timerOrigin": "translation-click",
+      "navigationToClickMs": 3923.800048828125,
+      "navigationToFullDoneMs": 22352.800048828125,
+      "firstVisibleProseDomReadyMs": 4169.199999988079,
+      "firstVisibleProseRafMs": 4190.79999999702,
+      "initialViewportAllDoneMs": 4518.5,
+      "fullDoneMs": 18429,
+      "rateLimitResponseMs": null,
+      "initialViewportSourceIds": [
+        24,
+        25,
+        26,
+        27
+      ],
+      "completed": 251,
+      "failed": 0,
+      "pending": 0,
+      "sourceSegments": 251,
+      "sourceChars": 53505,
+      "sourceChanged": false,
+      "visible": true,
+      "focused": true,
+      "visibilityFailures": 0,
+      "renderedSegments": 251,
+      "unexpectedTranslations": 0,
+      "mappingConflicts": 0,
+      "outputFingerprint": "d2b5848a498835d1a7163ca6c4a5b44d7efd57b092407978f1b74045fd97bfda",
+      "terminalObservationMs": 1999.5,
+      "independentlyCountedRequestsAfterCompletionOr429": 0,
+      "successfulInputTexts": 251,
+      "successfulInputChars": 53505,
+      "metrics": {
+        "requestCount": 38,
+        "totalTexts": 251,
+        "totalChars": 53505,
+        "activeRequests": 0,
+        "maxConcurrent": 6,
+        "statusCounts": {
+          "200": 38
+        },
+        "errorCounts": {},
+        "requests": [
+          {
+            "sequence": 1,
+            "startedAt": 1792604168478,
+            "textCount": 1,
+            "charCount": 137,
+            "endedAt": 1792604172574,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 1910.9,
+              "tlsMs": 1909.5,
+              "waitMs": 2181.8,
+              "downloadMs": 1.6,
+              "totalMs": 4096.1,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 2,
+            "startedAt": 1792604168828,
+            "textCount": 8,
+            "charCount": 1499,
+            "endedAt": 1792604172930,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2538.3,
+              "downloadMs": 0.8,
+              "totalMs": 4102,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 3,
+            "startedAt": 1792604169179,
+            "textCount": 29,
+            "charCount": 1498,
+            "endedAt": 1792604172181,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1788.6,
+              "downloadMs": 0.8,
+              "totalMs": 3000.6,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 4,
+            "startedAt": 1792604169531,
+            "textCount": 10,
+            "charCount": 1500,
+            "endedAt": 1792604172540,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2148.3,
+              "downloadMs": 3,
+              "totalMs": 3011.4,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 5,
+            "startedAt": 1792604169883,
+            "textCount": 7,
+            "charCount": 1499,
+            "endedAt": 1792604172741,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2348.5,
+              "downloadMs": 0.8,
+              "totalMs": 2857.4,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 6,
+            "startedAt": 1792604170234,
+            "textCount": 5,
+            "charCount": 1494,
+            "endedAt": 1792604172434,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2042.3,
+              "downloadMs": 0.6,
+              "totalMs": 2199.4,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 7,
+            "startedAt": 1792604172232,
+            "textCount": 6,
+            "charCount": 1499,
+            "endedAt": 1792604174341,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2106,
+              "downloadMs": 0.8,
+              "totalMs": 2107.6,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 8,
+            "startedAt": 1792604172582,
+            "textCount": 10,
+            "charCount": 1499,
+            "endedAt": 1792604174821,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2236.6,
+              "downloadMs": 0.8,
+              "totalMs": 2238.5,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 9,
+            "startedAt": 1792604172933,
+            "textCount": 6,
+            "charCount": 1493,
+            "endedAt": 1792604175268,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2333.4,
+              "downloadMs": 0.8,
+              "totalMs": 2335,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 10,
+            "startedAt": 1792604173283,
+            "textCount": 7,
+            "charCount": 1492,
+            "endedAt": 1792604175424,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2138.6,
+              "downloadMs": 1,
+              "totalMs": 2140.5,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 11,
+            "startedAt": 1792604173634,
+            "textCount": 7,
+            "charCount": 1499,
+            "endedAt": 1792604175957,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2321.7,
+              "downloadMs": 0.7,
+              "totalMs": 2323.2,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 12,
+            "startedAt": 1792604173984,
+            "textCount": 6,
+            "charCount": 1497,
+            "endedAt": 1792604176267,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2281.1,
+              "downloadMs": 0.7,
+              "totalMs": 2282.8,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 13,
+            "startedAt": 1792604174371,
+            "textCount": 6,
+            "charCount": 1497,
+            "endedAt": 1792604176621,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2247.4,
+              "downloadMs": 0.8,
+              "totalMs": 2249,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 14,
+            "startedAt": 1792604174849,
+            "textCount": 4,
+            "charCount": 1500,
+            "endedAt": 1792604177152,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2300.2,
+              "downloadMs": 0.7,
+              "totalMs": 2301.6,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 15,
+            "startedAt": 1792604175295,
+            "textCount": 6,
+            "charCount": 1500,
+            "endedAt": 1792604177373,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2076.5,
+              "downloadMs": 0.7,
+              "totalMs": 2078.3,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 16,
+            "startedAt": 1792604175645,
+            "textCount": 7,
+            "charCount": 1498,
+            "endedAt": 1792604178133,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2485.8,
+              "downloadMs": 8.8,
+              "totalMs": 2495.6,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 17,
+            "startedAt": 1792604175996,
+            "textCount": 5,
+            "charCount": 1497,
+            "endedAt": 1792604177907,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1909,
+              "downloadMs": 0.7,
+              "totalMs": 1910.7,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 18,
+            "startedAt": 1792604176347,
+            "textCount": 9,
+            "charCount": 1498,
+            "endedAt": 1792604178133,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1783.7,
+              "downloadMs": 0.8,
+              "totalMs": 1785.4,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 19,
+            "startedAt": 1792604176698,
+            "textCount": 6,
+            "charCount": 1499,
+            "endedAt": 1792604178778,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2077.6,
+              "downloadMs": 0.7,
+              "totalMs": 2079.1,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 20,
+            "startedAt": 1792604177175,
+            "textCount": 9,
+            "charCount": 1495,
+            "endedAt": 1792604179338,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2160.7,
+              "downloadMs": 3,
+              "totalMs": 2164.6,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 21,
+            "startedAt": 1792604177526,
+            "textCount": 5,
+            "charCount": 1497,
+            "endedAt": 1792604179614,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2084.7,
+              "downloadMs": 0.7,
+              "totalMs": 2086.5,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 22,
+            "startedAt": 1792604177934,
+            "textCount": 7,
+            "charCount": 1500,
+            "endedAt": 1792604180877,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2941.6,
+              "downloadMs": 0.6,
+              "totalMs": 2943.1,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 23,
+            "startedAt": 1792604178284,
+            "textCount": 5,
+            "charCount": 1497,
+            "endedAt": 1792604180981,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2693.9,
+              "downloadMs": 0.8,
+              "totalMs": 2696.1,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 24,
+            "startedAt": 1792604178635,
+            "textCount": 11,
+            "charCount": 1497,
+            "endedAt": 1792604180772,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2134.5,
+              "downloadMs": 0.8,
+              "totalMs": 2136.3,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 25,
+            "startedAt": 1792604178986,
+            "textCount": 7,
+            "charCount": 1500,
+            "endedAt": 1792604181221,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2231.7,
+              "downloadMs": 0.7,
+              "totalMs": 2233.6,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 26,
+            "startedAt": 1792604179363,
+            "textCount": 7,
+            "charCount": 1500,
+            "endedAt": 1792604181566,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2201.1,
+              "downloadMs": 0.6,
+              "totalMs": 2202.6,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 27,
+            "startedAt": 1792604179714,
+            "textCount": 3,
+            "charCount": 1492,
+            "endedAt": 1792604182001,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2284,
+              "downloadMs": 0.7,
+              "totalMs": 2285.8,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 28,
+            "startedAt": 1792604180797,
+            "textCount": 8,
+            "charCount": 1496,
+            "endedAt": 1792604182768,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1969,
+              "downloadMs": 0.7,
+              "totalMs": 1970.6,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 29,
+            "startedAt": 1792604181149,
+            "textCount": 5,
+            "charCount": 1497,
+            "endedAt": 1792604183322,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2171.2,
+              "downloadMs": 0.6,
+              "totalMs": 2172.9,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 30,
+            "startedAt": 1792604181500,
+            "textCount": 7,
+            "charCount": 1491,
+            "endedAt": 1792604183780,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2278.4,
+              "downloadMs": 0.7,
+              "totalMs": 2280,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 31,
+            "startedAt": 1792604181851,
+            "textCount": 6,
+            "charCount": 1480,
+            "endedAt": 1792604184125,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2271.7,
+              "downloadMs": 0.8,
+              "totalMs": 2273.5,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 32,
+            "startedAt": 1792604182202,
+            "textCount": 5,
+            "charCount": 1471,
+            "endedAt": 1792604184421,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2216.2,
+              "downloadMs": 0.8,
+              "totalMs": 2217.9,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 33,
+            "startedAt": 1792604182554,
+            "textCount": 6,
+            "charCount": 1412,
+            "endedAt": 1792604184630,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2074.2,
+              "downloadMs": 0.7,
+              "totalMs": 2076,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 34,
+            "startedAt": 1792604182905,
+            "textCount": 4,
+            "charCount": 1486,
+            "endedAt": 1792604184999,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2092.3,
+              "downloadMs": 0.7,
+              "totalMs": 2094,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 35,
+            "startedAt": 1792604183336,
+            "textCount": 3,
+            "charCount": 1341,
+            "endedAt": 1792604185543,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2204.4,
+              "downloadMs": 0.9,
+              "totalMs": 2206.2,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 36,
+            "startedAt": 1792604183792,
+            "textCount": 4,
+            "charCount": 1212,
+            "endedAt": 1792604185553,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1758.9,
+              "downloadMs": 0.6,
+              "totalMs": 1760.4,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 37,
+            "startedAt": 1792604184143,
+            "textCount": 3,
+            "charCount": 1063,
+            "endedAt": 1792604186041,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1895.9,
+              "downloadMs": 0.8,
+              "totalMs": 1897.7,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 38,
+            "startedAt": 1792604184495,
+            "textCount": 1,
+            "charCount": 483,
+            "endedAt": 1792604186836,
+            "status": 200,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2339.2,
+              "downloadMs": 3.9,
+              "totalMs": 2344.1,
+              "protocol": "h2"
+            }
+          }
+        ],
+        "rateLimitDiagnostics": []
+      }
+    }
+  ],
+  "independentDomInspection": {
+    "path": ".output/deepl-speed-v2/dom-proof/inspect-installed-go-extra-request.json",
+    "sha256": "3cbe4f1d9b5534417e6cf2335d475d2985f6cd3632b3b665045b00982407e582",
+    "translationRequestsSent": 0,
+    "credentialsRead": false,
+    "permissionsRequested": false,
+    "segments": 251,
+    "sourceChars": 53505,
+    "doneHosts": 251,
+    "hanHosts": 246,
+    "nonHan": [
+      {
+        "index": 230,
+        "source": "BBC Worldwide",
+        "sourceTag": "LI",
+        "translated": "BBC Worldwide"
+      },
+      {
+        "index": 231,
+        "source": "Canonical",
+        "sourceTag": "LI",
+        "translated": "Canonical"
+      },
+      {
+        "index": 232,
+        "source": "Heroku",
+        "sourceTag": "LI",
+        "translated": "Heroku"
+      },
+      {
+        "index": 234,
+        "source": "SoundCloud",
+        "sourceTag": "LI",
+        "translated": "SoundCloud"
+      },
+      {
+        "index": 250,
+        "source": "go.dev",
+        "sourceTag": "P",
+        "translated": "go.dev"
+      }
+    ],
+    "bar": {
+      "completed": 251,
+      "errorCode": "",
+      "failed": 0,
+      "pending": 0,
+      "status": "done",
+      "statusText": "翻译完成 · 251 / 251",
+      "total": 251
+    },
+    "barHostCount": 1,
+    "protectedCounts": {
+      ".monaco-editor,.CodeMirror,.cm-editor,.ace_editor,.code-block,.codehilite,.highlight": {
+        "containers": 0,
+        "translationHosts": 0
+      },
+      "code": {
+        "containers": 176,
+        "translationHosts": 0
+      },
+      "input": {
+        "containers": 0,
+        "translationHosts": 0
+      },
+      "pre": {
+        "containers": 28,
+        "translationHosts": 0
+      },
+      "select": {
+        "containers": 0,
+        "translationHosts": 0
+      },
+      "textarea": {
+        "containers": 0,
+        "translationHosts": 0
+      }
+    }
+  },
+  "deployment": {
+    "path": "docs/evidence/deepl-speed-v2-deployment-2026-10-22.json",
+    "sha256": "67db59f373690455a5afaca88c58d0d9692a8efb375be3bbb619bec05203a6ec",
+    "at": "2026-10-21T17:34:34.582Z",
+    "installed": "D:\\浏览器翻译扩展\\artifacts\\installed\\near-translate-edge-v0.1.0",
+    "source": "D:\\浏览器翻译扩展\\.output\\edge-mv3",
+    "backup": "D:\\浏览器翻译扩展\\.output\\deepl-speed-v2\\installed-program-backup-1792604072974",
+    "extensionId": "dbdooijmbinjmnbmgglajigaoiinolnc",
+    "beforeVersion": "0.7.0",
+    "afterVersion": "0.7.0",
+    "programFilesVerified": {
+      "manifest.json": "a017841aa0d1f64c66233068d9f5ff2bb6e15c7ece3fa933e1cf93438df775bd",
+      "background.js": "5a2e0019648916745b8522ad1b53c632d4d676554d353c458d1efa772f9a7e04",
+      "content-scripts/selection.js": "591470926adb188e0147c33564886f6f489256882233c95d3727c9b6021b36cd"
+    },
+    "browserStorageAccessed": false,
+    "mode": "speed-v2-validated",
+    "validatedAt": "2026-10-21T17:42:06.879Z",
+    "validationEvidence": "docs/evidence/deepl-speed-v2-go-2026-10-22.json"
+  },
+  "checks": {
+    "unit": {
+      "passed": 586,
+      "total": 586,
+      "log": ".output/deepl-speed-v2/unit-balanced.log"
+    },
+    "targetedEdgeE2e": {
+      "passed": 24,
+      "total": 24,
+      "log": ".output/deepl-speed-v2/e2e-balanced.log",
+      "network": "mocked"
+    },
+    "typecheck": "passed",
+    "moduleBoundaries": "passed",
+    "chromeBuild": "passed",
+    "edgeBuild": "passed"
+  }
+}

@@ -1,0 +1,205 @@
+{
+  "at": "2026-10-22T16:24:13.159Z",
+  "installed": "D:\\浏览器翻译扩展\\artifacts\\installed\\near-translate-edge-v0.1.0",
+  "source": "D:\\浏览器翻译扩展\\.output\\edge-mv3",
+  "backup": "D:\\浏览器翻译扩展\\.output\\conversion-installed-backup-1792686253159",
+  "extensionId": "dbdooijmbinjmnbmgglajigaoiinolnc",
+  "changes": [
+    {
+      "file": "assets\\convert-BB6moKxG.css",
+      "beforeHash": null,
+      "afterHash": "9ebb6d059b035b826c3299ad1fb47873e63be8090bd13077dc9030604fe5f21d"
+    },
+    {
+      "file": "chunks\\app-g4sLso-a.js",
+      "beforeHash": null,
+      "afterHash": "c088cd933a3e00b0075a9986d5314fbc6ebc35285a83f3ceb22a853beacd9391"
+    },
+    {
+      "file": "chunks\\convert-7obUrB-z.js",
+      "beforeHash": null,
+      "afterHash": "d8c4c1c18c61003d7ef1a0b443f8f44e6cf8b5a87f57c8a435d7c0f79eaf72c8"
+    },
+    {
+      "file": "chunks\\jsx-runtime-sPUq510E.js",
+      "beforeHash": null,
+      "afterHash": "959981f473b4687fa1bf4554290cd7a2a8fa095738f51fd49e49f72b60c12d78"
+    },
+    {
+      "file": "chunks\\languages-CU2Yv0iB.js",
+      "beforeHash": null,
+      "afterHash": "c30a348ea3294713fb5e1e44713a0fe4e213a2810eacce16a77b0f665e82c09e"
+    },
+    {
+      "file": "chunks\\options-DN_Pdqkn.js",
+      "beforeHash": null,
+      "afterHash": "ac5550eb9ee0c05786e70ec03ce4867fbcca820ebd5edc17bcf9bcb447e0ccb7"
+    },
+    {
+      "file": "chunks\\pdf-BeWTfCxw.js",
+      "beforeHash": null,
+      "afterHash": "7ecfb9d50e79c1874ca6bcc8edbfa0fe5df0864e97eeee9aa27c81345251c08d"
+    },
+    {
+      "file": "chunks\\pdf_viewer-BDPNLW5u.js",
+      "beforeHash": null,
+      "afterHash": "1d119f85a1b10f82d774bb989142838f77314f4d680c6c3e89792b69d94ad05d"
+    },
+    {
+      "file": "chunks\\popup-RzuIyK4R.js",
+      "beforeHash": null,
+      "afterHash": "ae2cca7a941b84d8dc6afc6caf3676457ef31f5d7445dbefd436c9befcd8f5fe"
+    },
+    {
+      "file": "chunks\\reader-Dxn23alE.js",
+      "beforeHash": null,
+      "afterHash": "3d5978e53abdaa98126032fbebbf73b91f790b32cc7595127f39c274c10a7b48"
+    },
+    {
+      "file": "licenses\\marked.txt",
+      "beforeHash": null,
+      "afterHash": "8e3a3f82f59a60958f56ca08f445647c32a4733dc7ca6c2c46f6eb898471ab9c"
+    },
+    {
+      "file": "licenses\\pako.txt",
+      "beforeHash": null,
+      "afterHash": "a04665b3b2de56c66730c1f720f528175739e4104f79073614aa611da1e85539"
+    },
+    {
+      "file": "licenses\\pdf-lib-standard-fonts.txt",
+      "beforeHash": null,
+      "afterHash": "45cc2bb9957ed43f5c7f5eb1912f9f670730394d614079510477cae626194649"
+    },
+    {
+      "file": "licenses\\pdf-lib-upng.txt",
+      "beforeHash": null,
+      "afterHash": "c1fb8861eca211bf5aea574358aba7039396c0c1824c2a1477cc126d398efd89"
+    },
+    {
+      "file": "licenses\\pdf-lib.txt",
+      "beforeHash": null,
+      "afterHash": "f2c9fc00fdb66eb99ac156ba52d734af66d8d309f65753ae809ad34ee2883bcb"
+    },
+    {
+      "file": "licenses\\tslib.txt",
+      "beforeHash": null,
+      "afterHash": "210b19e543130388c68654b7497e967119ce17145f66ab7d85688fbd70f08751"
+    },
+    {
+      "file": "convert.html",
+      "beforeHash": null,
+      "afterHash": "78234b44ab012d6e797c8152e62ec2fc58898cab0e55d5e1cce65011959166b4"
+    },
+    {
+      "file": "options.html",
+      "beforeHash": "14fe4a2536df17296591b922ae67c73e54e33df281ec2e59f0c7d8e879d77832",
+      "afterHash": "e58aa244089c6b161c406f60f2da132c9636cf0449b197f3683a164579c5618a"
+    },
+    {
+      "file": "popup.html",
+      "beforeHash": "7442dc57878029b1fbc848dfb98d29af0d663bce20b0336674537b5966c683e4",
+      "afterHash": "ecf7b9a37cc60e2df1c373017ea8c765fbc4ea6d0142d2b0f222ba80db2f0c66"
+    },
+    {
+      "file": "reader.html",
+      "beforeHash": "3677e7b68a187bd3ac8eeb6d64d37fd6033a4f43ff627f92ca0b321cd9ac2a24",
+      "afterHash": "6c302b2e876516bd8534624a078143ec024b556520c614e5c3ddbaa03bd0964d"
+    }
+  ],
+  "events": [
+    {
+      "phase": "before",
+      "extensionId": "dbdooijmbinjmnbmgglajigaoiinolnc",
+      "version": "0.9.0",
+      "settings": {
+        "translationEngine": "model",
+        "provider": "deepseek",
+        "model": "deepseek-flash",
+        "hasApiKey": true,
+        "enabled": true,
+        "webAccess": true,
+        "apiAccess": true,
+        "sourceLanguage": "auto",
+        "targetLanguage": "zh-Hans",
+        "includeContext": true,
+        "sentenceAnalysisEnabled": true,
+        "connectionRevision": 49,
+        "requiresApiKey": true
+      },
+      "permissions": {
+        "origins": [
+          "http://*/*",
+          "https://*/*",
+          "https://api.deepseek.com/*",
+          "https://oneshot-free.www.deepl.com/*",
+          "https://www2.deepl.com/*"
+        ],
+        "permissions": [
+          "activeTab",
+          "declarativeNetRequestWithHostAccess",
+          "scripting",
+          "storage"
+        ]
+      },
+      "helperTabId": 800038235
+    },
+    {
+      "phase": "reload-requested",
+      "helperTabId": 800038239
+    },
+    {
+      "phase": "after",
+      "extensionId": "dbdooijmbinjmnbmgglajigaoiinolnc",
+      "version": "0.9.0",
+      "settings": {
+        "translationEngine": "model",
+        "provider": "deepseek",
+        "model": "deepseek-flash",
+        "hasApiKey": true,
+        "enabled": true,
+        "webAccess": true,
+        "apiAccess": true,
+        "sourceLanguage": "auto",
+        "targetLanguage": "zh-Hans",
+        "includeContext": true,
+        "sentenceAnalysisEnabled": true,
+        "connectionRevision": 49,
+        "requiresApiKey": true
+      },
+      "permissions": {
+        "origins": [
+          "http://*/*",
+          "https://*/*",
+          "https://api.deepseek.com/*",
+          "https://oneshot-free.www.deepl.com/*",
+          "https://www2.deepl.com/*"
+        ],
+        "permissions": [
+          "activeTab",
+          "declarativeNetRequestWithHostAccess",
+          "scripting",
+          "storage"
+        ]
+      },
+      "conversionTabId": 800038246,
+      "verified": {
+        "toolCount": 6,
+        "previewTitle": "一份清晰的文档",
+        "table": true,
+        "code": true,
+        "printReady": true,
+        "portableHtml": true,
+        "popupEntry": true,
+        "readerEntry": true
+      },
+      "helperTabId": 800038243
+    }
+  ],
+  "browserStorageWritten": false,
+  "apiKeysRead": false,
+  "completed": true,
+  "settingsUnchanged": true,
+  "permissionsUnchanged": true,
+  "verifiedFiles": 328,
+  "conversionTabId": 800038246
+}

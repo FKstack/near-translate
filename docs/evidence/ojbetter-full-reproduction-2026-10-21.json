@@ -1,0 +1,607 @@
+{
+  "generatedAt": "2026-10-21T13:05:31.134Z",
+  "qualification": "original-OJBetter-UI-and-real-Tampermonkey",
+  "source": {
+    "commit": "860106c63ef7bb7d4ec5dcd709f80a9f9a6f1a46",
+    "version": "1.25.1",
+    "url": "https://github.com/beijixiaohu/OJBetter/blob/860106c63ef7bb7d4ec5dcd709f80a9f9a6f1a46/script/release/atcoder-better.user.js",
+    "sha256": "ac54e910d52ff40df1e9f25173a79cb2046eb4b9a1849bc1dcf5b6e07d79aa26",
+    "installedExact": true,
+    "runtimeContainsOriginalExactly": true
+  },
+  "environment": {
+    "browser": "Microsoft Edge 155.0.4283.62",
+    "headless": true,
+    "profile": "isolated; no user profile or account",
+    "tampermonkey": "5.4.1",
+    "package": "official stable CRX, loaded unpacked without manifest modifications",
+    "crxSha256": "a124e3189ecc0981ce79ef182dd3897a75fe22fc7bf0828e9d293ad7122d3d4d",
+    "developerMode": true,
+    "allowUserScripts": true,
+    "dependencyRepair": "Original mirrors failed. 13 exact SHA-512 verified cdnjs assets fulfilled locally at original dependency URLs. DeepL responses were never intercepted or substituted.",
+    "dependencyManifest": [
+      {
+        "originalUrl": "https://mirrors.sustech.edu.cn/cdnjs/ajax/libs/turndown/7.2.0/turndown.min.js#sha512-sJzEecN5Nk8cq81zKtGq6/z9Z/r3q38zV9enY75IVxiG7ybtlNUt864sL4L1Kf36bYIwxTMVKQOtU4VhD7hGrw==",
+        "downloadUrl": "https://cdnjs.cloudflare.com/ajax/libs/turndown/7.2.0/turndown.min.js",
+        "localFile": "D:\\浏览器翻译扩展\\.output\\ojbetter-reproduction\\dependencies\\turndown\\7.2.0\\turndown.min.js",
+        "sha512": "sJzEecN5Nk8cq81zKtGq6/z9Z/r3q38zV9enY75IVxiG7ybtlNUt864sL4L1Kf36bYIwxTMVKQOtU4VhD7hGrw==",
+        "verified": true
+      },
+      {
+        "originalUrl": "https://mirrors.sustech.edu.cn/cdnjs/ajax/libs/markdown-it/13.0.2/markdown-it.js#sha512-2LtYcLGnCbAWz9nDIrfG2pHFiFu9n+3oGecQlzLuYsLgen/oxiYscGWnDST9J9EZanlsQkDD0ZP2n/6peDuALQ==",
+        "downloadUrl": "https://cdnjs.cloudflare.com/ajax/libs/markdown-it/13.0.2/markdown-it.js",
+        "localFile": "D:\\浏览器翻译扩展\\.output\\ojbetter-reproduction\\dependencies\\markdown-it\\13.0.2\\markdown-it.js",
+        "sha512": "2LtYcLGnCbAWz9nDIrfG2pHFiFu9n+3oGecQlzLuYsLgen/oxiYscGWnDST9J9EZanlsQkDD0ZP2n/6peDuALQ==",
+        "verified": true
+      },
+      {
+        "originalUrl": "https://mirrors.sustech.edu.cn/cdnjs/ajax/libs/crypto-js/4.2.0/crypto-js.min.js#sha512-a+SUDuwNzXDvz4XrIcXHuCf089/iJAoN4lmrXJg18XnduKK6YlDHNRalv4yd1N40OKI80tFidF+rqTFKGPoWFQ==",
+        "downloadUrl": "https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js",
+        "localFile": "D:\\浏览器翻译扩展\\.output\\ojbetter-reproduction\\dependencies\\crypto-js\\4.2.0\\crypto-js.min.js",
+        "sha512": "a+SUDuwNzXDvz4XrIcXHuCf089/iJAoN4lmrXJg18XnduKK6YlDHNRalv4yd1N40OKI80tFidF+rqTFKGPoWFQ==",
+        "verified": true
+      },
+      {
+        "originalUrl": "https://mirrors.sustech.edu.cn/cdnjs/ajax/libs/chroma-js/2.4.2/chroma.min.js#sha512-zInFF17qBFVvvvFpIfeBzo7Tj7+rQxLeTJDmbxjBz5/zIr89YVbTNelNhdTT+/DCrxoVzBeUPVFJsczKbB7sew==",
+        "downloadUrl": "https://cdnjs.cloudflare.com/ajax/libs/chroma-js/2.4.2/chroma.min.js",
+        "localFile": "D:\\浏览器翻译扩展\\.output\\ojbetter-reproduction\\dependencies\\chroma-js\\2.4.2\\chroma.min.js",
+        "sha512": "zInFF17qBFVvvvFpIfeBzo7Tj7+rQxLeTJDmbxjBz5/zIr89YVbTNelNhdTT+/DCrxoVzBeUPVFJsczKbB7sew==",
+        "verified": true
+      },
+      {
+        "originalUrl": "https://mirrors.sustech.edu.cn/cdnjs/ajax/libs/xterm/5.5.0/xterm.js#sha512-Gujw5GajF5is3nMoGv9X+tCMqePLL/60qvAv1LofUZTV9jK8ENbM9L+maGmOsNzuZaiuyc/fpph1KT9uR5w3CQ==",
+        "downloadUrl": "https://cdnjs.cloudflare.com/ajax/libs/xterm/5.5.0/xterm.js",
+        "localFile": "D:\\浏览器翻译扩展\\.output\\ojbetter-reproduction\\dependencies\\xterm\\5.5.0\\xterm.js",
+        "sha512": "Gujw5GajF5is3nMoGv9X+tCMqePLL/60qvAv1LofUZTV9jK8ENbM9L+maGmOsNzuZaiuyc/fpph1KT9uR5w3CQ==",
+        "verified": true
+      },
+      {
+        "originalUrl": "https://mirrors.sustech.edu.cn/cdnjs/ajax/libs/dexie/4.0.7/dexie.min.js#sha512-882VotT07mOQRzqIxsyxHzJX0XUaoeee3qXp4THg1A0KI0XFnWFAaLFQm0x6OW3pHSIipVZW+gzQ1w9b6uvkVw==",
+        "downloadUrl": "https://cdnjs.cloudflare.com/ajax/libs/dexie/4.0.7/dexie.min.js",
+        "localFile": "D:\\浏览器翻译扩展\\.output\\ojbetter-reproduction\\dependencies\\dexie\\4.0.7\\dexie.min.js",
+        "sha512": "882VotT07mOQRzqIxsyxHzJX0XUaoeee3qXp4THg1A0KI0XFnWFAaLFQm0x6OW3pHSIipVZW+gzQ1w9b6uvkVw==",
+        "verified": true
+      },
+      {
+        "originalUrl": "https://mirrors.sustech.edu.cn/cdnjs/ajax/libs/i18next/23.11.5/i18next.min.js#sha512-3RSGkmT48HnO+hlmzGYDx5/w2LIBX0O5hSuYX6KWAxmvVlSjFgoxIaWa2tlMExheGvt3lLyxeTsXfpC47yb8CQ==",
+        "downloadUrl": "https://cdnjs.cloudflare.com/ajax/libs/i18next/23.11.5/i18next.min.js",
+        "localFile": "D:\\浏览器翻译扩展\\.output\\ojbetter-reproduction\\dependencies\\i18next\\23.11.5\\i18next.min.js",
+        "sha512": "3RSGkmT48HnO+hlmzGYDx5/w2LIBX0O5hSuYX6KWAxmvVlSjFgoxIaWa2tlMExheGvt3lLyxeTsXfpC47yb8CQ==",
+        "verified": true
+      },
+      {
+        "originalUrl": "https://mirrors.sustech.edu.cn/cdnjs/ajax/libs/i18next-http-backend/2.5.2/i18nextHttpBackend.min.js#sha512-bBb+wrGRTx4MvHpksYb1Iv5oJ1o8ineCqpc0cnTgdJQhuAFJJ93SEVXxUOCptvt0vAqYdjzWO5emorYUBt6Ceg==",
+        "downloadUrl": "https://cdnjs.cloudflare.com/ajax/libs/i18next-http-backend/2.5.2/i18nextHttpBackend.min.js",
+        "localFile": "D:\\浏览器翻译扩展\\.output\\ojbetter-reproduction\\dependencies\\i18next-http-backend\\2.5.2\\i18nextHttpBackend.min.js",
+        "sha512": "bBb+wrGRTx4MvHpksYb1Iv5oJ1o8ineCqpc0cnTgdJQhuAFJJ93SEVXxUOCptvt0vAqYdjzWO5emorYUBt6Ceg==",
+        "verified": true
+      },
+      {
+        "originalUrl": "https://mirrors.sustech.edu.cn/cdnjs/ajax/libs/jquery-i18next/1.2.1/jquery-i18next.min.js#sha512-79RgNpOyaf8AvNEUdanuk1x6g53UPoB6Fh2uogMkOMGADBG6B0DCzxc+dDktXkVPg2rlxGvPeAFKoZxTycVooQ==",
+        "downloadUrl": "https://cdnjs.cloudflare.com/ajax/libs/jquery-i18next/1.2.1/jquery-i18next.min.js",
+        "localFile": "D:\\浏览器翻译扩展\\.output\\ojbetter-reproduction\\dependencies\\jquery-i18next\\1.2.1\\jquery-i18next.min.js",
+        "sha512": "79RgNpOyaf8AvNEUdanuk1x6g53UPoB6Fh2uogMkOMGADBG6B0DCzxc+dDktXkVPg2rlxGvPeAFKoZxTycVooQ==",
+        "verified": true
+      },
+      {
+        "originalUrl": "https://mirrors.sustech.edu.cn/cdnjs/ajax/libs/highlight.js/11.9.0/highlight.min.js#sha512-D9gUyxqja7hBtkWpPWGt9wfbfaMGVt9gnyCvYa+jojwwPHLCzUm5i8rpk7vD7wNee9bA35eYIjobYPaQuKS1MQ==",
+        "downloadUrl": "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js",
+        "localFile": "D:\\浏览器翻译扩展\\.output\\ojbetter-reproduction\\dependencies\\highlight.js\\11.9.0\\highlight.min.js",
+        "sha512": "D9gUyxqja7hBtkWpPWGt9wfbfaMGVt9gnyCvYa+jojwwPHLCzUm5i8rpk7vD7wNee9bA35eYIjobYPaQuKS1MQ==",
+        "verified": true
+      },
+      {
+        "originalUrl": "https://mirrors.sustech.edu.cn/cdnjs/ajax/libs/dialog-polyfill/0.5.6/dialog-polyfill.min.js#sha512-qUIG93zKzcLBVD5RGRbx2PBmbVRu+tJIl+EPLTus0z8I1AMru9sQYdlf6cBacSzYmZVncB9rcc8rYBnazqgrxA==",
+        "downloadUrl": "https://cdnjs.cloudflare.com/ajax/libs/dialog-polyfill/0.5.6/dialog-polyfill.min.js",
+        "localFile": "D:\\浏览器翻译扩展\\.output\\ojbetter-reproduction\\dependencies\\dialog-polyfill\\0.5.6\\dialog-polyfill.min.js",
+        "sha512": "qUIG93zKzcLBVD5RGRbx2PBmbVRu+tJIl+EPLTus0z8I1AMru9sQYdlf6cBacSzYmZVncB9rcc8rYBnazqgrxA==",
+        "verified": true
+      },
+      {
+        "originalUrl": "https://mirrors.sustech.edu.cn/cdnjs/ajax/libs/xterm/5.5.0/xterm.min.css#sha512-XpXUuzg5afNt1bsgnrOesXP70TLH8tXYYK5sK+Y0UV+YBvJn9EfRFYWy4HT3TVDfH0nl1CO0lwOxIrt2gk9qjg==",
+        "downloadUrl": "https://cdnjs.cloudflare.com/ajax/libs/xterm/5.5.0/xterm.min.css",
+        "localFile": "D:\\浏览器翻译扩展\\.output\\ojbetter-reproduction\\dependencies\\xterm\\5.5.0\\xterm.min.css",
+        "sha512": "XpXUuzg5afNt1bsgnrOesXP70TLH8tXYYK5sK+Y0UV+YBvJn9EfRFYWy4HT3TVDfH0nl1CO0lwOxIrt2gk9qjg==",
+        "verified": true
+      },
+      {
+        "originalUrl": "https://mirrors.sustech.edu.cn/cdnjs/ajax/libs/dialog-polyfill/0.5.6/dialog-polyfill.min.css#sha512-J2+1q+RsZuJXabBfH1q/fgRr6jMy9By5SwVLk7bScEW7NFJkMUXxfeOyyxtDe6fsaJ4jsciexSlGrPYn9YbBIg==",
+        "downloadUrl": "https://cdnjs.cloudflare.com/ajax/libs/dialog-polyfill/0.5.6/dialog-polyfill.min.css",
+        "localFile": "D:\\浏览器翻译扩展\\.output\\ojbetter-reproduction\\dependencies\\dialog-polyfill\\0.5.6\\dialog-polyfill.min.css",
+        "sha512": "J2+1q+RsZuJXabBfH1q/fgRr6jMy9By5SwVLk7bScEW7NFJkMUXxfeOyyxtDe6fsaJ4jsciexSlGrPYn9YbBIg==",
+        "verified": true
+      }
+    ],
+    "dependencyServed": [
+      {
+        "url": "https://mirrors.sustech.edu.cn/cdnjs/ajax/libs/xterm/5.5.0/xterm.min.css",
+        "sha512": "XpXUuzg5afNt1bsgnrOesXP70TLH8tXYYK5sK+Y0UV+YBvJn9EfRFYWy4HT3TVDfH0nl1CO0lwOxIrt2gk9qjg==",
+        "at": "2026-10-21T12:52:40.868Z"
+      },
+      {
+        "url": "https://mirrors.sustech.edu.cn/cdnjs/ajax/libs/dialog-polyfill/0.5.6/dialog-polyfill.min.css",
+        "sha512": "J2+1q+RsZuJXabBfH1q/fgRr6jMy9By5SwVLk7bScEW7NFJkMUXxfeOyyxtDe6fsaJ4jsciexSlGrPYn9YbBIg==",
+        "at": "2026-10-21T12:52:40.868Z"
+      },
+      {
+        "url": "https://mirrors.sustech.edu.cn/cdnjs/ajax/libs/turndown/7.2.0/turndown.min.js",
+        "sha512": "sJzEecN5Nk8cq81zKtGq6/z9Z/r3q38zV9enY75IVxiG7ybtlNUt864sL4L1Kf36bYIwxTMVKQOtU4VhD7hGrw==",
+        "at": "2026-10-21T12:52:40.982Z"
+      },
+      {
+        "url": "https://mirrors.sustech.edu.cn/cdnjs/ajax/libs/markdown-it/13.0.2/markdown-it.js",
+        "sha512": "2LtYcLGnCbAWz9nDIrfG2pHFiFu9n+3oGecQlzLuYsLgen/oxiYscGWnDST9J9EZanlsQkDD0ZP2n/6peDuALQ==",
+        "at": "2026-10-21T12:52:40.993Z"
+      },
+      {
+        "url": "https://mirrors.sustech.edu.cn/cdnjs/ajax/libs/crypto-js/4.2.0/crypto-js.min.js",
+        "sha512": "a+SUDuwNzXDvz4XrIcXHuCf089/iJAoN4lmrXJg18XnduKK6YlDHNRalv4yd1N40OKI80tFidF+rqTFKGPoWFQ==",
+        "at": "2026-10-21T12:52:40.995Z"
+      },
+      {
+        "url": "https://mirrors.sustech.edu.cn/cdnjs/ajax/libs/chroma-js/2.4.2/chroma.min.js",
+        "sha512": "zInFF17qBFVvvvFpIfeBzo7Tj7+rQxLeTJDmbxjBz5/zIr89YVbTNelNhdTT+/DCrxoVzBeUPVFJsczKbB7sew==",
+        "at": "2026-10-21T12:52:40.997Z"
+      },
+      {
+        "url": "https://mirrors.sustech.edu.cn/cdnjs/ajax/libs/xterm/5.5.0/xterm.js",
+        "sha512": "Gujw5GajF5is3nMoGv9X+tCMqePLL/60qvAv1LofUZTV9jK8ENbM9L+maGmOsNzuZaiuyc/fpph1KT9uR5w3CQ==",
+        "at": "2026-10-21T12:52:41.006Z"
+      },
+      {
+        "url": "https://mirrors.sustech.edu.cn/cdnjs/ajax/libs/dexie/4.0.7/dexie.min.js",
+        "sha512": "882VotT07mOQRzqIxsyxHzJX0XUaoeee3qXp4THg1A0KI0XFnWFAaLFQm0x6OW3pHSIipVZW+gzQ1w9b6uvkVw==",
+        "at": "2026-10-21T12:52:41.009Z"
+      },
+      {
+        "url": "https://mirrors.sustech.edu.cn/cdnjs/ajax/libs/i18next/23.11.5/i18next.min.js",
+        "sha512": "3RSGkmT48HnO+hlmzGYDx5/w2LIBX0O5hSuYX6KWAxmvVlSjFgoxIaWa2tlMExheGvt3lLyxeTsXfpC47yb8CQ==",
+        "at": "2026-10-21T12:52:41.011Z"
+      },
+      {
+        "url": "https://mirrors.sustech.edu.cn/cdnjs/ajax/libs/i18next-http-backend/2.5.2/i18nextHttpBackend.min.js",
+        "sha512": "bBb+wrGRTx4MvHpksYb1Iv5oJ1o8ineCqpc0cnTgdJQhuAFJJ93SEVXxUOCptvt0vAqYdjzWO5emorYUBt6Ceg==",
+        "at": "2026-10-21T12:52:41.013Z"
+      },
+      {
+        "url": "https://mirrors.sustech.edu.cn/cdnjs/ajax/libs/jquery-i18next/1.2.1/jquery-i18next.min.js",
+        "sha512": "79RgNpOyaf8AvNEUdanuk1x6g53UPoB6Fh2uogMkOMGADBG6B0DCzxc+dDktXkVPg2rlxGvPeAFKoZxTycVooQ==",
+        "at": "2026-10-21T12:52:41.013Z"
+      },
+      {
+        "url": "https://mirrors.sustech.edu.cn/cdnjs/ajax/libs/highlight.js/11.9.0/highlight.min.js",
+        "sha512": "D9gUyxqja7hBtkWpPWGt9wfbfaMGVt9gnyCvYa+jojwwPHLCzUm5i8rpk7vD7wNee9bA35eYIjobYPaQuKS1MQ==",
+        "at": "2026-10-21T12:52:41.018Z"
+      },
+      {
+        "url": "https://mirrors.sustech.edu.cn/cdnjs/ajax/libs/dialog-polyfill/0.5.6/dialog-polyfill.min.js",
+        "sha512": "qUIG93zKzcLBVD5RGRbx2PBmbVRu+tJIl+EPLTus0z8I1AMru9sQYdlf6cBacSzYmZVncB9rcc8rYBnazqgrxA==",
+        "at": "2026-10-21T12:52:41.019Z"
+      }
+    ],
+    "remainingBootstrapError": "Optional Monaco code editor CDN CORS failure; actual translation UI and chain initialized."
+  },
+  "entry": {
+    "page": "https://atcoder.jp/contests/abc350/tasks/abc350_a?lang=en",
+    "engine": "deepl",
+    "mode": "free",
+    "target": "zh",
+    "workMode": "selected paragraphs",
+    "autoTranslation": false,
+    "memoryTranslateHistory": false,
+    "replaceOriginal": false,
+    "transWaitTime": 200
+  },
+  "requests": [
+    {
+      "case": "single",
+      "sourceText": "Determine if {42388693} is the abbreviation of a contest held and concluded on AtCoder before the start of this contest.",
+      "translation": "确定 {42388693} 是否为本次比赛开始前在 AtCoder 上举行并结束的比赛的缩写。",
+      "at": "2026-10-21T12:57:29.284Z",
+      "status": 200,
+      "method": "POST",
+      "url": "https://www2.deepl.com/jsonrpc",
+      "requestBody": "{\"jsonrpc\":\"2.0\",\"method\": \"LMT_handle_texts\",\"id\":184085000,\"params\":{\"splitting\":\"newlines\",\"lang\":{\"source_lang_user_selected\":\"auto\",\"target_lang\":\"ZH\"},\"texts\":[{\"text\":\"Determine if {42388693} is the abbreviation of a contest held and concluded on AtCoder before the start of this contest.\",\"requestAlternatives\":3}],\"timestamp\":1792587449170}}",
+      "requestBodySha256": "9bd0de2a0a8c59e6511631f8801833405d17a03a85c09685470f4c786b526231",
+      "actualRequestHeaders": {
+        ":authority": "www2.deepl.com",
+        ":method": "POST",
+        ":path": "/jsonrpc",
+        ":scheme": "https",
+        "accept": "*/*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+        "cache-control": "no-cache",
+        "content-length": "350",
+        "content-type": "application/json",
+        "origin": "https://www.deepl.com",
+        "pragma": "no-cache",
+        "priority": "u=1, i",
+        "referer": "https://www.deepl.com/",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "none",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0"
+      },
+      "cookieCount": 0,
+      "responseHeaders": {
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "access-control-expose-headers": "Server-Timing, X-Trace-ID",
+        "content-encoding": "gzip",
+        "access-control-allow-credentials": "true",
+        "x-trace-id": "afe207693b134071991951061d6facef",
+        "access-control-allow-origin": "https://www.deepl.com",
+        "server-timing": "l7_lb_tls;dur=700, l7_lb_idle;dur=0, l7_lb_receive;dur=0, l7_lb_total;dur=815",
+        "date": "Wed, 21 Oct 2026 12:57:31 GMT",
+        "content-type": "application/json; charset=utf-8",
+        "vary": "Accept-Encoding"
+      },
+      "responseBody": "{\"jsonrpc\":\"2.0\",\"id\":184085000,\"result\":{\"texts\":[{\"alternatives\":[{\"text\":\"\\u786E\\u5B9A {42388693} \\u662F\\u5426\\u662F\\u672C\\u6B21\\u6BD4\\u8D5B\\u5F00\\u59CB\\u524D\\u5728 AtCoder \\u4E0A\\u4E3E\\u884C\\u5E76\\u7ED3\\u675F\\u7684\\u6BD4\\u8D5B\\u7684\\u7F29\\u5199\\u3002\"},{\"text\":\"\\u786E\\u5B9A {42388693} \\u662F\\u5426\\u662F\\u5728\\u672C\\u6B21\\u6BD4\\u8D5B\\u5F00\\u59CB\\u524D\\u5728 AtCoder \\u4E0A\\u4E3E\\u884C\\u5E76\\u7ED3\\u675F\\u7684\\u6BD4\\u8D5B\\u7684\\u7F29\\u5199\\u3002\"},{\"text\":\"\\u786E\\u5B9A {42388693} \\u662F\\u5426\\u662F\\u5728\\u672C\\u6B21\\u6BD4\\u8D5B\\u5F00\\u59CB\\u4E4B\\u524D\\u5728 AtCoder \\u4E0A\\u4E3E\\u884C\\u5E76\\u7ED3\\u675F\\u7684\\u6BD4\\u8D5B\\u7684\\u7F29\\u5199\\u3002\"}],\"text\":\"\\u786E\\u5B9A {42388693} \\u662F\\u5426\\u4E3A\\u672C\\u6B21\\u6BD4\\u8D5B\\u5F00\\u59CB\\u524D\\u5728 AtCoder \\u4E0A\\u4E3E\\u884C\\u5E76\\u7ED3\\u675F\\u7684\\u6BD4\\u8D5B\\u7684\\u7F29\\u5199\\u3002\"}],\"lang\":\"EN\",\"lang_is_confident\":true,\"detectedLanguages\":{\"EN\":1.0}}}\r\n",
+      "responseBodySha256": "2e583529517c8a20b9d29275695e6ed8cfcf1d4c70d3d02070dbcd7d6f27a64a",
+      "milliseconds": 2138,
+      "fromDiskCache": false,
+      "fromServiceWorker": false,
+      "targetType": "service_worker",
+      "gmCall": {
+        "stack": [
+          {
+            "name": "",
+            "url": "",
+            "line": 13858
+          },
+          {
+            "name": "OJB_GMRequest",
+            "url": "",
+            "line": 13812
+          },
+          {
+            "name": "toDo",
+            "url": "",
+            "line": 26875
+          },
+          {
+            "name": "OJB_promiseRetryWrapper",
+            "url": "",
+            "line": 13793
+          },
+          {
+            "name": "BaseTranslate",
+            "url": "",
+            "line": 26920
+          },
+          {
+            "name": "translate_deepl",
+            "url": "",
+            "line": 25675
+          },
+          {
+            "name": "translate",
+            "url": "",
+            "line": 20877
+          },
+          {
+            "name": "translateMain",
+            "url": "",
+            "line": 20931
+          },
+          {
+            "name": "",
+            "url": "",
+            "line": 18994
+          },
+          {
+            "name": "processNextTask",
+            "url": "",
+            "line": 17657
+          },
+          {
+            "name": "",
+            "url": "",
+            "line": 17642
+          },
+          {
+            "name": "addTask",
+            "url": "",
+            "line": 17639
+          },
+          {
+            "name": "blockProcessing",
+            "url": "",
+            "line": 18991
+          },
+          {
+            "name": "",
+            "url": "",
+            "line": 19087
+          },
+          {
+            "name": "dispatch",
+            "url": "",
+            "line": 2
+          },
+          {
+            "name": "v.handle",
+            "url": "",
+            "line": 2
+          }
+        ],
+        "optionsCapture": "unavailable: debugger metadata read raised GM_info ReferenceError; request still completed normally"
+      }
+    },
+    {
+      "case": "multi-1",
+      "sourceText": "You are given a string {82018678} of length {91037593}. It is guaranteed that the first three characters of {12156351} are {13912315} and the last three characters are digits.",
+      "translation": "给你一个长度为 {91037593} 的字符串 {82018678}。保证 {12156351} 的前三个字符是 {13912315}，后三个字符是数字。",
+      "at": "2026-10-21T12:59:04.114Z",
+      "status": 200,
+      "method": "POST",
+      "url": "https://www2.deepl.com/jsonrpc",
+      "requestBody": "{\"jsonrpc\":\"2.0\",\"method\" : \"LMT_handle_texts\",\"id\":157074000,\"params\":{\"splitting\":\"newlines\",\"lang\":{\"source_lang_user_selected\":\"auto\",\"target_lang\":\"ZH\"},\"texts\":[{\"text\":\"You are given a string {82018678} of length {91037593}. It is guaranteed that the first three characters of {12156351} are {13912315} and the last three characters are digits.\",\"requestAlternatives\":3}],\"timestamp\":1792587543999}}",
+      "requestBodySha256": "e58d3f583afdfa60248eea78214219ea4d7ced98116e13989bca84b63c467371",
+      "actualRequestHeaders": {
+        ":authority": "www2.deepl.com",
+        ":method": "POST",
+        ":path": "/jsonrpc",
+        ":scheme": "https",
+        "accept": "*/*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+        "cache-control": "no-cache",
+        "content-length": "406",
+        "content-type": "application/json",
+        "origin": "https://www.deepl.com",
+        "pragma": "no-cache",
+        "priority": "u=1, i",
+        "referer": "https://www.deepl.com/",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "none",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0"
+      },
+      "cookieCount": 0,
+      "responseHeaders": {
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "access-control-expose-headers": "Server-Timing, X-Trace-ID",
+        "content-encoding": "gzip",
+        "access-control-allow-credentials": "true",
+        "x-trace-id": "c87882accd1b483586ca195d3a117e5c",
+        "access-control-allow-origin": "https://www.deepl.com",
+        "server-timing": "l7_lb_tls;dur=699, l7_lb_idle;dur=1, l7_lb_receive;dur=1, l7_lb_total;dur=804",
+        "date": "Wed, 21 Oct 2026 12:59:05 GMT",
+        "content-type": "application/json; charset=utf-8",
+        "vary": "Accept-Encoding"
+      },
+      "responseBody": "{\"jsonrpc\":\"2.0\",\"id\":157074000,\"result\":{\"texts\":[{\"alternatives\":[],\"text\":\"\\u7ED9\\u4F60\\u4E00\\u4E2A\\u957F\\u5EA6\\u4E3A {91037593} \\u7684\\u5B57\\u7B26\\u4E32 {82018678}\\u3002\\u4FDD\\u8BC1 {12156351} \\u7684\\u524D\\u4E09\\u4E2A\\u5B57\\u7B26\\u662F {13912315}\\uFF0C\\u540E\\u4E09\\u4E2A\\u5B57\\u7B26\\u662F\\u6570\\u5B57\\u3002\"}],\"lang\":\"EN\",\"lang_is_confident\":true,\"detectedLanguages\":{\"EN\":1.0}}}\r\n",
+      "responseBodySha256": "41445f63bfde7f1818f668a3c60df51e090c6067091902b7e3d7c8f5bcd7f66e",
+      "milliseconds": 1740,
+      "fromDiskCache": false,
+      "fromServiceWorker": false,
+      "targetType": "service_worker",
+      "gmCall": {
+        "at": "2026-10-21T12:59:04.002Z",
+        "options": {
+          "method": "POST",
+          "url": "https://www2.deepl.com/jsonrpc",
+          "data": "{\"jsonrpc\":\"2.0\",\"method\" : \"LMT_handle_texts\",\"id\":157074000,\"params\":{\"splitting\":\"newlines\",\"lang\":{\"source_lang_user_selected\":\"auto\",\"target_lang\":\"ZH\"},\"texts\":[{\"text\":\"You are given a string {82018678} of length {91037593}. It is guaranteed that the first three characters of {12156351} are {13912315} and the last three characters are digits.\",\"requestAlternatives\":3}],\"timestamp\":1792587543999}}",
+          "headers": {
+            "Content-Type": "application/json",
+            "Host": "www2.deepl.com",
+            "Origin": "https://www.deepl.com",
+            "Referer": "https://www.deepl.com/"
+          },
+          "anonymous": true,
+          "nocache": true
+        },
+        "stack": [
+          {
+            "name": "",
+            "line": 13858
+          },
+          {
+            "name": "OJB_GMRequest",
+            "line": 13812
+          },
+          {
+            "name": "toDo",
+            "line": 26875
+          },
+          {
+            "name": "OJB_promiseRetryWrapper",
+            "line": 13793
+          },
+          {
+            "name": "BaseTranslate",
+            "line": 26920
+          },
+          {
+            "name": "translate_deepl",
+            "line": 25675
+          },
+          {
+            "name": "translate",
+            "line": 20877
+          },
+          {
+            "name": "translateMain",
+            "line": 20931
+          },
+          {
+            "name": "",
+            "line": 18994
+          },
+          {
+            "name": "processNextTask",
+            "line": 17657
+          },
+          {
+            "name": "",
+            "line": 17642
+          },
+          {
+            "name": "addTask",
+            "line": 17639
+          },
+          {
+            "name": "blockProcessing",
+            "line": 18991
+          },
+          {
+            "name": "process",
+            "line": 18958
+          },
+          {
+            "name": "executeTranslation",
+            "line": 18895
+          },
+          {
+            "name": "runTranslation",
+            "line": 18733
+          },
+          {
+            "name": "",
+            "line": 18744
+          },
+          {
+            "name": "",
+            "line": 13930
+          },
+          {
+            "name": "dispatch",
+            "line": 2
+          },
+          {
+            "name": "v.handle",
+            "line": 2
+          }
+        ]
+      }
+    },
+    {
+      "case": "multi-2",
+      "sourceText": "Note that {27404715} is not included.",
+      "translation": "请注意，{27404715} 不包括在内。",
+      "at": "2026-10-21T12:59:06.190Z",
+      "status": 200,
+      "method": "POST",
+      "url": "https://www2.deepl.com/jsonrpc",
+      "requestBody": "{\"jsonrpc\":\"2.0\",\"method\": \"LMT_handle_texts\",\"id\":157714000,\"params\":{\"splitting\":\"newlines\",\"lang\":{\"source_lang_user_selected\":\"auto\",\"target_lang\":\"ZH\"},\"texts\":[{\"text\":\"Note that {27404715} is not included.\",\"requestAlternatives\":3}],\"timestamp\":1792587546075}}",
+      "requestBodySha256": "b354e2e594339afff8d57a1e461e0f9f1c100833ee34bbc3391db44a5b848420",
+      "actualRequestHeaders": {
+        ":authority": "www2.deepl.com",
+        ":method": "POST",
+        ":path": "/jsonrpc",
+        ":scheme": "https",
+        "accept": "*/*",
+        "accept-encoding": "gzip, deflate, br, zstd",
+        "accept-language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+        "cache-control": "no-cache",
+        "content-length": "267",
+        "content-type": "application/json",
+        "origin": "https://www.deepl.com",
+        "pragma": "no-cache",
+        "priority": "u=1, i",
+        "referer": "https://www.deepl.com/",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "none",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0"
+      },
+      "cookieCount": 0,
+      "responseHeaders": {
+        "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+        "access-control-expose-headers": "Server-Timing, X-Trace-ID",
+        "content-encoding": "gzip",
+        "access-control-allow-credentials": "true",
+        "x-trace-id": "74bdf0687f5045319ce7f3a2c28af9f4",
+        "access-control-allow-origin": "https://www.deepl.com",
+        "server-timing": "l7_lb_tls;dur=0, l7_lb_idle;dur=1133, l7_lb_receive;dur=6, l7_lb_total;dur=65",
+        "date": "Wed, 21 Oct 2026 12:59:06 GMT",
+        "content-type": "application/json; charset=utf-8",
+        "vary": "Accept-Encoding"
+      },
+      "responseBody": "{\"jsonrpc\":\"2.0\",\"id\":157714000,\"result\":{\"texts\":[{\"alternatives\":[{\"text\":\"\\u8BF7\\u6CE8\\u610F\\uFF0C{27404715}\\u4E0D\\u5305\\u62EC\\u5728\\u5185\\u3002\"},{\"text\":\"\\u8BF7\\u6CE8\\u610F\\uFF0C{27404715} \\u5E76\\u4E0D\\u5305\\u62EC\\u5728\\u5185\\u3002\"},{\"text\":\"\\u8BF7\\u6CE8\\u610F\\uFF0C{27404715} \\u4E0D\\u5728\\u5176\\u4E2D\\u3002\"}],\"text\":\"\\u8BF7\\u6CE8\\u610F\\uFF0C{27404715} \\u4E0D\\u5305\\u62EC\\u5728\\u5185\\u3002\"}],\"lang\":\"EN\",\"lang_is_confident\":true,\"detectedLanguages\":{\"EN\":0.9997659999999999,\"NL\":0.000018,\"unsupported\":0.000212}}}\r\n",
+      "responseBodySha256": "6a7180ea13e325e8f401bf9a622d52b01a775638921bf275be3cdb4c04bfc4ad",
+      "milliseconds": 749,
+      "fromDiskCache": false,
+      "fromServiceWorker": false,
+      "targetType": "service_worker",
+      "gmCall": {
+        "at": "2026-10-21T12:59:06.077Z",
+        "options": {
+          "method": "POST",
+          "url": "https://www2.deepl.com/jsonrpc",
+          "data": "{\"jsonrpc\":\"2.0\",\"method\": \"LMT_handle_texts\",\"id\":157714000,\"params\":{\"splitting\":\"newlines\",\"lang\":{\"source_lang_user_selected\":\"auto\",\"target_lang\":\"ZH\"},\"texts\":[{\"text\":\"Note that {27404715} is not included.\",\"requestAlternatives\":3}],\"timestamp\":1792587546075}}",
+          "headers": {
+            "Content-Type": "application/json",
+            "Host": "www2.deepl.com",
+            "Origin": "https://www.deepl.com",
+            "Referer": "https://www.deepl.com/"
+          },
+          "anonymous": true,
+          "nocache": true
+        },
+        "stack": [
+          {
+            "name": "",
+            "line": 13858
+          },
+          {
+            "name": "OJB_GMRequest",
+            "line": 13812
+          },
+          {
+            "name": "toDo",
+            "line": 26875
+          },
+          {
+            "name": "OJB_promiseRetryWrapper",
+            "line": 13793
+          },
+          {
+            "name": "BaseTranslate",
+            "line": 26920
+          },
+          {
+            "name": "translate_deepl",
+            "line": 25675
+          },
+          {
+            "name": "translate",
+            "line": 20877
+          },
+          {
+            "name": "translateMain",
+            "line": 20931
+          },
+          {
+            "name": "",
+            "line": 18994
+          },
+          {
+            "name": "processNextTask",
+            "line": 17657
+          },
+          {
+            "name": "processNextTask",
+            "line": 17668
+          }
+        ]
+      }
+    }
+  ],
+  "checks": {
+    "singlePassed": true,
+    "multiPassed": true,
+    "multiOrderPassed": true,
+    "multiRequestCount": 2,
+    "noCookieOrAuthorization": true,
+    "formulasAndInlineCodeRestored": true,
+    "multiGapAfterPreviousResponseMs": 337
+  },
+  "renderedText": "Problem Statement\n\nYou are given a string \n𝑆\nS of length \n6\n6. It is guaranteed that the first three characters of \n𝑆\nS are ABC and the last three characters are digits.\n\nDeepL 翻译\n\n\n\n\n给你一个长度为 \n6\n6 的字符串 \n𝑆\nS 。保证 \n𝑆\nS 的前三个字符是 ABC ，后三个字符是数字。\n\nDetermine if \n𝑆\nS is the abbreviation of a contest held and concluded on AtCoder before the start of this contest.\n\nDeepL 翻译\n\n\n\n\n确定 \n𝑆\nS 是否为本次比赛开始前在 AtCoder 上举行并结束的比赛的缩写。\n\nHere, a string \n𝑇\nT is \"the abbreviation of a contest held and concluded on AtCoder before the start of this contest\" if and only if it equals one of the following \n348\n348 strings:\n\nABC001, ABC002, \n…\n…, ABC314, ABC315, ABC317, ABC318, \n…\n…, ABC348, ABC349.\n\nNote that ABC316 is not included.\n\nDeepL 翻译\n\n\n\n\n请注意， ABC316 不包括在内。",
+  "previous429": {
+    "cause": "not determined at individual-field level",
+    "whatChanged": "original protocol/body/header/GM transport plus different request time/content; not a controlled one-variable experiment",
+    "conclusion": "Earlier simplified MV3 429 does not demonstrate original OJBetter unavailability. Do not claim IP ban or a specific anti-abuse rule."
+  }
+}

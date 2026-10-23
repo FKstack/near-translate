@@ -7,7 +7,9 @@ const allowed = {
   core: new Set(['core', 'shared']),
   providers: new Set(['providers', 'core', 'shared']),
   selection: new Set(['selection', 'core', 'shared', 'ui']),
-  page: new Set(['page', 'shared']),
+  page: new Set(['page', 'shared', 'ui']),
+  reading: new Set(['reading', 'page', 'shared', 'ui']),
+  conversion: new Set(['conversion']),
   platform: new Set(['platform', 'shared']),
 };
 async function check(dir, owner) {

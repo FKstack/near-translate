@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "scope": "Existing tracked files plus untracked, non-ignored Git candidates. No staging or remote operations.",
+  "tokenScan": "Bounded pattern check for common credential shapes; values and source lines are never included in output.",
+  "files": 329,
+  "bytes": 14510718,
+  "scannedTextFiles": 277,
+  "largestFiles": [
+    {
+      "file": "third_party/fonts/NearDocumentSans.ttf.gz",
+      "bytes": 6319428
+    },
+    {
+      "file": "docs/design/near-translate/concept-imagegen.png",
+      "bytes": 722194
+    },
+    {
+      "file": "docs/evidence/extension-memory-baseline-2026-10-23.json",
+      "bytes": 447555
+    },
+    {
+      "file": "docs/evidence/extension-memory-optimized-2026-10-23.json",
+      "bytes": 379946
+    },
+    {
+      "file": "docs/evidence/deepl-speed-v4-go-2026-10-22.json",
+      "bytes": 263173
+    },
+    {
+      "file": "docs/evidence/reading-mode-go-dark-2026-10-22.png",
+      "bytes": 190322
+    },
+    {
+      "file": "docs/evidence/reading-mode-go-desktop-2026-10-22.png",
+      "bytes": 188689
+    },
+    {
+      "file": "docs/evidence/phase-one-real-browser-2026-10-22.json",
+      "bytes": 166561
+    },
+    {
+      "file": "docs/evidence/reading-toolbar-1440-2026-10-23.png",
+      "bytes": 166042
+    },
+    {
+      "file": "docs/evidence/reading-night-preset.png",
+      "bytes": 155744
+    },
+    {
+      "file": "docs/evidence/deepl-speed-v5-go-2026-10-22.json",
+      "bytes": 153861
+    },
+    {
+      "file": "docs/evidence/reading-local-sepia.png",
+      "bytes": 148318
+    }
+  ],
+  "issues": []
+}

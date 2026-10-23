@@ -1,10 +1,15 @@
 import { MAX_CONTEXT_LENGTH, MAX_TEXT_LENGTH, type TranslationKind } from '../shared/contracts';
+import { isTranslatableText, supportsWordDetails, type LanguageOptions } from '../shared/languages';
 
 export interface Point { x: number; y: number }
 export interface RectLike { left: number; top: number; right: number; bottom: number }
 
-export function classifySelection(text: string): TranslationKind {
-  return /^[A-Za-z]+(?:['’\-][A-Za-z]+)*$/.test(text.trim()) ? 'word' : 'text';
+export function classifySelection(text: string, languages: LanguageOptions = {}): TranslationKind {
+  return supportsWordDetails(languages) && /^[A-Za-z]+(?:['’\-][A-Za-z]+)*$/.test(text.trim()) ? 'word' : 'text';
+}
+
+export function isTranslatableSelection(text: string, languages: LanguageOptions = {}, languageHint?: string): boolean {
+  return isTranslatableText(text, languages, languageHint);
 }
 
 export function isEnglishSelection(text: string): boolean {

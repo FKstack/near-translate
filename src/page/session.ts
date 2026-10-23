@@ -1,9 +1,13 @@
 import { TranslationClient } from '../platform/translation-client';
 import type { TranslationError, TranslationInput, TranslationServerMessage } from '../shared/contracts';
-import { PAGE_BATCH_MAX_ITEMS, PAGE_BATCH_TARGET_CHARS, PAGE_CONCURRENCY, splitPageBatchText } from './batches';
-import { segmentIsCurrent, type PageSegment } from './segments';
+import { MAX_PAGE_BATCH_ITEMS } from '../shared/contracts';
+import { PAGE_BATCH_MAX_ITEMS, PAGE_BATCH_TARGET_CHARS, PAGE_CONCURRENCY, normalizePageBatchTargetChars, splitPageBatchText } from './batches';
+import { MAX_PAGE_SEGMENTS, segmentIsCurrent, type PageSegment } from './segments';
+import type { PageViewportPriority } from './viewport';
 
-export const MAX_PAGE_SEGMENTS = 1_500;
+export { MAX_PAGE_SEGMENTS } from './segments';
+const MAX_CACHED_TRANSLATIONS = 1_500;
+const MAX_CACHED_BYTES = 2 * 1_024 * 1_024;
 export interface PageTranslationState {
   status: 'idle' | 'running' | 'done' | 'stopped';
   total: number;
@@ -22,6 +26,11 @@ export type PageSegmentUpdate =
 export interface PageSessionCallbacks {
   onChange(state: PageTranslationState): void;
   onSegment(segment: PageSegment, update: PageSegmentUpdate): void;
+  isCurrent?(segment: PageSegment): boolean;
+}
+export interface PageScheduling {
+  concurrency?: number; batchMaxItems?: number; batchTargetChars?: number; batchSeparatorChars?: 0 | 1 | 2;
+  viewportPriority?: boolean; firstBatchMaxItems?: number; firstBatchTargetChars?: number; packing?: 'ordered' | 'fill';
 }
 export interface PageTranslationClient {
   start(input: TranslationInput): string;
@@ -30,9 +39,9 @@ export interface PageTranslationClient {
 }
 type ClientFactory = (receive: (event: TranslationServerMessage) => void) => PageTranslationClient;
 type ItemStatus = 'queued' | 'loading' | 'done' | 'error' | 'stopped' | 'skipped';
-interface Item { segment: PageSegment; key: string; status: ItemStatus }
+interface Item { segment: PageSegment; key: string; status: ItemStatus; priority?: PageViewportPriority }
 interface Part { text: string; status: ItemStatus; translation?: string; error?: TranslationError }
-interface Group { items: Item[]; parts: Part[]; status: ItemStatus; error?: TranslationError }
+interface Group { text: string; items: Item[]; parts: Part[]; status: ItemStatus; error?: TranslationError }
 interface Task { group: Group; part: Part }
 interface Worker {
   client: PageTranslationClient;
@@ -56,6 +65,18 @@ export class PageTranslationSession {
   private error?: TranslationError;
   private pumping = false;
   private disposed = false;
+  private concurrency = PAGE_CONCURRENCY;
+  private batchMaxItems = PAGE_BATCH_MAX_ITEMS;
+  private batchTargetChars = PAGE_BATCH_TARGET_CHARS;
+  private batchSeparatorChars: 0 | 1 | 2 = 1;
+  private viewportPriority = false;
+  private firstBatchMaxItems = PAGE_BATCH_MAX_ITEMS;
+  private firstBatchTargetChars = PAGE_BATCH_TARGET_CHARS;
+  private packing: PageScheduling['packing'];
+  private dispatchedBatches = 0;
+  // Text only: hiding translations releases all DOM references, but can reuse successful work.
+  private readonly translations = new Map<string, string>();
+  private cachedBytes = 0;
 
   constructor(private readonly callbacks: PageSessionCallbacks, createClient: ClientFactory = receive => new TranslationClient(receive)) {
     this.workers = Array.from({ length: PAGE_CONCURRENCY }, () => {
@@ -77,15 +98,55 @@ export class PageTranslationSession {
     };
   }
 
-  start(segments: PageSegment[]): void {
-    if (this.disposed) return;
-    this.stopWork(); this.clearCache(); this.status = 'running'; this.append(segments);
+  /** Text-only copy for another view in this document; never exposes the owned cache. */
+  get translationSnapshot(): ReadonlyMap<string, string> { return new Map(this.translations); }
+
+  /** Import successful text before an explicit start, using the existing cache bounds. */
+  seedTranslations(entries: ReadonlyMap<string, string>): void {
+    if (this.disposed || this.status !== 'idle') return;
+    for (const [text, translation] of entries) {
+      if (typeof text !== 'string' || !text.trim() || typeof translation !== 'string' || !translation.trim()) continue;
+      this.rememberTranslation(text, translation);
+    }
   }
 
-  /** Restoring the original releases cached page text and retained DOM references. */
-  reset(): void {
+  start(segments: PageSegment[], scheduling: PageScheduling = {}): void {
     if (this.disposed) return;
-    this.stopWork(); this.clearCache(); this.status = 'idle'; this.changed();
+    this.concurrency = Number.isInteger(scheduling.concurrency) ? Math.max(1, Math.min(PAGE_CONCURRENCY, scheduling.concurrency!)) : PAGE_CONCURRENCY;
+    this.batchMaxItems = Number.isInteger(scheduling.batchMaxItems) ? Math.max(1, Math.min(MAX_PAGE_BATCH_ITEMS, scheduling.batchMaxItems!)) : PAGE_BATCH_MAX_ITEMS;
+    this.batchTargetChars = normalizePageBatchTargetChars(scheduling.batchTargetChars);
+    this.batchSeparatorChars = scheduling.batchSeparatorChars === 0 ? 0 : scheduling.batchSeparatorChars === 2 ? 2 : 1;
+    this.viewportPriority = scheduling.viewportPriority === true;
+    this.firstBatchMaxItems = Number.isInteger(scheduling.firstBatchMaxItems)
+      ? Math.max(1, Math.min(this.batchMaxItems, scheduling.firstBatchMaxItems!)) : this.batchMaxItems;
+    this.firstBatchTargetChars = scheduling.firstBatchTargetChars === undefined ? this.batchTargetChars
+      : Math.min(this.batchTargetChars, normalizePageBatchTargetChars(scheduling.firstBatchTargetChars));
+    this.packing = scheduling.packing;
+    this.stopWork(); this.clearSession(); this.status = 'running'; this.append(segments);
+  }
+
+  /** The mount measures session-owned source identities, never newly collected duplicates. */
+  get viewportSnapshot(): { generation: number; segments: readonly PageSegment[] } {
+    return { generation: this.generation, segments: this.viewportPriority && this.status === 'running'
+      ? Array.from(this.groups.values()).filter(group => group.parts.some(part => part.status === 'queued'))
+        .flatMap(group => group.items.filter(item => item.status !== 'skipped').map(item => item.segment)) : [] };
+  }
+
+  updateViewportPriorities(generation: number, priorities: ReadonlyMap<PageSegment, PageViewportPriority>): void {
+    if (this.disposed || this.status !== 'running' || !this.viewportPriority || generation !== this.generation) return;
+    for (const group of this.groups.values()) {
+      if (!group.parts.some(part => part.status === 'queued')) continue;
+      for (const item of group.items) item.priority = priorities.get(item.segment);
+    }
+    this.schedulePump();
+  }
+
+  /** Always release DOM references; connection changes and navigation also invalidate text. */
+  reset({ clearCache = true }: { clearCache?: boolean } = {}): void {
+    if (this.disposed) return;
+    this.stopWork(); this.clearSession();
+    if (clearCache) this.clearTranslations();
+    this.status = 'idle'; this.changed();
   }
 
   /** Newly loaded paragraphs join only an explicitly started, non-stopped session. */
@@ -93,14 +154,17 @@ export class PageTranslationSession {
     if (this.disposed || this.status === 'idle' || this.status === 'stopped') return;
     this.pruneStale();
     for (const segment of segments) {
-      if (!segmentIsCurrent(segment)) continue;
+      if (!this.current(segment)) continue;
       const key = this.segmentKey(segment);
       if (this.segmentKeys.has(key)) continue;
       if (this.acceptedCount >= MAX_PAGE_SEGMENTS) { this.limitReached = true; break; }
       this.segmentKeys.add(key); this.acceptedCount++;
       let group = this.groups.get(segment.text);
       if (!group) {
-        group = { items: [], parts: splitPageBatchText(segment.text).map(text => ({ text, status: 'queued' })), status: 'queued' };
+        const cached = this.cachedTranslation(segment.text);
+        group = { text: segment.text, items: [], parts: cached === undefined
+          ? splitPageBatchText(segment.text, this.batchTargetChars).map(text => ({ text, status: 'queued' }))
+          : [{ text: segment.text, status: 'done', translation: cached }], status: cached === undefined ? 'queued' : 'done' };
         this.groups.set(segment.text, group);
       }
       if (group.status === 'skipped') for (const part of group.parts) if (part.status === 'skipped') part.status = 'queued';
@@ -132,12 +196,36 @@ export class PageTranslationSession {
     if (this.disposed) return;
     this.stopWork(); this.disposed = true;
     for (const worker of this.workers) worker.client.dispose();
-    this.clearCache();
+    this.clearSession(); this.clearTranslations();
   }
 
-  private clearCache(): void {
+  private clearSession(): void {
     this.groups.clear(); this.segmentKeys.clear(); this.nodeIds = new WeakMap();
     this.nextNodeId = 0; this.acceptedCount = 0; this.prunedCount = 0; this.limitReached = false; this.error = undefined;
+    this.dispatchedBatches = 0;
+  }
+
+  private clearTranslations(): void { this.translations.clear(); this.cachedBytes = 0; }
+
+  private cachedTranslation(text: string): string | undefined {
+    const translation = this.translations.get(text);
+    if (translation !== undefined) {
+      this.translations.delete(text); this.translations.set(text, translation);
+    }
+    return translation;
+  }
+
+  private rememberTranslation(text: string, translation: string): void {
+    const bytes = (text.length + translation.length) * 2;
+    if (bytes > MAX_CACHED_BYTES) return;
+    const previous = this.translations.get(text);
+    if (previous !== undefined) this.cachedBytes -= (text.length + previous.length) * 2;
+    this.translations.delete(text); this.translations.set(text, translation); this.cachedBytes += bytes;
+    while (this.translations.size > MAX_CACHED_TRANSLATIONS || this.cachedBytes > MAX_CACHED_BYTES) {
+      const oldest = this.translations.keys().next().value!;
+      this.cachedBytes -= (oldest.length + this.translations.get(oldest)!.length) * 2;
+      this.translations.delete(oldest);
+    }
   }
 
   private segmentKey(segment: PageSegment): string {
@@ -160,6 +248,7 @@ export class PageTranslationSession {
   private takeBatch(): Task[] {
     const tasks: Task[] = [];
     let characters = 0;
+    const candidates: Group[] = [];
     for (const group of this.groups.values()) {
       if (!group.parts.some(part => part.status === 'queued')) continue;
       for (const item of group.items) this.skipStale(item);
@@ -167,21 +256,61 @@ export class PageTranslationSession {
         for (const part of group.parts) if (part.status === 'queued') part.status = 'skipped';
         group.status = 'skipped'; continue;
       }
+      candidates.push(group);
+    }
+    // Every fourth batch starts with the oldest waiting group, even during scrolling.
+    if (this.viewportPriority && this.dispatchedBatches % 4 !== 3) {
+      candidates.sort((a, b) => {
+        const left = this.groupPriority(a); const right = this.groupPriority(b);
+        return left.tier - right.tier || left.distance - right.distance;
+      });
+    }
+    const firstVisibleBatch = this.viewportPriority && this.dispatchedBatches === 0
+      && candidates.some(group => this.groupPriority(group).visibleProse);
+    const maxItems = firstVisibleBatch ? this.firstBatchMaxItems : this.batchMaxItems;
+    const targetChars = firstVisibleBatch ? this.firstBatchTargetChars : this.batchTargetChars;
+    // Compact only a small tail of whole queued paragraphs. Keep the priority/FIFO
+    // anchor; split paragraphs and visible prose retain their existing order.
+    if (this.packing === 'fill' && !firstVisibleBatch && candidates.length <= 16
+      && candidates.every(group => group.parts.length === 1 && group.parts[0]!.status === 'queued')
+      && !candidates.some(group => this.groupPriority(group).visibleProse)
+      && (candidates.length > maxItems || candidates.reduce((total, group) => total + group.parts[0]!.text.length, 0)
+        + Math.max(0, candidates.length - 1) * this.batchSeparatorChars > targetChars)) {
+      const fillers = candidates.slice(1).sort((a, b) => b.parts[0]!.text.length - a.parts[0]!.text.length);
+      candidates.splice(1, fillers.length, ...fillers);
+    }
+    for (const group of candidates) {
+      if (firstVisibleBatch && !this.groupPriority(group).visibleProse) break;
       for (const part of group.parts) {
         if (part.status !== 'queued') continue;
-        const size = part.text.length + (tasks.length ? 1 : 0);
-        if (tasks.length && (characters + size > PAGE_BATCH_TARGET_CHARS || tasks.length >= PAGE_BATCH_MAX_ITEMS)) return tasks;
+        const size = part.text.length + (tasks.length ? this.batchSeparatorChars : 0);
+        if (tasks.length >= maxItems) return tasks;
+        // The first intact paragraph may exceed the soft first-batch budget, never the hard cap.
+        if (tasks.length && characters + size > targetChars) {
+          if (this.packing === 'fill' && !firstVisibleBatch) break;
+          return tasks;
+        }
         tasks.push({ group, part }); characters += size; part.status = 'loading';
       }
     }
     return tasks;
   }
 
+  private groupPriority(group: Group): PageViewportPriority {
+    let best: PageViewportPriority = { tier: 4, distance: Infinity, visibleProse: false };
+    for (const item of group.items) {
+      if (item.status === 'skipped' || !item.priority) continue;
+      if (item.priority.tier < best.tier || item.priority.tier === best.tier && item.priority.distance < best.distance) best = item.priority;
+    }
+    return best;
+  }
+
   private pump(): void {
-    for (const worker of this.workers) {
+    for (const worker of this.workers.slice(0, this.concurrency)) {
       if (worker.active) continue;
       const tasks = this.takeBatch();
       if (!tasks.length) break;
+      this.dispatchedBatches++;
       for (const group of new Set(tasks.map(task => task.group))) this.refreshGroup(group);
       const pageSegments = tasks.map(task => task.part.text);
       worker.active = { tasks, generation: this.generation,
@@ -236,12 +365,16 @@ export class PageTranslationSession {
 
   private refreshGroup(group: Group): void {
     if (!group.items.length) { group.status = 'skipped'; return; }
+    const previousStatus = group.status;
     const failed = group.parts.find(part => part.status === 'error');
     group.error = failed?.error;
     group.status = group.parts.every(part => part.status === 'done') ? 'done'
       : failed ? 'error' : group.parts.some(part => part.status === 'loading') ? 'loading'
       : group.parts.some(part => part.status === 'queued') ? 'queued'
       : group.parts.some(part => part.status === 'stopped') ? 'stopped' : 'skipped';
+    if (group.status === 'done' && previousStatus !== 'done') {
+      this.rememberTranslation(group.text, group.parts.map(part => part.translation!).join('\n\n'));
+    }
     for (const item of group.items) {
       if (this.skipStale(item)) continue;
       const previous = item.status; item.status = group.status;
@@ -258,16 +391,18 @@ export class PageTranslationSession {
       || Array.from(this.groups.values()).some(group => group.items.length && group.parts.some(part => part.status === 'queued')) ? 'running' : 'done';
   }
 
+  private current(segment: PageSegment): boolean { return this.callbacks.isCurrent?.(segment) ?? segmentIsCurrent(segment); }
+
   private skipStale(item: Item): boolean {
     if (item.status === 'skipped') return true;
-    if (segmentIsCurrent(item.segment)) return false;
+    if (this.current(item.segment)) return false;
     item.status = 'skipped'; this.callbacks.onSegment(item.segment, { status: 'stopped' }); return true;
   }
 
   private pruneStale(): void {
     for (const group of this.groups.values()) {
       group.items = group.items.filter(item => {
-        if (item.status !== 'skipped' && segmentIsCurrent(item.segment)) return true;
+        if (item.status !== 'skipped' && this.current(item.segment)) return true;
         this.segmentKeys.delete(item.key); this.prunedCount++; this.callbacks.onSegment(item.segment, { status: 'stopped' }); return false;
       });
       if (!group.items.length) {

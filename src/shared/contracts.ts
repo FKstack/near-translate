@@ -1,5 +1,8 @@
+import type { LanguageOptions } from './languages';
+
 export type TranslationKind = 'word' | 'text';
-export interface TranslationInput {
+export type TranslationEngine = 'model' | 'deepl-web';
+export interface TranslationInput extends LanguageOptions {
   text: string;
   context?: string;
   kind: TranslationKind;
@@ -18,6 +21,8 @@ export interface WordResult {
   explanation: string;
   senses: WordSense[];
 }
+/** Complete string fields from an unfinished dictionary response; never a final result. */
+export type WordPreview = Partial<Pick<WordResult, 'translation' | 'partOfSpeech' | 'explanation'>>;
 export interface TextResult {
   kind: 'text';
   translation: string;
@@ -31,6 +36,8 @@ export interface SentenceAnalysis {
   readingGuide: string;
 }
 export type TranslationEvent =
+  | { type: 'progress' }
+  | { type: 'word-preview'; preview: WordPreview }
   | { type: 'delta'; text: string }
   | { type: 'segment'; index: number; text: string }
   | { type: 'analysis'; analysis: SentenceAnalysis }
@@ -38,7 +45,8 @@ export type TranslationEvent =
 export interface TranslationProvider {
   translate(input: TranslationInput, signal: AbortSignal): AsyncIterable<TranslationEvent>;
 }
-export interface EditableSettings {
+export interface EditableSettings extends LanguageOptions {
+  translationEngine?: TranslationEngine;
   enabled: boolean;
   includeContext: boolean;
   sentenceAnalysisEnabled: boolean;
@@ -51,8 +59,9 @@ export interface EditableSettings {
 export type ProviderId = 'deepseek' | 'openai' | 'gemini' | 'qwen' | 'moonshot' | 'siliconflow' | 'openrouter' | 'ollama' | 'custom';
 export interface ApiProfile { model: string; apiKey: string; baseUrl: string; jsonMode: boolean }
 export interface PublicApiProfile { model: string; hasApiKey: boolean; baseUrl: string; jsonMode: boolean }
-export interface StoredSettings extends EditableSettings { schemaVersion: 2; connectionRevision: number; profiles: Partial<Record<ProviderId, ApiProfile>> }
-export interface PublicSettings {
+export interface StoredSettings extends EditableSettings { schemaVersion: 2; translationEngine: TranslationEngine; connectionRevision: number; profiles: Partial<Record<ProviderId, ApiProfile>> }
+export interface PublicSettings extends LanguageOptions {
+  translationEngine?: TranslationEngine;
   enabled: boolean;
   includeContext: boolean;
   sentenceAnalysisEnabled: boolean;
@@ -66,13 +75,24 @@ export interface PublicSettings {
 }
 /** Only returned to trusted extension pages; never contains API keys. */
 export interface ConnectionSettings extends PublicSettings {
+  /** Optional browser permission, not a stored model preference. */
+  networkPreparationAccess?: boolean;
   provider: ProviderId;
   baseUrl: string;
   jsonMode: boolean;
   profiles: Partial<Record<ProviderId, PublicApiProfile>>;
 }
 export type ErrorCode = 'CONFIG' | 'AUTH' | 'BALANCE' | 'RATE_LIMIT' | 'NETWORK' | 'TIMEOUT' | 'INVALID_RESPONSE' | 'INVALID_INPUT' | 'DISCONNECTED' | 'SERVER';
-export interface TranslationError { code: ErrorCode; message: string; retryable: boolean }
+export interface TranslationError { code: ErrorCode; message: string; retryable: boolean; retryAt?: number }
+export interface TranslationServiceStatus {
+  engine: TranslationEngine;
+  cooldownUntil: number;
+  checkedAt: number;
+}
+export interface TranslationStatusSource {
+  subscribe(listener: (status: TranslationServiceStatus) => void): () => void;
+  refresh(): void;
+}
 export type TranslationClientMessage =
   | { type: 'translate'; requestId: string; input: TranslationInput }
   | { type: 'cancel'; requestId: string }
@@ -86,7 +106,7 @@ export const TRANSLATION_PORT = 'near-translate:v1';
 export const DEFAULT_MODEL = 'deepseek-flash';
 export const MAX_TEXT_LENGTH = 12_000;
 export const MAX_CONTEXT_LENGTH = 600;
-export const MAX_PAGE_BATCH_ITEMS = 16;
+export const MAX_PAGE_BATCH_ITEMS = 32;
 export const MAX_SENTENCE_ANALYSIS_LENGTH = 2_000;
 export const REQUEST_TIMEOUT_MS = 90_000;
 export const CLIENT_TIMEOUT_MS = 95_000;

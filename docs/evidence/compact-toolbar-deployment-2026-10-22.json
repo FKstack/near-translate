@@ -1,0 +1,90 @@
+{
+  "at": "2026-10-22T14:52:24.721Z",
+  "installed": "D:\\浏览器翻译扩展\\artifacts\\installed\\near-translate-edge-v0.1.0",
+  "source": "D:\\浏览器翻译扩展\\.output\\edge-mv3",
+  "backup": "D:\\浏览器翻译扩展\\.output\\brand-design\\installed-compact-backup-1792680744721",
+  "extensionId": "dbdooijmbinjmnbmgglajigaoiinolnc",
+  "files": [
+    {
+      "file": "content-scripts/selection.js",
+      "beforeHash": "9baf301f03f61c81adcc6c002ddb4e694265b344fd0779e8f4e0168e2c46d0a8",
+      "afterHash": "e6a747b246ec0e2b1d4b2588dc30d3b28213196608187e8d024fb005325b9db8"
+    }
+  ],
+  "events": [
+    {
+      "phase": "before",
+      "extensionId": "dbdooijmbinjmnbmgglajigaoiinolnc",
+      "version": "0.8.0",
+      "name": "近译 · 阅读与翻译",
+      "icons": {
+        "16": "icon/16.png",
+        "32": "icon/32.png",
+        "48": "icon/48.png",
+        "128": "icon/128.png"
+      },
+      "settings": {
+        "enabled": true,
+        "webAccess": true,
+        "apiAccess": true,
+        "translationEngine": "model"
+      },
+      "helperTabId": 800038040
+    },
+    {
+      "phase": "reload-requested",
+      "helperTabId": 800038044
+    },
+    {
+      "phase": "after",
+      "extensionId": "dbdooijmbinjmnbmgglajigaoiinolnc",
+      "version": "0.8.0",
+      "name": "近译 · 阅读与翻译",
+      "icons": {
+        "16": "icon/16.png",
+        "32": "icon/32.png",
+        "48": "icon/48.png",
+        "128": "icon/128.png"
+      },
+      "settings": {
+        "enabled": true,
+        "webAccess": true,
+        "apiAccess": true,
+        "translationEngine": "model"
+      },
+      "iconDecoded": true,
+      "demoTabId": 800038051,
+      "demoUrl": "https://go.dev/talks/2012/splash.article?utm_source=chatgpt.com",
+      "appearance": {
+        "background": "rgb(252, 253, 249)",
+        "borderRadius": "13px",
+        "buttonLabels": [
+          "翻译整个页面",
+          "阅读模式",
+          "显示原文",
+          "翻译设置"
+        ],
+        "draggable": true,
+        "height": "40px",
+        "hintOpacity": "0",
+        "hintWidth": 84,
+        "hovered": false,
+        "keyboardFocus": false,
+        "leafFills": [
+          "#087F83",
+          "#66CC9E"
+        ],
+        "primaryLabel": "翻译整个页面",
+        "right": "8px",
+        "toolsVisibility": "hidden",
+        "width": "40px",
+        "withinViewport": true
+      },
+      "helperTabId": 800038048
+    }
+  ],
+  "browserStorageWritten": false,
+  "apiKeysRead": false,
+  "completed": true,
+  "settingsUnchanged": true
+}

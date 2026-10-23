@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>近译 DeepL 官方授权验证</title>
+  <style>
+    :root { color-scheme: light; font: 16px/1.65 system-ui, "Microsoft YaHei", sans-serif; color: #173238; background: #f3f7f8; }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 32px 20px; }
+    main { max-width: 920px; margin: auto; }
+    h1 { margin: 0 0 10px; font-size: 28px; }
+    h2 { margin: 0 0 12px; font-size: 19px; }
+    p { margin: 8px 0; }
+    .muted { color: #536b72; }
+    .panel { margin-top: 20px; padding: 24px; background: white; border: 1px solid #d8e4e7; border-radius: 14px; }
+    .notice { background: #eaf4f5; border-left: 4px solid #078896; padding: 14px 18px; border-radius: 4px; }
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; margin: 20px 0 12px; }
+    button { font: inherit; padding: 9px 18px; border: 1px solid #b8cdd1; border-radius: 8px; color: #173238; background: white; cursor: pointer; }
+    button.primary { color: white; background: #087c87; border-color: #087c87; }
+    button:disabled { cursor: default; opacity: .5; }
+    button:focus-visible, summary:focus-visible { outline: 3px solid #3d8fda; outline-offset: 3px; }
+    dl { display: grid; grid-template-columns: minmax(130px, 180px) minmax(0, 1fr); gap: 8px 14px; margin: 16px 0 0; }
+    dt { color: #536b72; }
+    dd { margin: 0; overflow-wrap: anywhere; }
+    .error { color: #a12929; min-height: 1.6em; }
+    pre { margin: 8px 0 0; padding: 14px; max-height: 360px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font: 13px/1.6 ui-monospace, Consolas, monospace; background: #f3f7f8; border-radius: 8px; }
+    details { margin-top: 12px; }
+    summary { cursor: pointer; }
+    .result { margin-top: 12px; border-top: 1px solid #d8e4e7; padding-top: 12px; }
+    footer { margin: 24px 0; font-size: 14px; color: #536b72; }
+    @media (max-width: 560px) { body { padding: 20px 12px; } .panel { padding: 18px; } dl { grid-template-columns: 1fr; gap: 2px; } dd { margin-bottom: 8px; } }
+  </style>
+  <script src="ui.js" defer></script>
+</head>
+<body>
+  <main>
+    <h1>近译 DeepL 官方授权验证</h1>
+    <p class="muted">无需填写 API Key。本页只验证官方账号授权与少量公开短文本翻译，不是正式扩展功能。</p>
+    <p class="notice">点击连接后，请在 DeepL 官方窗口亲自登录并确认授权。此测试使用独立 Edge profile；不会自动操作登录或同意按钮，也不读取网页登录 Cookie。</p>
+
+    <section class="panel" aria-labelledby="connection-heading">
+      <h2 id="connection-heading">连接状态</h2>
+      <p id="phase" role="status" aria-live="polite">正在读取状态…</p>
+      <p id="notice" class="muted"></p>
+      <div class="actions">
+        <button id="connect" class="primary" type="button">连接 DeepL（无需 API Key）</button>
+        <button id="refresh" type="button">刷新状态</button>
+        <button id="disconnect" type="button" disabled>断开连接</button>
+      </div>
+      <p id="error" class="error" role="alert"></p>
+      <dl>
+        <dt>账号连接</dt><dd id="connected">待检测</dd>
+        <dt>刷新凭证状态</dt><dd id="refresh-token">待检测</dd>
+        <dt>客户端注册</dt><dd id="registered">待检测</dd>
+        <dt>扩展回调地址</dt><dd id="redirect-uri">待检测</dd>
+        <dt>MCP 协议</dt><dd id="protocol">尚未协商</dd>
+      </dl>
+    </section>
+
+    <section class="panel" aria-labelledby="tools-heading">
+      <h2 id="tools-heading">已发现的官方工具</h2>
+      <p id="tools-empty" class="muted">完成授权后读取工具列表。工具发现成功不等于已经完成翻译。</p>
+      <div id="tools"></div>
+    </section>
+
+    <section class="panel" aria-labelledby="smoke-heading">
+      <h2 id="smoke-heading">公开短文本验证</h2>
+      <p id="smoke-note" class="muted">等待核验真实工具参数后启用。测试只使用预设公开短文本，不发送当前浏览网页或 PDF。</p>
+      <button id="smoke" type="button" disabled>短文本翻译测试（待核验工具）</button>
+      <div id="results"></div>
+    </section>
+    <footer>页面只显示脱敏连接状态、工具定义与翻译测试结果。断开近译测试连接不会替你退出 DeepL 网站；关闭测试浏览器后，隔离 profile 暂时保留以便继续验证。</footer>
+  </main>
+</body>
+</html>

@@ -1,0 +1,667 @@
+{
+  "schemaVersion": 1,
+  "units": "bytes unless marked otherwise",
+  "versions": {
+    "before": "0.10.1",
+    "after": "0.11.0"
+  },
+  "browserVersion": "156.0.8078.4",
+  "fixtureSha256": "3834dcd9184ca16700e38c6d116caf338a9b3c2d4d85fd5e8d85e0db18536dc8",
+  "runs": 3,
+  "method": {
+    "memory": "Page renderer V8 isolate, including extension isolated worlds; this is not total physical extension memory.",
+    "gc": "Three forced-GC samples per scenario; medians summarized across three fresh-profile runs.",
+    "automation": "Every page is touched by the same Playwright locator helper in every mode. Its helper-world overhead is in both control and enabled totals.",
+    "network": "No real translation requests, zero blocked external request attempts.",
+    "process": "OS process totals were collected for the baseline only and are excluded from before/after savings. Working-set sums include shared pages and private committed bytes are not RSS. Debugging keeps the worker awake.",
+    "pdf": "Reader-page V8 only; dedicated PDF.js worker, canvas/GPU/native buffers excluded."
+  },
+  "measurements": {
+    "before": {
+      "version": "0.10.1",
+      "build": {
+        "files": 333,
+        "totalBytes": 20557269,
+        "selectionScriptSha256": "8b119575a4b35c49c6f1d6870c9ffaf7e55c768f1a1faf928a6b6834bc4df918"
+      },
+      "modes": {
+        "plain": {
+          "idleOnePage": {
+            "naturalHeapUsedBytes": {
+              "median": 1930072,
+              "min": 1930072,
+              "max": 1930072
+            },
+            "gcHeapUsedBytes": {
+              "median": 1323048,
+              "min": 1323048,
+              "max": 1323048
+            },
+            "nodes": 202,
+            "eventListeners": 13,
+            "loadedExtensionScriptBytes": 0
+          },
+          "idleTenPages": {
+            "gcHeapUsedSumBytes": {
+              "median": 13230480,
+              "min": 13230480,
+              "max": 13230480
+            },
+            "nodesSum": 2020,
+            "eventListenersSum": 130
+          }
+        },
+        "installed-no-web-access": {
+          "idleOnePage": {
+            "naturalHeapUsedBytes": {
+              "median": 1930072,
+              "min": 1930072,
+              "max": 1930072
+            },
+            "gcHeapUsedBytes": {
+              "median": 1323048,
+              "min": 1323048,
+              "max": 1323048
+            },
+            "nodes": 202,
+            "eventListeners": 13,
+            "loadedExtensionScriptBytes": 0
+          },
+          "idleTenPages": {
+            "gcHeapUsedSumBytes": {
+              "median": 13230480,
+              "min": 13230480,
+              "max": 13230480
+            },
+            "nodesSum": 2020,
+            "eventListenersSum": 130
+          }
+        },
+        "enabled-web-access": {
+          "idleOnePage": {
+            "naturalHeapUsedBytes": {
+              "median": 3450588,
+              "min": 3449788,
+              "max": 3450764
+            },
+            "gcHeapUsedBytes": {
+              "median": 2537004,
+              "min": 2536968,
+              "max": 2537028
+            },
+            "nodes": 240,
+            "eventListeners": 325,
+            "loadedExtensionScriptBytes": 421434
+          },
+          "idleTenPages": {
+            "gcHeapUsedSumBytes": {
+              "median": 25370544,
+              "min": 25370292,
+              "max": 25375860
+            },
+            "nodesSum": 2400,
+            "eventListenersSum": 3250
+          },
+          "readingOpen": {
+            "naturalHeapUsedBytes": {
+              "median": 4384992,
+              "min": 3832424,
+              "max": 4412524
+            },
+            "gcHeapUsedBytes": {
+              "median": 3620980,
+              "min": 3619288,
+              "max": 3621408
+            },
+            "nodes": 1282,
+            "eventListeners": 569
+          },
+          "readingClosed1": {
+            "naturalHeapUsedBytes": {
+              "median": 3809800,
+              "min": 3807996,
+              "max": 3810972
+            },
+            "gcHeapUsedBytes": {
+              "median": 3417656,
+              "min": 3417652,
+              "max": 3417672
+            },
+            "nodes": 240,
+            "eventListeners": 325
+          },
+          "readingClosed5": {
+            "naturalHeapUsedBytes": {
+              "median": 4936236,
+              "min": 4891004,
+              "max": 5019604
+            },
+            "gcHeapUsedBytes": {
+              "median": 3917364,
+              "min": 3917356,
+              "max": 3917364
+            },
+            "nodes": 240,
+            "eventListeners": 325
+          },
+          "pdfReaderEmpty": {
+            "naturalHeapUsedBytes": {
+              "median": 4432544,
+              "min": 4419192,
+              "max": 4450944
+            },
+            "gcHeapUsedBytes": {
+              "median": 4002260,
+              "min": 4002260,
+              "max": 4020988
+            },
+            "nodes": 194,
+            "eventListeners": 338
+          },
+          "pdfReaderTwoPages": {
+            "naturalHeapUsedBytes": {
+              "median": 5032160,
+              "min": 4996296,
+              "max": 5033096
+            },
+            "gcHeapUsedBytes": {
+              "median": 4779508,
+              "min": 4779508,
+              "max": 4781528
+            },
+            "nodes": 229,
+            "eventListeners": 357
+          },
+          "afterPdfClosed": {
+            "naturalHeapUsedBytes": {
+              "median": 3929012,
+              "min": 3917436,
+              "max": 3929020
+            },
+            "gcHeapUsedBytes": {
+              "median": 3917364,
+              "min": 3917356,
+              "max": 3917364
+            },
+            "nodes": 240,
+            "eventListeners": 325
+          },
+          "serviceWorkerGcHeapUsedBytes": {
+            "median": 1606504,
+            "min": 1606488,
+            "max": 1606504
+          }
+        }
+      },
+      "allScenariosPassed": true,
+      "blockedExternalRequestAttempts": 0
+    },
+    "after": {
+      "version": "0.11.0",
+      "build": {
+        "files": 333,
+        "totalBytes": 15271984,
+        "selectionScriptSha256": "2ab816b68f8b245ad49e2dda994bf5ad0b803a5034ac1ceafaa6a021cf94e23e"
+      },
+      "modes": {
+        "plain": {
+          "idleOnePage": {
+            "naturalHeapUsedBytes": {
+              "median": 1930072,
+              "min": 1930072,
+              "max": 1930072
+            },
+            "gcHeapUsedBytes": {
+              "median": 1323048,
+              "min": 1323048,
+              "max": 1323048
+            },
+            "nodes": 202,
+            "eventListeners": 13,
+            "loadedExtensionScriptBytes": 0
+          },
+          "idleTenPages": {
+            "gcHeapUsedSumBytes": {
+              "median": 13230480,
+              "min": 13230480,
+              "max": 13230480
+            },
+            "nodesSum": 2020,
+            "eventListenersSum": 130
+          }
+        },
+        "installed-no-web-access": {
+          "idleOnePage": {
+            "naturalHeapUsedBytes": {
+              "median": 1930072,
+              "min": 1930072,
+              "max": 1930072
+            },
+            "gcHeapUsedBytes": {
+              "median": 1323048,
+              "min": 1323048,
+              "max": 1323048
+            },
+            "nodes": 202,
+            "eventListeners": 13,
+            "loadedExtensionScriptBytes": 0
+          },
+          "idleTenPages": {
+            "gcHeapUsedSumBytes": {
+              "median": 13230480,
+              "min": 13230480,
+              "max": 13230480
+            },
+            "nodesSum": 2020,
+            "eventListenersSum": 130
+          }
+        },
+        "enabled-web-access": {
+          "idleOnePage": {
+            "naturalHeapUsedBytes": {
+              "median": 3381784,
+              "min": 3381728,
+              "max": 3381808
+            },
+            "gcHeapUsedBytes": {
+              "median": 2477296,
+              "min": 2477276,
+              "max": 2477308
+            },
+            "nodes": 237,
+            "eventListeners": 180,
+            "loadedExtensionScriptBytes": 422572
+          },
+          "idleTenPages": {
+            "gcHeapUsedSumBytes": {
+              "median": 24774340,
+              "min": 24773460,
+              "max": 24775376
+            },
+            "nodesSum": 2370,
+            "eventListenersSum": 1800
+          },
+          "readingOpen": {
+            "naturalHeapUsedBytes": {
+              "median": 3831732,
+              "min": 3828820,
+              "max": 3833712
+            },
+            "gcHeapUsedBytes": {
+              "median": 3624456,
+              "min": 3624356,
+              "max": 3624492
+            },
+            "nodes": 1279,
+            "eventListeners": 427
+          },
+          "readingClosed1": {
+            "naturalHeapUsedBytes": {
+              "median": 3788828,
+              "min": 3787244,
+              "max": 3789800
+            },
+            "gcHeapUsedBytes": {
+              "median": 3402092,
+              "min": 3402004,
+              "max": 3402128
+            },
+            "nodes": 237,
+            "eventListeners": 183
+          },
+          "readingClosed5": {
+            "naturalHeapUsedBytes": {
+              "median": 4726744,
+              "min": 4444760,
+              "max": 4872828
+            },
+            "gcHeapUsedBytes": {
+              "median": 3873428,
+              "min": 3873368,
+              "max": 3873480
+            },
+            "nodes": 237,
+            "eventListeners": 183
+          },
+          "pdfReaderEmpty": {
+            "naturalHeapUsedBytes": {
+              "median": 4369280,
+              "min": 4364540,
+              "max": 4399424
+            },
+            "gcHeapUsedBytes": {
+              "median": 3945076,
+              "min": 3945076,
+              "max": 3945128
+            },
+            "nodes": 191,
+            "eventListeners": 196
+          },
+          "pdfReaderTwoPages": {
+            "naturalHeapUsedBytes": {
+              "median": 4851084,
+              "min": 4792536,
+              "max": 4963864
+            },
+            "gcHeapUsedBytes": {
+              "median": 4709784,
+              "min": 4696780,
+              "max": 4709812
+            },
+            "nodes": 226,
+            "eventListeners": 215
+          },
+          "afterPdfClosed": {
+            "naturalHeapUsedBytes": {
+              "median": 3873428,
+              "min": 3873368,
+              "max": 3873480
+            },
+            "gcHeapUsedBytes": {
+              "median": 3873428,
+              "min": 3873368,
+              "max": 3873480
+            },
+            "nodes": 237,
+            "eventListeners": 183
+          },
+          "serviceWorkerGcHeapUsedBytes": {
+            "median": 1584080,
+            "min": 1584080,
+            "max": 1584080
+          }
+        }
+      },
+      "allScenariosPassed": true,
+      "blockedExternalRequestAttempts": 0
+    }
+  },
+  "improvements": {
+    "buildBytesReduced": 5285285,
+    "buildReductionPercent": 25.710054190563937,
+    "pageGcHeapOverheadBeforeBytes": 1213956,
+    "pageGcHeapOverheadAfterBytes": 1154248,
+    "pageGcHeapOverheadReductionPercent": 4.918464919651122,
+    "tenPagesGcHeapOverheadBeforeBytes": 12140064,
+    "tenPagesGcHeapOverheadAfterBytes": 11543860,
+    "idlePageListenersBefore": 325,
+    "idlePageListenersAfter": 180
+  },
+  "lifecycle": {
+    "before": {
+      "version": "0.10.1",
+      "cycles": 20,
+      "closeSamples": [
+        {
+          "cycle": 1,
+          "gcHeapUsedBytes": 3412172,
+          "nodes": 240,
+          "eventListeners": 325
+        },
+        {
+          "cycle": 2,
+          "gcHeapUsedBytes": 3632008,
+          "nodes": 240,
+          "eventListeners": 325
+        },
+        {
+          "cycle": 3,
+          "gcHeapUsedBytes": 3702408,
+          "nodes": 240,
+          "eventListeners": 325
+        },
+        {
+          "cycle": 4,
+          "gcHeapUsedBytes": 3876148,
+          "nodes": 240,
+          "eventListeners": 325
+        },
+        {
+          "cycle": 5,
+          "gcHeapUsedBytes": 3921820,
+          "nodes": 240,
+          "eventListeners": 325
+        },
+        {
+          "cycle": 6,
+          "gcHeapUsedBytes": 3952428,
+          "nodes": 240,
+          "eventListeners": 325
+        },
+        {
+          "cycle": 7,
+          "gcHeapUsedBytes": 3997708,
+          "nodes": 240,
+          "eventListeners": 325
+        },
+        {
+          "cycle": 8,
+          "gcHeapUsedBytes": 4057424,
+          "nodes": 240,
+          "eventListeners": 325
+        },
+        {
+          "cycle": 9,
+          "gcHeapUsedBytes": 4238496,
+          "nodes": 240,
+          "eventListeners": 325
+        },
+        {
+          "cycle": 10,
+          "gcHeapUsedBytes": 4248360,
+          "nodes": 240,
+          "eventListeners": 325
+        },
+        {
+          "cycle": 11,
+          "gcHeapUsedBytes": 4272560,
+          "nodes": 240,
+          "eventListeners": 325
+        },
+        {
+          "cycle": 12,
+          "gcHeapUsedBytes": 4274600,
+          "nodes": 240,
+          "eventListeners": 325
+        },
+        {
+          "cycle": 13,
+          "gcHeapUsedBytes": 4274780,
+          "nodes": 240,
+          "eventListeners": 325
+        },
+        {
+          "cycle": 14,
+          "gcHeapUsedBytes": 4278308,
+          "nodes": 240,
+          "eventListeners": 325
+        },
+        {
+          "cycle": 15,
+          "gcHeapUsedBytes": 4283892,
+          "nodes": 240,
+          "eventListeners": 325
+        },
+        {
+          "cycle": 16,
+          "gcHeapUsedBytes": 4306452,
+          "nodes": 240,
+          "eventListeners": 325
+        },
+        {
+          "cycle": 17,
+          "gcHeapUsedBytes": 4298648,
+          "nodes": 240,
+          "eventListeners": 325
+        },
+        {
+          "cycle": 18,
+          "gcHeapUsedBytes": 4312772,
+          "nodes": 240,
+          "eventListeners": 325
+        },
+        {
+          "cycle": 19,
+          "gcHeapUsedBytes": 4314624,
+          "nodes": 240,
+          "eventListeners": 325
+        },
+        {
+          "cycle": 20,
+          "gcHeapUsedBytes": 4326488,
+          "nodes": 240,
+          "eventListeners": 325
+        }
+      ],
+      "zeroExternalRequestAttempts": true
+    },
+    "after": {
+      "version": "0.11.0",
+      "cycles": 20,
+      "closeSamples": [
+        {
+          "cycle": 1,
+          "gcHeapUsedBytes": 3402240,
+          "nodes": 237,
+          "eventListeners": 183
+        },
+        {
+          "cycle": 2,
+          "gcHeapUsedBytes": 3589344,
+          "nodes": 237,
+          "eventListeners": 183
+        },
+        {
+          "cycle": 3,
+          "gcHeapUsedBytes": 3758048,
+          "nodes": 237,
+          "eventListeners": 183
+        },
+        {
+          "cycle": 4,
+          "gcHeapUsedBytes": 3837048,
+          "nodes": 237,
+          "eventListeners": 183
+        },
+        {
+          "cycle": 5,
+          "gcHeapUsedBytes": 3873452,
+          "nodes": 237,
+          "eventListeners": 183
+        },
+        {
+          "cycle": 6,
+          "gcHeapUsedBytes": 3907248,
+          "nodes": 237,
+          "eventListeners": 183
+        },
+        {
+          "cycle": 7,
+          "gcHeapUsedBytes": 3943308,
+          "nodes": 237,
+          "eventListeners": 183
+        },
+        {
+          "cycle": 8,
+          "gcHeapUsedBytes": 4026128,
+          "nodes": 237,
+          "eventListeners": 183
+        },
+        {
+          "cycle": 9,
+          "gcHeapUsedBytes": 4188272,
+          "nodes": 237,
+          "eventListeners": 183
+        },
+        {
+          "cycle": 10,
+          "gcHeapUsedBytes": 4205488,
+          "nodes": 237,
+          "eventListeners": 183
+        },
+        {
+          "cycle": 11,
+          "gcHeapUsedBytes": 4229384,
+          "nodes": 237,
+          "eventListeners": 183
+        },
+        {
+          "cycle": 12,
+          "gcHeapUsedBytes": 4231692,
+          "nodes": 237,
+          "eventListeners": 183
+        },
+        {
+          "cycle": 13,
+          "gcHeapUsedBytes": 4231648,
+          "nodes": 237,
+          "eventListeners": 183
+        },
+        {
+          "cycle": 14,
+          "gcHeapUsedBytes": 4233652,
+          "nodes": 237,
+          "eventListeners": 183
+        },
+        {
+          "cycle": 15,
+          "gcHeapUsedBytes": 4238488,
+          "nodes": 237,
+          "eventListeners": 183
+        },
+        {
+          "cycle": 16,
+          "gcHeapUsedBytes": 4257148,
+          "nodes": 237,
+          "eventListeners": 183
+        },
+        {
+          "cycle": 17,
+          "gcHeapUsedBytes": 4246848,
+          "nodes": 237,
+          "eventListeners": 183
+        },
+        {
+          "cycle": 18,
+          "gcHeapUsedBytes": 4255308,
+          "nodes": 237,
+          "eventListeners": 183
+        },
+        {
+          "cycle": 19,
+          "gcHeapUsedBytes": 4255308,
+          "nodes": 237,
+          "eventListeners": 183
+        },
+        {
+          "cycle": 20,
+          "gcHeapUsedBytes": 4259216,
+          "nodes": 237,
+          "eventListeners": 183
+        }
+      ],
+      "zeroExternalRequestAttempts": true
+    }
+  },
+  "idleStatusIpc": {
+    "before": {
+      "initializationStatusQueries": 1,
+      "statusQueriesDuringWindow": 10,
+      "observedMs": 10004,
+      "caveat": "Debugger keeps worker alive. This verifies polling traffic only, not normal service-worker dormancy."
+    },
+    "after": {
+      "initializationStatusQueries": 1,
+      "statusQueriesDuringWindow": 0,
+      "observedMs": 10003,
+      "caveat": "Debugger keeps worker alive. This verifies polling traffic only, not normal service-worker dormancy."
+    }
+  },
+  "checks": {
+    "sameBrowser": true,
+    "sameFixture": true,
+    "completeThreeRunComparisons": true,
+    "finalBuildBytes": true,
+    "finalLifecycleBuildHashMatches": true
+  }
+}

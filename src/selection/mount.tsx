@@ -6,10 +6,13 @@ import { TranslationClient } from '../platform/translation-client';
 import { canAnalyzeSentence } from '../core/sentence-analysis';
 import { selectionError } from './helpers';
 import { takeSelectionSnapshot, type SelectionSnapshot } from './snapshot';
+import { readLanguagePair, supportsSentenceAnalysis } from '../shared/languages';
 
 export interface MountSelectionOptions {
   source: 'web' | 'pdf';
   root?: HTMLElement | Document;
+  /** Composition root may move this owned overlay into an active reading dialog. */
+  onHost?: (host: HTMLElement, close: () => void) => void;
 }
 /** Shared composition root for ordinary page content and the extension's PDF text layer. */
 export function mountSelectionTranslator(options: MountSelectionOptions): () => void {
@@ -18,13 +21,10 @@ export function mountSelectionTranslator(options: MountSelectionOptions): () => 
   host.style.cssText = 'all:initial;position:fixed;top:0;left:0;width:0;height:0;z-index:2147483647;pointer-events:none';
   host.setAttribute('data-near-translate', '');
   const shadow = host.attachShadow({ mode: 'open' });
-  const style = document.createElement('style');
-  style.textContent = translatorStyles;
-  shadow.appendChild(style);
-  const container = document.createElement('div');
-  shadow.appendChild(container);
   document.documentElement.appendChild(host);
-  const react = createRoot(container);
+  let style: HTMLStyleElement | undefined;
+  let container: HTMLDivElement | undefined;
+  let react: ReturnType<typeof createRoot> | undefined;
   let settings: PublicSettings = { enabled: true, includeContext: true, sentenceAnalysisEnabled: true, model: DEFAULT_MODEL, hasApiKey: false, webAccess: false };
   let settingsReady = false;
   let view: TranslatorView = { mode: 'hidden' };
@@ -35,16 +35,39 @@ export function mountSelectionTranslator(options: MountSelectionOptions): () => 
   let selectionPath: EventTarget[] = [];
   const isAvailable = () => settingsReady && settings.enabled && (options.source === 'pdf' || settings.webAccess);
 
+  const releaseRoot = () => {
+    const mounted = react;
+    const previousContainer = container;
+    react = undefined;
+    container = undefined;
+    mounted?.unmount();
+    // React delegates events to its container. Drop that container with the root.
+    previousContainer?.remove();
+    style?.remove();
+    style = undefined;
+  };
   const render = () => {
     if (disposed) return;
+    if (view.mode === 'hidden') { releaseRoot(); return; }
+    if (!react) {
+      style = document.createElement('style');
+      style.textContent = translatorStyles;
+      shadow.appendChild(style);
+      container = document.createElement('div');
+      shadow.appendChild(container);
+      react = createRoot(container);
+    }
     react.render(<Translator view={view} source={options.source} onTranslate={translate} onClose={close} onRetry={translate} onRetryAnalysis={() => startAnalysis(true)}
       onSettings={() => { void browser.runtime.sendMessage({ type: 'open-options' }).catch(() => undefined); }} />);
   };
   const client = new TranslationClient((event: TranslationServerMessage) => {
     if (event.requestId !== activeRequest || view.mode !== 'card' || disposed) return;
-    if (event.type === 'delta') view = { ...view, streamed: view.streamed + event.text };
+    if (event.type === 'progress') view = { ...view, responding: true };
+    else if (event.type === 'word-preview' && view.selection.input.kind === 'word') {
+      view = { ...view, responding: true, wordPreview: { ...view.wordPreview, ...event.preview } };
+    } else if (event.type === 'delta') view = { ...view, responding: true, streamed: view.streamed + event.text };
     else if (event.type === 'result') {
-      view = { ...view, status: 'done', result: event.result };
+      view = { ...view, status: 'done', result: event.result, wordPreview: undefined };
       activeRequest = undefined;
       startAnalysis();
     } else if (event.type === 'error') {
@@ -77,19 +100,25 @@ export function mountSelectionTranslator(options: MountSelectionOptions): () => 
   }
 
   function startAnalysis(retry = false): void {
-    if (disposed || !isAvailable() || !settings.sentenceAnalysisEnabled || view.mode !== 'card'
-      || view.status !== 'done' || view.result?.kind !== 'text' || view.selection.input.kind !== 'text'
+    if (disposed || !isAvailable() || settings.translationEngine === 'deepl-web' || !settings.sentenceAnalysisEnabled || !supportsSentenceAnalysis(settings) || view.mode !== 'card'
+      || view.status !== 'done' || view.result?.kind !== 'text' || view.selection.input.kind !== 'text' || !supportsSentenceAnalysis(view.selection.input)
+      || view.selection.input.sourceLanguage !== 'en'
       || !canAnalyzeSentence(view.selection.input.text) || (!retry && view.analysis)) return;
     analysisClient.cancel();
     activeAnalysis = undefined;
     const input = view.selection.input;
     view = { ...view, analysis: { status: 'loading' } };
-    activeAnalysis = analysisClient.start({ text: input.text, kind: 'text', task: 'sentence-analysis',
+    activeAnalysis = analysisClient.start({ text: input.text, kind: 'text', task: 'sentence-analysis', sourceLanguage: 'en',
+      ...(input.targetLanguage ? { targetLanguage: input.targetLanguage } : {}),
       ...(settings.includeContext && input.context ? { context: input.context } : {}) });
     render();
   }
 
   function close(): void {
+    if (disposed) return;
+    clearTimeout(captureTimer);
+    captureTimer = undefined;
+    selectionPath = [];
     client.cancel();
     cancelAnalysis();
     activeRequest = undefined;
@@ -107,8 +136,8 @@ export function mountSelectionTranslator(options: MountSelectionOptions): () => 
     const invalid = selectionError(selection.input.text);
     const error = invalid
       ? { code: 'INVALID_INPUT' as const, message: invalid, retryable: false }
-      : !settings.hasApiKey && settings.requiresApiKey !== false ? { code: 'CONFIG' as const, message: '请先在扩展设置中填写 API Key，再重新选择英文翻译。', retryable: false }
-      : settings.apiAccess === false ? { code: 'CONFIG' as const, message: '请在翻译设置中保存并授权当前 API 地址。', retryable: false } : undefined;
+      : !settings.hasApiKey && settings.requiresApiKey !== false ? { code: 'CONFIG' as const, message: '请在设置中选择 DeepL 免费翻译，或填写 API Key，再重新选择文字翻译。', retryable: false }
+      : settings.apiAccess === false ? { code: 'CONFIG' as const, message: '请在翻译设置中保存并授权当前翻译服务。', retryable: false } : undefined;
     view = { mode: 'card', selection: { ...selection, input: effectiveInput }, status: error ? 'error' : 'loading', streamed: '', error };
     if (!error) activeRequest = client.start(effectiveInput);
     render();
@@ -125,7 +154,8 @@ export function mountSelectionTranslator(options: MountSelectionOptions): () => 
     clearTimeout(captureTimer);
     captureTimer = setTimeout(() => {
       if (disposed || !isAvailable()) return;
-      const selection = takeSelectionSnapshot({ root: scope, includeContext: settings.includeContext, path, pointer });
+      const selection = takeSelectionSnapshot({ root: scope, includeContext: settings.includeContext, languages: readLanguagePair(settings),
+        useDocumentLanguageHint: options.source !== 'pdf', path, pointer });
       if (!selection) { close(); return; }
       if (view.mode !== 'hidden' && sameSelection(view.selection, selection)) return;
       client.cancel();
@@ -148,7 +178,8 @@ export function mountSelectionTranslator(options: MountSelectionOptions): () => 
     const documentSelection = document.getSelection();
     if ((shadowSelection?.anchorNode && shadow.contains(shadowSelection.anchorNode)) ||
       (documentSelection?.anchorNode && shadow.contains(documentSelection.anchorNode))) return;
-    const current = takeSelectionSnapshot({ root: scope, includeContext: false, path: selectionPath });
+    const current = takeSelectionSnapshot({ root: scope, includeContext: false, languages: readLanguagePair(settings),
+      useDocumentLanguageHint: options.source !== 'pdf', path: selectionPath });
     if (!current || !sameSelection(view.selection, current)) close();
   };
   const onPointerDown = (event: PointerEvent) => {
@@ -163,8 +194,9 @@ export function mountSelectionTranslator(options: MountSelectionOptions): () => 
     const update = message as { type?: string; settings?: PublicSettings };
     if (update.type !== 'settings-changed' || !update.settings || disposed) return;
     const connectionChanged = settings.connectionRevision !== update.settings.connectionRevision
-      || settings.provider !== update.settings.provider || settings.model !== update.settings.model;
-    settings = update.settings;
+      || settings.provider !== update.settings.provider || settings.model !== update.settings.model
+      || settings.translationEngine !== update.settings.translationEngine;
+    settings = { ...update.settings, sentenceAnalysisEnabled: update.settings.sentenceAnalysisEnabled && supportsSentenceAnalysis(update.settings) };
     settingsReady = true;
     if (!isAvailable() || connectionChanged || settings.apiAccess === false) close();
     else if (!settings.sentenceAnalysisEnabled) { cancelAnalysis(); render(); }
@@ -184,10 +216,11 @@ export function mountSelectionTranslator(options: MountSelectionOptions): () => 
   void browser.runtime.sendMessage({ type: 'get-settings' }).then((value: PublicSettings) => {
     // A settings broadcast received after this request began is already newer than its response.
     if (disposed || settingsReady) return;
-    settings = value;
+    settings = { ...value, sentenceAnalysisEnabled: value.sentenceAnalysisEnabled && supportsSentenceAnalysis(value) };
     settingsReady = true;
     if (!isAvailable()) close();
   }).catch(() => { /* The first request will present a meaningful connection error. */ });
+  options.onHost?.(host, close);
   render();
 
   return () => {
@@ -198,6 +231,9 @@ export function mountSelectionTranslator(options: MountSelectionOptions): () => 
     activeRequest = undefined;
     activeAnalysis = undefined;
     disposed = true;
+    view = { mode: 'hidden' };
+    selectionPath = [];
+    captureTimer = undefined;
     document.removeEventListener('mouseup', capture, true);
     document.removeEventListener('dblclick', capture, true);
     document.removeEventListener('keyup', onKeyboard, true);
@@ -208,7 +244,7 @@ export function mountSelectionTranslator(options: MountSelectionOptions): () => 
     window.removeEventListener('popstate', close);
     window.removeEventListener('hashchange', close);
     browser.runtime.onMessage.removeListener(onSettings);
-    react.unmount();
+    releaseRoot();
     host.remove();
   };
 }

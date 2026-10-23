@@ -28,7 +28,7 @@ export function AnnotatedSentence({ source, highlights, activeChunk, onSelectChu
     cursor = highlight.end;
   }
   if (cursor < source.length) pieces.push(source.slice(cursor));
-  return <p className={`nt-source${highlights?.length ? ' nt-source-analyzed' : ''}`} title={source}>
+  return <p className={`nt-source${highlights?.length ? ' nt-source-analyzed' : ''}`} title={source} dir="auto">
     {highlights?.length ? pieces : source}
   </p>;
 }

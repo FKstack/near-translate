@@ -1,5 +1,6 @@
 import type { TranslationError } from '../shared/contracts';
 import type { PageSegment } from './segments';
+import type { TargetLanguage } from '../shared/languages';
 
 export type SegmentView = {
   status: 'loading' | 'done' | 'error' | 'stopped';
@@ -9,9 +10,9 @@ export type SegmentView = {
 
 /** Owns only inserted translations. The site's nodes and attributes remain untouched. */
 export class PageTranslationRenderer {
-  private readonly entries = new Map<PageSegment, { host: HTMLElement; text: HTMLElement; view: SegmentView }>();
+  private readonly entries = new Map<PageSegment, { host: HTMLElement; text: HTMLElement; view: SegmentView; targetLanguage: TargetLanguage }>();
 
-  update(segment: PageSegment, view: SegmentView): void {
+  update(segment: PageSegment, view: SegmentView, targetLanguage: TargetLanguage = 'zh-Hans'): void {
     if (view.status === 'stopped') { this.remove(segment); return; }
     if (!segment.anchor.isConnected || !segment.container.isConnected) { this.remove(segment); return; }
     let entry = this.entries.get(segment);
@@ -22,12 +23,14 @@ export class PageTranslationRenderer {
       host.setAttribute('data-near-translation', '');
       host.setAttribute('data-near-page-translation', '');
       host.setAttribute('translate', 'no');
-      host.setAttribute('lang', 'zh-CN');
+      host.setAttribute('lang', targetLanguage);
+      host.setAttribute('dir', 'auto');
       const source = doc.defaultView!.getComputedStyle(segment.container);
       host.style.cssText = 'all:initial!important;display:block!important;margin:0.45em 0 0.7em!important;white-space:pre-wrap!important;overflow-wrap:anywhere!important;';
       for (const property of ['color', 'font-family', 'font-size', 'font-weight', 'font-style', 'line-height', 'text-align']) {
         host.style.setProperty(property, source.getPropertyValue(property), 'important');
       }
+      if (targetLanguage === 'ar') { host.style.setProperty('direction', 'rtl', 'important'); host.style.setProperty('text-align', 'start', 'important'); }
       const shadow = host.attachShadow({ mode: 'open' });
       const style = doc.createElement('style');
       style.textContent = ':host{box-sizing:border-box}span{white-space:pre-wrap;overflow-wrap:anywhere}span[data-state="loading"],span[data-state="error"]{font:12px/1.7 system-ui,sans-serif;opacity:.8}span[data-state="loading"]{color:light-dark(#087e83,#58dadd)}';
@@ -40,7 +43,7 @@ export class PageTranslationRenderer {
         && !['TABLE', 'THEAD', 'TBODY', 'TFOOT', 'TR'].includes(segment.container.parentElement.tagName);
       const anchor = adjacent ? segment.container : segment.anchor;
       anchor.parentNode?.insertBefore(host, anchor.nextSibling);
-      entry = { host, text, view };
+      entry = { host, text, view, targetLanguage };
       this.entries.set(segment, entry);
     }
     entry.host.setAttribute('data-state', view.status);
@@ -54,7 +57,7 @@ export class PageTranslationRenderer {
   prune(isCurrent: (segment: PageSegment) => boolean): void {
     for (const [segment, entry] of [...this.entries]) {
       if (!isCurrent(segment)) this.remove(segment);
-      else if (!entry.host.isConnected) this.update(segment, entry.view);
+      else if (!entry.host.isConnected) this.update(segment, entry.view, entry.targetLanguage);
     }
   }
 

@@ -4,6 +4,7 @@ node_modules/
 artifacts/
 public/pdfjs/
 public/licenses/
+public/fonts/
 coverage/
 playwright-report/
 test-results/

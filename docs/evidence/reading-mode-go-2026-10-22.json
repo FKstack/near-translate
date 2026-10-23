@@ -1,0 +1,126 @@
+{
+  "at": "2026-10-22T13:25:08.657Z",
+  "feature": "local webpage reading mode",
+  "version": "0.8.0",
+  "browser": "daily Microsoft Edge Default profile, 155.0.4283.62",
+  "extensionId": "dbdooijmbinjmnbmgglajigaoiinolnc",
+  "sourceUrl": "https://go.dev/talks/2012/splash.article?utm_source=chatgpt.com",
+  "installed": "D:\\浏览器翻译扩展\\artifacts\\installed\\near-translate-edge-v0.1.0",
+  "conditions": {
+    "samples": "three newly created foreground tabs, first reader opening in each document",
+    "timer": "reader controller open → safe content mounted, then next requestAnimationFrame; not navigation time, OS paint or translation latency",
+    "cache": "no previous reader/translation cache in these documents; browser HTTP/image cache not controlled",
+    "actions": "local reading, three display modes, close and original restoration; final tab reopened for user",
+    "credentialsRead": false,
+    "permissionsAdded": false,
+    "realBodyTranslationRequested": false
+  },
+  "validation": {
+    "unitPassed": 818,
+    "edgeBrowserPassed": 68,
+    "typecheck": true,
+    "boundaries": true,
+    "chromeBuild": true,
+    "edgeBuild": true
+  },
+  "actualTrials": [
+    {
+      "trial": 1,
+      "mountedMs": 106.7,
+      "nextFrameMs": 109.3,
+      "title": "Go at Google: Language Design in the Service of Software Engineering",
+      "codeBlocks": 28,
+      "images": 2,
+      "outlineEntries": 19,
+      "sourceBlocks": 286,
+      "originalHtmlUnchanged": true,
+      "everyCodeBlockTextUnchanged": true,
+      "originalScrollRestored": true,
+      "unsafeNodes": 0,
+      "modal": true,
+      "foreground": true,
+      "readerHorizontalOverflow": false,
+      "translationRequests": 0
+    },
+    {
+      "trial": 2,
+      "mountedMs": 113.3,
+      "nextFrameMs": 116.2,
+      "title": "Go at Google: Language Design in the Service of Software Engineering",
+      "codeBlocks": 28,
+      "images": 2,
+      "outlineEntries": 19,
+      "sourceBlocks": 286,
+      "originalHtmlUnchanged": true,
+      "everyCodeBlockTextUnchanged": true,
+      "originalScrollRestored": true,
+      "unsafeNodes": 0,
+      "modal": true,
+      "foreground": true,
+      "readerHorizontalOverflow": false,
+      "translationRequests": 0
+    },
+    {
+      "trial": 3,
+      "mountedMs": 104.4,
+      "nextFrameMs": 107.3,
+      "title": "Go at Google: Language Design in the Service of Software Engineering",
+      "codeBlocks": 28,
+      "images": 2,
+      "outlineEntries": 19,
+      "sourceBlocks": 286,
+      "originalHtmlUnchanged": true,
+      "everyCodeBlockTextUnchanged": true,
+      "originalScrollRestored": true,
+      "unsafeNodes": 0,
+      "modal": true,
+      "foreground": true,
+      "readerHorizontalOverflow": false,
+      "translationRequests": 0
+    }
+  ],
+  "bodyRequests": 0,
+  "metadataPreparations": 0,
+  "screenshots": {
+    "origin": "isolated Edge, same0.8.0 build; screenshots are not from the daily profile",
+    "note": "Isolated Edge renders the same production source with a test manifest granting existing optional hosts. Daily profile was validated separately. No new daily-profile capture permission requested.",
+    "files": [
+      {
+        "file": "reading-mode-go-desktop-2026-10-22.png",
+        "sha256": "789eee6ffc374016939a99f7abcc0007fe69b927dcae9efc227504e7d71939d5"
+      },
+      {
+        "file": "reading-mode-go-dark-2026-10-22.png",
+        "sha256": "a307ddd7b31c89288be885d916c284c6e6142c630cc39400dd7930f5a4684b2e"
+      },
+      {
+        "file": "reading-mode-go-mobile-2026-10-22.png",
+        "sha256": "712a66f6f31799edc3dcebb3571dced739bd33878f86f925166b5a7f47a1fa54"
+      }
+    ],
+    "extraction": {
+      "pre": 28,
+      "images": 2,
+      "outline": 19,
+      "title": "Go at Google: Language Design in the Service of Software Engineering",
+      "unsafe": 0
+    }
+  },
+  "rawActualEvidenceSha256": "f8ad6b6192566ef824fe29c416b34134daaed40344d6f2b6bf2f2c53994c1150",
+  "programFilesVerified": {
+    "manifest.json": "b379b240f86f8e9618f08395d8e8768c9050aec44b29d428f4cbd0b49671e931",
+    "background.js": "7e5a5b9162464d6cbe896bd71407f0935c124e0770614c5e0f3412f14dca5f99",
+    "content-scripts/selection.js": "c2c401d891189c226f324fb129354b6e3d2f614fadc7c27d42fdd303a3fc5607",
+    "content-scripts/network-prepare.js": "29fd927169bfd26ae6e597eb7ea89d18e030453ebec6d8e6e57c308d762121df",
+    "popup.html": "16f86b000c7bb4219bdb60a56f1c474a267844eedbbbd55ccc736ae02d5386d0",
+    "options.html": "2b53ab20078f77b2644996ef5f09bd361201be1720422b72d3b8422e87e6dfd2",
+    "reader.html": "7ea4b247e8af9b5ee95a7176f1d33a02046e29ee092529cf9b106f94dc4ed0d1"
+  },
+  "filesVerified": 313,
+  "limits": [
+    "Three samples are not P95 or a performance guarantee.",
+    "Reading mode does not resolve the existing DeepL 429/full-translation latency issue.",
+    "Competitor capabilities were researched from official sources; no same-condition comparative user study was performed.",
+    "Only currently loaded article content can be extracted; unsupported pages show a failure instead of claiming full extraction."
+  ]
+}

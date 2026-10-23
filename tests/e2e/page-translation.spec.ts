@@ -147,6 +147,7 @@ async function state(): Promise<FakeState> {
 async function saveSettings(values: { enabled?: boolean; removeKey?: boolean } = {}): Promise<void> {
   await options.goto(`chrome-extension://${extensionId}/options.html`);
   await expect(options.getByRole('button', { name: '保存设置', exact: true })).toBeEnabled();
+  await options.getByLabel('翻译方式', { exact: true }).selectOption('model');
   if (values.removeKey) await options.getByRole('button', { name: '删除已保存的 Key' }).click();
   else await options.getByLabel('DeepSeek API Key', { exact: true }).fill('fake-test-key');
   if (values.enabled !== undefined) await options.getByLabel('启用翻译', { exact: true }).setChecked(values.enabled);
@@ -258,6 +259,7 @@ test('whole page stays bilingual and skips code, images, hidden and editable con
   expect(await page.locator('#prose a').getAttribute('href')).toBe('#title');
   expect(prose).toContain('<strong>designed</strong>');
   await page.screenshot({ path: info.outputPath('page-bilingual.png'), fullPage: true });
+  await page.locator('near-page-translate .np-primary').hover();
   await page.getByRole('button', { name: '显示原文', exact: true }).click();
   await expect(page.locator('near-page-translation[data-near-translation]')).toHaveCount(0);
   expect(await page.locator('#prose').innerHTML()).toBe(prose);
@@ -337,6 +339,7 @@ test('stop cancels active requests and leaves no late translations', async () =>
   await expect(page.getByText('页面慢请求一。', { exact: true })).toHaveCount(0);
   await expect(page.getByText('页面慢请求二。', { exact: true })).toHaveCount(0);
   await expect(page.getByRole('button', { name: '停止翻译', exact: true })).toHaveCount(0);
+  await page.locator('near-page-translate .np-primary').hover();
   await page.getByRole('button', { name: '显示原文', exact: true }).click();
   await expect(page.locator('near-page-translation[data-near-translation]')).toHaveCount(0);
 });
@@ -350,6 +353,7 @@ test('a failed paragraph can be retried without requesting successful paragraphs
   });
   await page.getByRole('button', { name: '翻译整个页面', exact: true }).click();
   await expect(page.getByText('另一段立即翻译成功。', { exact: true })).toBeVisible();
+  await page.locator('near-page-translate .np-primary').hover();
   await expect(page.getByRole('button', { name: '重试失败段落', exact: true })).toBeVisible();
   expect((await state()).requests).toHaveLength(2);
   await page.getByRole('button', { name: '重试失败段落', exact: true }).click();
@@ -446,6 +450,7 @@ test('a rate limit stops queued paragraphs instead of repeatedly calling the API
     fake.failStatus = 429; fake.failuresRemaining = 1;
   });
   await page.getByRole('button', { name: '翻译整个页面', exact: true }).click();
+  await page.locator('near-page-translate .np-primary').hover();
   await expect(page.getByRole('button', { name: '重试失败段落', exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: '停止翻译', exact: true })).toHaveCount(0);
   const stopped = await state();
@@ -458,6 +463,7 @@ test('missing API key offers settings and sends no page content', async () => {
   await saveSettings({ removeKey: true });
   await page.getByRole('button', { name: '翻译整个页面', exact: true }).click();
   await expect(page.locator('near-page-translate')).toContainText('API Key');
+  await page.locator('near-page-translate .np-primary').hover();
   await expect(page.locator('near-page-translate').getByRole('button', { name: '翻译设置', exact: true })).toBeVisible();
   expect((await state()).requests).toEqual([]);
 });

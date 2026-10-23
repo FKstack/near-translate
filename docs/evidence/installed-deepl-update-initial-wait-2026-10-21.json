@@ -1,0 +1,77 @@
+{
+  "startedAt": "2026-10-21T14:19:45.437Z",
+  "extensionId": "dbdooijmbinjmnbmgglajigaoiinolnc",
+  "installed": "D:\\浏览器翻译扩展\\artifacts\\installed\\near-translate-edge-v0.1.0",
+  "backup": "D:\\浏览器翻译扩展\\.output\\installed-program-backup-2026-10-21T14-19-43-895Z",
+  "beforeVersion": "0.6.0",
+  "afterVersion": "0.7.0",
+  "source": "D:\\浏览器翻译扩展\\.output\\edge-mv3",
+  "programCopied": true,
+  "events": [
+    {
+      "at": "2026-10-21T14:19:45.803Z",
+      "phase": "before-reload",
+      "version": "0.6.0"
+    },
+    {
+      "at": "2026-10-21T14:19:47.707Z",
+      "phase": "after-reload",
+      "version": "0.7.0",
+      "translationEngine": "model",
+      "enabled": true,
+      "hasApiKey": true,
+      "webAccess": true,
+      "apiAccess": true,
+      "requiresApiKey": true,
+      "dnrPermission": false,
+      "deepLChoicePresent": true
+    },
+    {
+      "at": "2026-10-21T14:19:47.741Z",
+      "phase": "mode-selected",
+      "version": "0.7.0",
+      "translationEngine": "deepl-web",
+      "enabled": true,
+      "hasApiKey": true,
+      "webAccess": true,
+      "apiAccess": false,
+      "requiresApiKey": false,
+      "dnrPermission": false,
+      "saveOk": false,
+      "saveError": "免费翻译的网络权限或请求规则尚未就绪，请重新保存设置并授权。",
+      "optionsRefreshed": 0
+    },
+    {
+      "at": "2026-10-21T14:19:47.755Z",
+      "phase": "needs-permission",
+      "version": "0.7.0",
+      "translationEngine": "deepl-web",
+      "enabled": true,
+      "hasApiKey": true,
+      "webAccess": true,
+      "apiAccess": false,
+      "requiresApiKey": false,
+      "dnrPermission": false,
+      "deepLChoicePresent": true
+    },
+    {
+      "at": "2026-10-21T14:21:46.920Z",
+      "phase": "after-reload",
+      "version": "0.7.0",
+      "translationEngine": "deepl-web",
+      "enabled": true,
+      "hasApiKey": true,
+      "webAccess": true,
+      "apiAccess": true,
+      "requiresApiKey": false,
+      "dnrPermission": true,
+      "deepLChoicePresent": true
+    },
+    {
+      "at": "2026-10-21T14:24:27.288Z",
+      "phase": "before-reload",
+      "version": "0.7.0"
+    }
+  ],
+  "failure": "No installed-extension response before deadline"
+}

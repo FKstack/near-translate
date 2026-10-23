@@ -1,0 +1,33 @@
+name: 问题反馈
+description: 提供复现步骤，帮助定位扩展的问题。
+body:
+  - type: input
+    id: version
+    attributes:
+      label: 扩展版本与浏览器版本
+      placeholder: 例如：近译 0.11.0，Edge 版本号，Windows 11
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: 复现步骤
+      description: 说明使用的功能、翻译服务，以及可公开访问的示例页面。
+      placeholder: |
+        1. 打开……
+        2. 点击……
+        3. 出现……
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 预期与实际表现
+      description: 可以附截图；请先遮盖私人内容。
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: 补充信息
+      description: 可附脱敏错误信息。不要填写 API Key、Token、私人文档或浏览器配置。

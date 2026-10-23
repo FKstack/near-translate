@@ -1,0 +1,24 @@
+{
+  "at": "2026-10-22T03:01:06.733Z",
+  "installed": "D:\\浏览器翻译扩展\\artifacts\\installed\\near-translate-edge-v0.1.0",
+  "source": "D:\\浏览器翻译扩展\\.output\\edge-mv3",
+  "backup": "D:\\浏览器翻译扩展\\.output\\deepl-speed-v5\\installed-program-backup-1792638065019",
+  "extensionId": "dbdooijmbinjmnbmgglajigaoiinolnc",
+  "beforeVersion": "0.7.0",
+  "afterVersion": "0.7.0",
+  "programFilesVerified": {
+    "manifest.json": "a017841aa0d1f64c66233068d9f5ff2bb6e15c7ece3fa933e1cf93438df775bd",
+    "background.js": "86ef69c8c4a7b89f8672ac36bfe7bf4e752f0c20863f3ddc2bcfacda53581b42",
+    "content-scripts/selection.js": "2626dbc8ee6f38d278f8d36aeb5b5d9e80765efc9c2d457e58c7327e3f7464c8",
+    "content-scripts/network-prepare.js": "29fd927169bfd26ae6e597eb7ea89d18e030453ebec6d8e6e57c308d762121df"
+  },
+  "browserStorageAccessed": false,
+  "mode": "speed-v5-retained-with-unresolved-rate-limit",
+  "review": {
+    "at": "2026-10-22T03:06:52.398Z",
+    "fullUnder10SecondsAchieved": false,
+    "rateLimitReliablyResolved": false,
+    "oneFullRunCompleted": true,
+    "independentRepeatPassed": false
+  }
+}

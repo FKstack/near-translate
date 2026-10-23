@@ -1,0 +1,274 @@
+{
+  "at": "2026-10-21T15:04:23.381Z",
+  "sourceUrl": "https://go.dev/talks/2012/splash.article?utm_source=chatgpt.com",
+  "outcome": "client-performance-fixes-verified-upstream-429-still-blocks-full-article",
+  "fullDeepLTranslationPassed": false,
+  "noAutomaticRetries": true,
+  "noProxyOrIpRotation": true,
+  "deployment": {
+    "at": "2026-10-21T15:00:36.916Z",
+    "installed": "D:\\浏览器翻译扩展\\artifacts\\installed\\near-translate-edge-v0.1.0",
+    "source": "D:\\浏览器翻译扩展\\.output\\edge-mv3",
+    "backup": "D:\\浏览器翻译扩展\\.output\\installed-program-backup-speed-2026-10-21T15-00-35-439Z",
+    "extensionId": "dbdooijmbinjmnbmgglajigaoiinolnc",
+    "beforeVersion": "0.7.0",
+    "afterVersion": "0.7.0",
+    "programFilesVerified": {
+      "manifest.json": "a017841aa0d1f64c66233068d9f5ff2bb6e15c7ece3fa933e1cf93438df775bd",
+      "background.js": "ab9dfc02f9674841d0ea2f2de35a52680650445f67692215fc6fe8e808bd6cc7",
+      "content-scripts/selection.js": "7e09590ba1c10f6bea5a436656b8d34a8b280bfc8807c2840c0c712f33e8d19a"
+    },
+    "browserStorageAccessed": false
+  },
+  "runs": [
+    {
+      "wireCompletionIntervalMs": 200,
+      "file": ".output/go-page-deepl-batch-e0524ebda6347e59917ea585bf38dfea98be30cb.json",
+      "sourceUrl": "https://go.dev/talks/2012/splash.article?utm_source=chatgpt.com",
+      "expectedEngine": "deepl-web",
+      "settings": {
+        "phase": "ready",
+        "version": "0.7.0",
+        "translationEngine": "deepl-web",
+        "enabled": true,
+        "hasApiKey": true,
+        "webAccess": true,
+        "apiAccess": true,
+        "cooldownUntil": 0,
+        "cooldownRemainingMs": 0,
+        "metricsAvailable": true
+      },
+      "result": {
+        "phase": "rate-limit",
+        "pass": "cold",
+        "version": "0.7.0",
+        "translationEngine": "deepl-web",
+        "elapsedMs": 10507,
+        "firstMs": 2229,
+        "firstProseMs": 2237,
+        "firstViewportProseMs": 2231,
+        "completed": 125,
+        "failed": 28,
+        "pending": 98,
+        "total": 251,
+        "renderedSegments": 125,
+        "translatedChars": 8657,
+        "chineseSegments": 125,
+        "viewportTargets": 14,
+        "viewportCompleted": 6,
+        "status": "stopped",
+        "statusText": "DeepL 请求受限，已暂停后续翻译，请稍后手动重试。",
+        "errorCode": "RATE_LIMIT",
+        "counterReset": false,
+        "requestRowsTruncated": false,
+        "metrics": {
+          "requestCount": 7,
+          "totalTexts": 153,
+          "totalChars": 30647,
+          "activeRequests": 0,
+          "maxConcurrent": 1,
+          "statusCounts": {
+            "200": 6,
+            "429": 1
+          },
+          "errorCounts": {},
+          "requests": [
+            {
+              "sequence": 1,
+              "startedAt": 1792594630006,
+              "textCount": 32,
+              "charCount": 2588,
+              "endedAt": 1792594632158,
+              "status": 200
+            },
+            {
+              "sequence": 2,
+              "startedAt": 1792594632360,
+              "textCount": 27,
+              "charCount": 4686,
+              "endedAt": 1792594633641,
+              "status": 200
+            },
+            {
+              "sequence": 3,
+              "startedAt": 1792594633867,
+              "textCount": 10,
+              "charCount": 4734,
+              "endedAt": 1792594635051,
+              "status": 200
+            },
+            {
+              "sequence": 4,
+              "startedAt": 1792594635278,
+              "textCount": 20,
+              "charCount": 4715,
+              "endedAt": 1792594636648,
+              "status": 200
+            },
+            {
+              "sequence": 5,
+              "startedAt": 1792594636875,
+              "textCount": 15,
+              "charCount": 4672,
+              "endedAt": 1792594638079,
+              "status": 200
+            },
+            {
+              "sequence": 6,
+              "startedAt": 1792594638307,
+              "textCount": 21,
+              "charCount": 4495,
+              "endedAt": 1792594639496,
+              "status": 200
+            },
+            {
+              "sequence": 7,
+              "startedAt": 1792594639719,
+              "textCount": 28,
+              "charCount": 4757,
+              "endedAt": 1792594640421,
+              "status": 429
+            }
+          ]
+        }
+      },
+      "fullPagePassed": false,
+      "warmPassPerformed": false
+    },
+    {
+      "wireCompletionIntervalMs": 1050,
+      "file": ".output/go-page-deepl-paced-1a8819999ed29ca9d86db71adaa1a1e129950aeb.json",
+      "sourceUrl": "https://go.dev/talks/2012/splash.article?utm_source=chatgpt.com",
+      "expectedEngine": "deepl-web",
+      "settings": {
+        "phase": "ready",
+        "version": "0.7.0",
+        "translationEngine": "deepl-web",
+        "enabled": true,
+        "hasApiKey": true,
+        "webAccess": true,
+        "apiAccess": true,
+        "cooldownUntil": 0,
+        "cooldownRemainingMs": 0,
+        "metricsAvailable": true
+      },
+      "result": {
+        "phase": "rate-limit",
+        "pass": "cold",
+        "version": "0.7.0",
+        "translationEngine": "deepl-web",
+        "elapsedMs": 6561,
+        "firstMs": 2327,
+        "firstProseMs": 2335,
+        "firstViewportProseMs": 2329,
+        "completed": 59,
+        "failed": 10,
+        "pending": 182,
+        "total": 251,
+        "renderedSegments": 59,
+        "translatedChars": 2385,
+        "chineseSegments": 59,
+        "viewportTargets": 14,
+        "viewportCompleted": 6,
+        "status": "stopped",
+        "statusText": "DeepL 请求受限，已暂停后续翻译，请稍后手动重试。",
+        "errorCode": "RATE_LIMIT",
+        "counterReset": false,
+        "requestRowsTruncated": false,
+        "metrics": {
+          "requestCount": 3,
+          "totalTexts": 69,
+          "totalChars": 12008,
+          "activeRequests": 0,
+          "maxConcurrent": 1,
+          "statusCounts": {
+            "200": 2,
+            "429": 1
+          },
+          "errorCounts": {},
+          "requests": [
+            {
+              "sequence": 1,
+              "startedAt": 1792594844415,
+              "textCount": 32,
+              "charCount": 2588,
+              "endedAt": 1792594846666,
+              "status": 200
+            },
+            {
+              "sequence": 2,
+              "startedAt": 1792594847718,
+              "textCount": 27,
+              "charCount": 4686,
+              "endedAt": 1792594849061,
+              "status": 200
+            },
+            {
+              "sequence": 3,
+              "startedAt": 1792594850154,
+              "textCount": 10,
+              "charCount": 4734,
+              "endedAt": 1792594850883,
+              "status": 429
+            }
+          ]
+        }
+      },
+      "fullPagePassed": false,
+      "warmPassPerformed": false
+    }
+  ],
+  "qualification": [
+    {
+      "file": ".output/deepl-speed/vector-qualification.json",
+      "at": "2026-10-21T14:43:38.336Z",
+      "attemptLimit": 1,
+      "retries": 0,
+      "qualified": true,
+      "textCount": 16,
+      "totalCharacters": 282,
+      "alternativesRequested": 0,
+      "anonymous": true,
+      "browser": "155.0.4283.62",
+      "result": {
+        "status": 200,
+        "milliseconds": 2737,
+        "retryAfter": null
+      }
+    },
+    {
+      "file": ".output/deepl-speed/vector-prose-qualification.json",
+      "at": "2026-10-21T14:44:58.612Z",
+      "attemptLimit": 1,
+      "retries": 0,
+      "qualified": true,
+      "textCount": 15,
+      "totalCharacters": 4189,
+      "alternativesRequested": 0,
+      "anonymous": true,
+      "browser": "155.0.4283.62",
+      "result": {
+        "status": 200,
+        "milliseconds": 3106,
+        "retryAfter": null
+      }
+    },
+    {
+      "file": ".output/deepl-speed/vector-wide-qualification.json",
+      "at": "2026-10-21T14:46:17.102Z",
+      "attemptLimit": 1,
+      "retries": 0,
+      "qualified": true,
+      "textCount": 32,
+      "totalCharacters": 2588,
+      "alternativesRequested": 0,
+      "anonymous": true,
+      "browser": "155.0.4283.62",
+      "result": {
+        "status": 200,
+        "milliseconds": 4668,
+        "retryAfter": null
+      }
+    }
+  ]
+}

@@ -12,6 +12,7 @@ vi.mock('wxt/browser', () => ({ browser: {
 import { connectionSettings, publicSettings, readSettings, saveSettings } from '../../src/platform/settings';
 import { getProvider } from '../../src/shared/api-config';
 import type { ProviderId } from '../../src/shared/contracts';
+import { DEEPL_WEB_ORIGIN } from '../../src/shared/translation-engine';
 
 const existing = () => ({ schemaVersion: 1, enabled: true, includeContext: false, model: 'deepseek-flash', apiKey: 'unit-test-secret' });
 const editable = () => ({ enabled: true, includeContext: false, model: 'deepseek-flash', apiKey: '' });
@@ -43,6 +44,73 @@ describe('sentence analysis setting compatibility', () => {
   it('rejects malformed option values without changing saved settings', async () => {
     await expect(saveSettings({ ...editable(), sentenceAnalysisEnabled: 'yes' }, true)).rejects.toThrow('设置');
     expect(state.stored).toEqual(existing());
+  });
+});
+
+describe('translation engine settings', () => {
+  beforeEach(() => { state.stored = existing(); state.access.mockResolvedValue(undefined); state.contains.mockResolvedValue(true); });
+
+  it('normalizes old and unknown stored engines to model without migrating storage', async () => {
+    expect((await readSettings()).translationEngine).toBe('model');
+    state.stored = { ...existing(), translationEngine: 'future-engine' };
+    expect((await readSettings()).translationEngine).toBe('model');
+    expect(state.stored.translationEngine).toBe('future-engine');
+  });
+
+  it('preserves all model profiles and credentials while saving the DeepL form', async () => {
+    await saveSettings(connection('openai', 'openai-secret'), true);
+    const model = await readSettings();
+    await saveSettings({ ...connection('custom'), translationEngine: 'deepl-web', model: '', baseUrl: '', apiKey: '' }, false);
+    const deepl = await readSettings();
+    expect(deepl).toMatchObject({
+      translationEngine: 'deepl-web', schemaVersion: 2, provider: model.provider,
+      model: model.model, baseUrl: model.baseUrl, apiKey: 'openai-secret', profiles: model.profiles,
+      connectionRevision: model.connectionRevision + 1,
+    });
+    await saveSettings({ ...connection('custom'), model: '', translationEngine: 'deepl-web' }, false);
+    expect((await readSettings()).profiles).toEqual(model.profiles);
+    expect((await readSettings()).connectionRevision).toBe(deepl.connectionRevision);
+    await saveSettings({ ...connection('openai'), translationEngine: 'model' }, true);
+    expect(await readSettings()).toMatchObject({ translationEngine: 'model', apiKey: 'openai-secret', connectionRevision: deepl.connectionRevision + 1 });
+  });
+
+  it('projects plain-text capabilities but retains model preferences for trusted options', async () => {
+    await saveSettings({ ...editable(), translationEngine: 'deepl-web', includeContext: true, sentenceAnalysisEnabled: true }, false);
+    expect(await publicSettings()).toMatchObject({ translationEngine: 'deepl-web', requiresApiKey: false, includeContext: false, sentenceAnalysisEnabled: false, apiAccess: true });
+    expect(await connectionSettings()).toMatchObject({ translationEngine: 'deepl-web', includeContext: true, sentenceAnalysisEnabled: true });
+    expect((await readSettings()).apiKey).toBe('unit-test-secret');
+    expect(state.contains).toHaveBeenCalledWith({ origins: [DEEPL_WEB_ORIGIN] });
+  });
+
+  it('requires only the new DeepL host and leaves model access independent of legacy DNR permission', async () => {
+    await saveSettings({ ...editable(), translationEngine: 'deepl-web' }, true);
+    state.contains.mockImplementation(async (query: { origins?: string[] }) => !query.origins?.includes(DEEPL_WEB_ORIGIN));
+    expect(await publicSettings()).toMatchObject({ apiAccess: false, requiresApiKey: false });
+    state.contains.mockImplementation(async (query: { permissions?: string[] }) => !query.permissions?.length);
+    expect(await publicSettings()).toMatchObject({ apiAccess: true, requiresApiKey: false });
+    await saveSettings({ ...editable(), translationEngine: 'model' }, true);
+    expect(await publicSettings()).toMatchObject({ apiAccess: true, requiresApiKey: true });
+  });
+
+  it('projects optional connection preparation permission without storing a preference or exposing credentials', async () => {
+    state.contains.mockImplementation(async (query: { permissions?: string[] }) => !query.permissions?.length);
+    const before = structuredClone(state.stored);
+    expect(await connectionSettings()).toMatchObject({ networkPreparationAccess: false });
+    state.contains.mockResolvedValue(true);
+    const value = await connectionSettings();
+    expect(value.networkPreparationAccess).toBe(true);
+    expect(await publicSettings()).not.toHaveProperty('networkPreparationAccess');
+    expect(state.stored).toEqual(before);
+    expect(JSON.stringify(value)).not.toContain('unit-test-secret');
+  });
+
+  it('retains the current engine for older clients and rejects malformed explicit engines', async () => {
+    await saveSettings({ ...editable(), translationEngine: 'deepl-web' }, true);
+    await saveSettings(editable(), false);
+    expect(await readSettings()).toMatchObject({ translationEngine: 'deepl-web', apiKey: 'unit-test-secret' });
+    const before = structuredClone(state.stored);
+    await expect(saveSettings({ ...editable(), translationEngine: null }, true)).rejects.toThrow('翻译方式');
+    expect(state.stored).toEqual(before);
   });
 });
 

@@ -1,17 +1,19 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { TranslationInput, TranslationServerMessage } from '../../src/shared/contracts';
+import { MAX_TEXT_LENGTH } from '../../src/shared/contracts';
 import type { PageSegment } from '../../src/page/segments';
 import { PAGE_BATCH_MAX_ITEMS, PAGE_BATCH_TARGET_CHARS, PAGE_CONCURRENCY } from '../../src/page/batches';
+import type { PageViewportPriority } from '../../src/page/viewport';
 
 const fixtures = vi.hoisted(() => ({ stale: new WeakSet<object>() }));
 vi.mock('../../src/platform/translation-client', () => ({ TranslationClient: vi.fn() }));
-vi.mock('../../src/page/segments', () => ({ segmentIsCurrent: (segment: object) => !fixtures.stale.has(segment) }));
+vi.mock('../../src/page/segments', () => ({ MAX_PAGE_SEGMENTS: 1_500, segmentIsCurrent: (segment: object) => !fixtures.stale.has(segment) }));
 import { MAX_PAGE_SEGMENTS, PageTranslationSession } from '../../src/page/session';
 
 function segment(text: string): PageSegment {
   return { text, nodes: [{} as Text], anchor: {} as Node, container: {} as HTMLElement };
 }
-function setup() {
+function setup(isCurrent?: (segment: PageSegment) => boolean) {
   let serial = 0;
   const clients: Array<{
     start: ReturnType<typeof vi.fn<(input: TranslationInput) => string>>;
@@ -21,7 +23,7 @@ function setup() {
   }> = [];
   const onChange = vi.fn();
   const onSegment = vi.fn();
-  const session = new PageTranslationSession({ onChange, onSegment }, receive => {
+  const session = new PageTranslationSession({ onChange, onSegment, ...(isCurrent ? { isCurrent } : {}) }, receive => {
     const client = { start: vi.fn((_input: TranslationInput) => `request-${++serial}`), cancel: vi.fn(), dispose: vi.fn(), receive };
     clients.push(client); return client;
   });
@@ -40,8 +42,352 @@ function setup() {
 }
 const flush = async () => { await Promise.resolve(); await Promise.resolve(); };
 const wide = (index: number) => segment(`${index}:` + 'a'.repeat(900));
+const visible: PageViewportPriority = { tier: 0, distance: 0, visibleProse: true };
+const far: PageViewportPriority = { tier: 2, distance: 1_000, visibleProse: false };
+function prioritize(session: PageTranslationSession, priorities: ReadonlyMap<PageSegment, PageViewportPriority>) {
+  session.updateViewportPriorities(session.viewportSnapshot.generation, priorities);
+}
 
 describe('batched page translation session', () => {
+  it('does not start a paragraph rejected by the view-owned current validator', async () => {
+    const isCurrent = vi.fn(() => false); const { session, requests, onSegment } = setup(isCurrent);
+    const paragraph = segment('Rejected by the reading view');
+    session.start([paragraph]); await flush();
+    expect(isCurrent).toHaveBeenCalledWith(paragraph); expect(requests()).toHaveLength(0);
+    expect(onSegment).not.toHaveBeenCalled();
+    expect(session.state).toMatchObject({ status: 'done', total: 0, completed: 0 }); session.dispose();
+  });
+
+  it('uses the view-owned validator during append, stale pruning and result rendering', async () => {
+    const { session, requests, done, input, onSegment } = setup(() => true);
+    const first = segment('Reader original hidden while translating'); const second = segment('Another hidden reader original');
+    fixtures.stale.add(first); fixtures.stale.add(second);
+    session.start([first], { concurrency: 1, batchMaxItems: 1 }); await flush();
+    expect(requests()).toHaveLength(1); expect(input().pageSegments).toEqual([first.text]);
+    session.append([second]); done(0, ['第一段']); await flush();
+    expect(requests()).toHaveLength(2); expect(input().pageSegments).toEqual([second.text]);
+    done(0, ['第二段']); await flush();
+    expect(session.state).toMatchObject({ status: 'done', total: 2, completed: 2, skipped: 0 });
+    expect(onSegment).toHaveBeenCalledWith(first, { status: 'done', text: '第一段' });
+    expect(onSegment).toHaveBeenCalledWith(second, { status: 'done', text: '第二段' }); session.dispose();
+  });
+
+  it('sends visible prose before a preceding table of contents, preserving a whole paragraph above the soft limit', async () => {
+    const { session, input, done, onSegment } = setup();
+    const heading = segment('Table of contents'); const paragraph = segment('a'.repeat(1_100)); const tail = segment('tail');
+    session.start([heading, paragraph, tail], { concurrency: 1, viewportPriority: true,
+      batchTargetChars: 1_500, firstBatchTargetChars: 800, firstBatchMaxItems: 2 });
+    prioritize(session, new Map([[paragraph, visible], [heading, { tier: 1, distance: 0, visibleProse: false }], [tail, far]]));
+    await flush(); expect(input().pageSegments).toEqual([paragraph.text]);
+    done(0, ['正文译文']); await flush(); expect(input().pageSegments).toEqual([heading.text, tail.text]);
+    done(); await flush();
+    expect(onSegment).toHaveBeenCalledWith(paragraph, { status: 'done', text: '正文译文' });
+    expect(session.state).toMatchObject({ total: 3, completed: 3, pending: 0 });
+  });
+
+  it('uses the small first batch only when visible prose exists and keeps later batches at the hard budget', async () => {
+    const { session, input, done, requests } = setup();
+    const passages = Array.from({ length: 6 }, (_, index) => segment(`${index}:` + 'a'.repeat(200)));
+    const policy = { concurrency: 1, viewportPriority: true, batchTargetChars: 1_500, firstBatchTargetChars: 800, firstBatchMaxItems: 2 };
+    session.start(passages, policy); prioritize(session, new Map(passages.map(item => [item, visible])));
+    await flush(); expect(input().pageSegments).toEqual(passages.slice(0, 2).map(item => item.text));
+    done(); await flush(); expect(input().pageSegments).toEqual(passages.slice(2).map(item => item.text));
+    session.start(passages.map(item => segment('new ' + item.text)), policy); await flush();
+    expect(requests()).toHaveLength(3); expect(input().pageSegments).toHaveLength(6);
+    session.dispose();
+  });
+
+  it('reprioritizes only queued sources and rejects snapshots from an older generation', async () => {
+    const { session, input, done, requests } = setup();
+    const passages = [segment('first'), segment('oldest waiting'), segment('newly visible')];
+    const policy = { concurrency: 1, batchMaxItems: 1, viewportPriority: true };
+    session.start(passages, policy); prioritize(session, new Map([[passages[0]!, visible]]));
+    const oldGeneration = session.viewportSnapshot.generation;
+    await flush(); expect(input().pageSegments).toEqual(['first']);
+    prioritize(session, new Map([[passages[2]!, visible]])); await flush();
+    expect(requests()).toHaveLength(1);
+    done(); await flush(); expect(input().pageSegments).toEqual(['newly visible']);
+    const replacement = [segment('replacement oldest'), segment('replacement later')];
+    session.start(replacement, policy);
+    session.updateViewportPriorities(oldGeneration, new Map([[replacement[1]!, visible]]));
+    await flush(); expect(input().pageSegments).toEqual(['replacement oldest']);
+    session.cancel(); prioritize(session, new Map([[replacement[1]!, visible]])); await flush();
+    expect(requests()).toHaveLength(3);
+  });
+
+  it('gives every fourth batch to the oldest waiting source despite continuing viewport priority', async () => {
+    const { session, input, done, requests } = setup();
+    const passages = Array.from({ length: 7 }, (_, index) => segment(`paragraph ${index}`));
+    session.start(passages, { concurrency: 1, batchMaxItems: 1, viewportPriority: true });
+    prioritize(session, new Map(passages.map((item, index) => [item, index === 0 ? far : visible])));
+    await flush();
+    for (let count = 0; count < 3; count++) { expect(input().pageSegments).toEqual([passages[count + 1]!.text]); done(); await flush(); }
+    expect(input().pageSegments).toEqual([passages[0]!.text]);
+    for (let count = 3; count < 7; count++) { done(); await flush(); }
+    expect(requests().flatMap(request => request.pageSegments)).toHaveLength(7);
+    expect(session.state).toMatchObject({ completed: 7, pending: 0 });
+  });
+
+  it('prioritizes dynamically appended prose using retained source identities and still drains older content', async () => {
+    const { session, input, done } = setup();
+    const original = [segment('already in flight'), segment('older waiting')];
+    session.start(original, { concurrency: 1, batchMaxItems: 1, viewportPriority: true }); await flush();
+    const duplicateScan = { ...original[1]! }; const added = segment('new visible article paragraph');
+    session.append([duplicateScan, added]);
+    expect(session.viewportSnapshot.segments).toEqual([original[1], added]);
+    prioritize(session, new Map([[added, visible]]));
+    done(); await flush(); expect(input().pageSegments).toEqual([added.text]);
+    done(); await flush(); expect(input().pageSegments).toEqual([original[1]!.text]);
+    done(); await flush(); expect(session.state).toMatchObject({ total: 3, completed: 3, pending: 0 });
+  });
+
+  it('fills unused service budget with later small sources while keeping model packing ordered', async () => {
+    const { session, input, done } = setup();
+    const passages = [segment('a'.repeat(900)), segment('b'.repeat(900)), segment('c'.repeat(600))];
+    session.start(passages, { concurrency: 1, batchTargetChars: 1_500, batchSeparatorChars: 0, packing: 'fill' });
+    await flush(); expect(input().pageSegments).toEqual([passages[0]!.text, passages[2]!.text]);
+    expect(input().pageSegments!.reduce((size, text) => size + text.length, 0)).toBe(1_500);
+    done(); await flush(); expect(input().pageSegments).toEqual([passages[1]!.text]);
+    session.reset();
+    session.start(passages, { concurrency: 1, batchTargetChars: 1_500 }); await flush();
+    expect(input().pageSegments).toEqual([passages[0]!.text]); session.dispose();
+  });
+
+  it('compacts the whole-paragraph tail without dropping a source or changing response-index mapping', async () => {
+    const { session, input, done, partial, requests, onSegment } = setup();
+    const ids = [217, 218, 219, 220, 221, 222, 223, 224, 225, 228, 235, 236, 237, 239, 241];
+    const lengths = [539, 436, 342, 169, 190, 495, 656, 368, 276, 276, 292, 371, 306, 386, 483];
+    const passages = ids.map((id, index) => segment(`${id}:`.padEnd(lengths[index]!, 'x')));
+    const sourceId = new Map(passages.map((item, index) => [item.text, ids[index]!]));
+    session.start(passages, { concurrency: 1, batchMaxItems: 32, batchTargetChars: 1_500,
+      batchSeparatorChars: 0, packing: 'fill' }); await flush();
+    expect(input().pageSegments!.map(text => sourceId.get(text))).toEqual([217, 223, 235]);
+    partial(0, 2, '译文 235');
+    expect(onSegment).toHaveBeenCalledWith(passages[10], { status: 'done', text: '译文 235' });
+    for (let batch = 0; batch < 4; batch++) {
+      done(0, input().pageSegments!.map(text => `译文 ${sourceId.get(text)}`)); await flush();
+    }
+    expect(requests().map(request => request.pageSegments!.map(text => sourceId.get(text))))
+      .toEqual([[217, 223, 235], [218, 222, 241], [219, 239, 236, 224], [220, 221, 225, 228, 237]]);
+    const sent = requests().flatMap(request => request.pageSegments!);
+    expect(sent).toHaveLength(15); expect(new Set(sent).size).toBe(15);
+    expect(sent.reduce((total, text) => total + text.length, 0)).toBe(5_585);
+    expect(requests().every(request => request.pageSegments!.length <= 32
+      && request.pageSegments!.reduce((total, text) => total + text.length, 0) <= 1_500)).toBe(true);
+    for (const [index, passage] of passages.entries()) {
+      expect(onSegment.mock.calls.filter(([item, update]) => item === passage && update.status === 'done'))
+        .toEqual([[passage, { status: 'done', text: `译文 ${ids[index]}` }]]);
+    }
+    expect(session.state).toMatchObject({ status: 'done', completed: 15, failed: 0, pending: 0 });
+    session.dispose();
+  });
+
+  it('keeps source order when the whole tail fits one batch, including separators at the exact budget', async () => {
+    const { session, input } = setup();
+    const passages = [200, 100, 300].map((length, index) => segment(`${index}:`.padEnd(length, 'x')));
+    session.start(passages, { concurrency: 1, batchMaxItems: 3, batchTargetChars: 604,
+      batchSeparatorChars: 2, packing: 'fill' }); await flush();
+    expect(input().pageSegments).toEqual(passages.map(item => item.text));
+    expect(input().pageSegments!.join('\n\n')).toHaveLength(604);
+    session.reset();
+    session.start(passages, { concurrency: 1, batchMaxItems: 2, batchTargetChars: 1_000,
+      batchSeparatorChars: 2, packing: 'fill' }); await flush();
+    // A hard item limit still requires multiple batches even when the characters fit.
+    expect(input().pageSegments).toEqual([passages[0]!.text, passages[2]!.text]);
+    session.dispose();
+  });
+
+  it('retains the original priority and every-fourth FIFO anchor while tail filling is enabled', async () => {
+    const { session, input, done, requests } = setup();
+    const passages = Array.from({ length: 7 }, (_, index) => segment(`${index}:`.padEnd(900 + index, 'x')));
+    session.start(passages, { concurrency: 1, batchTargetChars: 1_500, batchSeparatorChars: 0,
+      batchMaxItems: 32, packing: 'fill', viewportPriority: true });
+    prioritize(session, new Map(passages.map((item, index) => [item,
+      { tier: 2, distance: index === 0 ? 10_000 : index, visibleProse: false }])));
+    await flush();
+    for (let batch = 0; batch < 3; batch++) {
+      expect(input().pageSegments).toEqual([passages[batch + 1]!.text]); done(); await flush();
+    }
+    expect(input().pageSegments).toEqual([passages[0]!.text]);
+    for (let batch = 3; batch < 7; batch++) { done(); await flush(); }
+    expect(new Set(requests().flatMap(request => request.pageSegments!)).size).toBe(7);
+    expect(session.state.completed).toBe(7); session.dispose();
+  });
+
+  it('preserves the small first batch and leaves filler order unchanged while visible prose is queued', async () => {
+    const { session, input, done } = setup();
+    const passages = [137, 600, 200, 800].map((length, index) => segment(`${index}:`.padEnd(length, 'x')));
+    session.start(passages, { concurrency: 1, batchMaxItems: 32, batchTargetChars: 1_500,
+      batchSeparatorChars: 0, packing: 'fill', viewportPriority: true,
+      firstBatchMaxItems: 1, firstBatchTargetChars: 800 });
+    prioritize(session, new Map(passages.map((item, index) => [item, index < 2 ? visible : far])));
+    await flush(); expect(input().pageSegments).toEqual([passages[0]!.text]);
+    done(); await flush();
+    expect(input().pageSegments).toEqual([passages[1]!.text, passages[2]!.text]);
+    done(); await flush(); expect(input().pageSegments).toEqual([passages[3]!.text]);
+    session.dispose();
+  });
+
+  it('keeps the existing fill order above the bounded tail size and for ordered model packing', async () => {
+    const { session, input } = setup();
+    const passages = [600, 200, 800, ...Array(14).fill(20)]
+      .map((length: number, index) => segment(`${index}:`.padEnd(length, 'x')));
+    const policy = { concurrency: 1, batchMaxItems: 2, batchTargetChars: 1_500, batchSeparatorChars: 0 as const };
+    session.start(passages, { ...policy, packing: 'fill' }); await flush();
+    expect(input().pageSegments).toEqual([passages[0]!.text, passages[1]!.text]);
+    session.reset(); session.start(passages.slice(0, 3), { ...policy, packing: 'ordered' }); await flush();
+    expect(input().pageSegments).toEqual([passages[0]!.text, passages[1]!.text]);
+    session.dispose();
+  });
+
+  it('falls back for split paragraphs, including when an earlier part is already loading', async () => {
+    const { session, input, done, requests, onSegment } = setup();
+    const long = segment('L:' + '😀'.repeat(1_499));
+    const anchor = segment('a'.repeat(600)), small = segment('s'.repeat(200)), large = segment('b'.repeat(800));
+    session.start([anchor, small, long, large], { concurrency: 2, batchMaxItems: 32,
+      batchTargetChars: 1_500, batchSeparatorChars: 0, packing: 'fill' }); await flush();
+    expect(input(0).pageSegments).toEqual([anchor.text, small.text]);
+    const firstPart = input(1).pageSegments![0]!;
+    expect(firstPart).toHaveLength(1_500);
+    done(0); await flush();
+    const lastPart = input(0).pageSegments![0]!;
+    expect(firstPart + lastPart).toBe(long.text);
+    expect(input(0).pageSegments).toHaveLength(1);
+    done(0, ['后半段']); await flush();
+    expect(input(0).pageSegments).toEqual([large.text]);
+    done(1, ['前半段']); done(0); await flush();
+    expect(onSegment).toHaveBeenCalledWith(long, { status: 'done', text: '前半段\n\n后半段' });
+    expect(requests()).toHaveLength(4);
+    expect(session.state).toMatchObject({ completed: 4, pending: 0 }); session.dispose();
+  });
+
+  it('counts separators while filling the tail and never mutates an in-flight batch on append or cancel', async () => {
+    const { session, input, requests, done } = setup();
+    const passages = [500, 499, 500].map((length, index) => segment(`${index}:`.padEnd(length, 'x')));
+    session.start(passages, { concurrency: 1, batchTargetChars: 1_000, batchSeparatorChars: 1, packing: 'fill' });
+    await flush();
+    expect(input().pageSegments).toEqual(passages.slice(0, 2).map(item => item.text));
+    expect(input().text).toHaveLength(1_000);
+    const active = input(); session.append([segment('new paragraph')]); await flush();
+    expect(input()).toBe(active); expect(requests()).toHaveLength(1);
+    session.cancel(); done(); await flush();
+    expect(requests()).toHaveLength(1); expect(session.state.completed).toBe(0); session.dispose();
+  });
+
+  it('packs the saved Go length and frozen-priority fixture in 37 batches with full source coverage', async () => {
+    const { session, input, done, requests, onSegment } = setup();
+    // Public Go extraction: 251 lengths / 53,505 UTF-16 units. Priorities are the
+    // offline frozen proxy, not a claim to reconstruct historical browser geometry.
+    const lengths = [68,8,12,17,11,15,15,14,28,11,21,11,18,10,10,13,15,22,31,10,9,14,11,12,137,802,351,235,
+      16,196,429,16,109,455,143,94,280,316,105,15,351,11,25,56,76,21,15,12,37,21,186,822,29,176,356,238,280,
+      25,432,350,853,212,1115,491,498,389,440,12,374,184,126,286,270,100,22,293,257,485,188,28,28,35,524,
+      197,181,285,804,223,199,536,593,108,718,340,752,12,129,100,89,277,117,142,203,556,230,70,19,222,216,
+      354,11,343,608,199,18,480,135,176,279,99,140,35,725,125,11,434,64,63,118,629,97,69,57,66,70,20,17,
+      396,217,539,181,215,240,417,14,469,106,30,41,31,86,40,31,69,13,141,11,18,15,10,13,266,16,313,540,
+      111,403,130,175,667,249,23,289,427,289,65,277,376,212,417,354,278,916,103,414,32,419,157,130,239,
+      184,177,493,762,649,190,179,518,241,463,316,293,157,11,479,157,522,160,188,214,387,389,10,174,187,
+      153,458,539,436,342,169,190,495,656,368,276,15,34,276,94,13,9,6,5,10,292,371,306,92,386,12,483,40,
+      18,12,15,28,78,47,51,6];
+    const nonProse = new Set([28,31,39,41,42,43,44,45,46,47,48,49,52,57,67,74,79,80,81,95,105,106,110,114,
+      121,124,126,127,131,132,133,134,135,136,144,147,148,149,151,152,153,154,156,157,158,159,160,162,171,
+      175,185,203,212,226,227,230,231,232,233,234,240,242,243,244,245,246,247,248,249,250]);
+    const viewport = new Set([24, 25, 26, 27]);
+    const passages = lengths.map((length, index) => segment(`${index}:`.padEnd(length, 'x')));
+    const indices = new Map(passages.map((item, index) => [item.text, index]));
+    session.start(passages, { concurrency: 1, batchMaxItems: 32, batchTargetChars: 1_500,
+      batchSeparatorChars: 0, packing: 'fill', viewportPriority: true,
+      firstBatchMaxItems: 2, firstBatchTargetChars: 800 });
+    prioritize(session, new Map(passages.map((item, index) => [item, {
+      tier: viewport.has(index) ? 0 : index < 24 ? 1 : nonProse.has(index) ? 3 : 2,
+      distance: index, visibleProse: viewport.has(index),
+    }]))); await flush();
+    expect(input().pageSegments).toEqual([passages[24]!.text]);
+    for (let batch = 0; batch < 40 && session.state.status === 'running'; batch++) {
+      done(0, input().pageSegments!.map(text => `译文 ${indices.get(text)}`)); await flush();
+    }
+    const sent = requests().flatMap(request => request.pageSegments!);
+    expect(requests()).toHaveLength(37);
+    expect(sent).toHaveLength(251); expect(new Set(sent).size).toBe(251);
+    expect(sent.reduce((total, text) => total + text.length, 0)).toBe(53_505);
+    expect(requests().every(request => request.pageSegments!.length <= 32
+      && request.pageSegments!.reduce((total, text) => total + text.length, 0) <= 1_500)).toBe(true);
+    for (const [index, passage] of passages.entries()) {
+      expect(onSegment.mock.calls.filter(([item, update]) => item === passage && update.status === 'done'))
+        .toEqual([[passage, { status: 'done', text: `译文 ${index}` }]]);
+    }
+    expect(session.state).toMatchObject({ status: 'done', completed: 251, failed: 0, pending: 0 }); session.dispose();
+  });
+
+  it('packs up to 32 short service passages while preserving each index and serial dispatch', async () => {
+    const { session, requests, input, done, onSegment } = setup();
+    const passages = Array.from({ length: 35 }, (_, index) => segment(`heading ${index}`));
+    session.start(passages, { concurrency: 1, batchMaxItems: 32, batchTargetChars: 4_800, batchSeparatorChars: 2 }); await flush();
+    expect(requests()).toHaveLength(1);
+    expect(input().pageSegments).toEqual(passages.slice(0, 32).map(item => item.text));
+    done(0, passages.slice(0, 32).map((_, index) => `译文 ${index}`)); await flush();
+    expect(requests()).toHaveLength(2);
+    expect(input().pageSegments).toEqual(passages.slice(32).map(item => item.text));
+    expect(onSegment).toHaveBeenCalledWith(passages[31], { status: 'done', text: '译文 31' });
+    done(); await flush(); expect(session.state).toMatchObject({ completed: 35, pending: 0 });
+  });
+
+  it('uses the larger character budget for packing and splitting, then restores model defaults', async () => {
+    const { session, requests, input, done } = setup();
+    const long = segment('x'.repeat(3_000));
+    session.start([long, ...Array.from({ length: 6 }, (_, index) => wide(index))],
+      { concurrency: 1, batchMaxItems: 32, batchTargetChars: 4_800, batchSeparatorChars: 2 }); await flush();
+    expect(input().pageSegments).toEqual([long.text, wide(0).text]);
+    expect(input().text.length).toBeLessThanOrEqual(4_800);
+    done(); await flush(); expect(input().pageSegments).toHaveLength(5);
+    session.start(Array.from({ length: 33 }, (_, index) => wide(index + 100))); await flush();
+    const modelRequests = requests().slice(2);
+    expect(modelRequests).toHaveLength(PAGE_CONCURRENCY);
+    expect(modelRequests.every(request => request.text.length <= PAGE_BATCH_TARGET_CHARS)).toBe(true);
+    session.dispose();
+  });
+
+  it('includes every double-newline separator in the service budget without changing the public input shape', async () => {
+    const { session, input, requests, done } = setup();
+    const passages = ['a'.repeat(1_600), 'b'.repeat(1_598), 'c'.repeat(1_598), 'tail'].map(segment);
+    session.start(passages, { concurrency: 1, batchMaxItems: 32, batchTargetChars: 4_800, batchSeparatorChars: 2 });
+    await flush();
+    expect(input().pageSegments).toEqual(passages.slice(0, 3).map(item => item.text));
+    expect(input().pageSegments!.join('\n\n')).toHaveLength(4_800);
+    expect(input().text).toBe(input().pageSegments!.join('\n'));
+    done(); await flush(); expect(input().pageSegments).toEqual(['tail']);
+    expect(requests()).toHaveLength(2); session.dispose();
+  });
+
+  it('splits a one-character double-newline overflow and resets to single separators on the next start', async () => {
+    const { session, input, requests, done } = setup();
+    const passages = [segment('a'.repeat(2_399)), segment('b'.repeat(2_400))];
+    session.start(passages, { concurrency: 1, batchMaxItems: 32, batchTargetChars: 4_800, batchSeparatorChars: 2 });
+    await flush(); expect(input().pageSegments).toEqual([passages[0]!.text]);
+    done(); await flush(); expect(input().pageSegments).toEqual([passages[1]!.text]);
+    const modelPassages = [segment('c'.repeat(799)), segment('d'.repeat(800))];
+    session.start(modelPassages); await flush();
+    expect(input().pageSegments).toEqual(modelPassages.map(item => item.text));
+    expect(input().text).toHaveLength(PAGE_BATCH_TARGET_CHARS);
+    expect(requests()).toHaveLength(3); session.dispose();
+  });
+
+  it('runs a single passage at a time for a serial service, then restores model scheduling on a new start', async () => {
+    const { session, clients, requests, done, input } = setup();
+    session.start([segment('first passage'), segment('second passage'), segment('third passage')], { concurrency: 1, batchMaxItems: 1 });
+    await flush();
+    expect(requests()).toHaveLength(1);
+    expect(input().pageSegments).toEqual(['first passage']);
+    done(); await flush();
+    expect(requests()).toHaveLength(2);
+    expect(input().pageSegments).toEqual(['second passage']);
+    expect(clients.slice(1).every(client => client.start.mock.calls.length === 0)).toBe(true);
+    session.cancel(); await flush();
+    expect(requests()).toHaveLength(2);
+    session.start(Array.from({ length: PAGE_CONCURRENCY + 1 }, (_, index) => wide(index))); await flush();
+    expect(requests()).toHaveLength(2 + PAGE_CONCURRENCY);
+    session.dispose();
+  });
+
   it('waits for explicit start and bounds concurrent batches while draining later waves', async () => {
     const { session, clients, requests, done } = setup();
     expect(clients).toHaveLength(PAGE_CONCURRENCY);
@@ -224,6 +570,160 @@ describe('batched page translation session', () => {
     clients[0]!.receive({ type: 'segment', requestId: old, index: 0, text: '旧结果' });
     expect(onSegment).toHaveBeenCalledTimes(rendered);
     session.start([segment('old paragraph')]); await flush(); expect(requests()).toHaveLength(2);
+  });
+
+  it('reuses successful text after hiding while releasing paragraph identities', async () => {
+    const { session, requests, done, onSegment } = setup();
+    session.start([segment('Same paragraph.')]); await flush(); done(0, ['相同段落']); await flush();
+    session.reset({ clearCache: false });
+    expect(session.state).toMatchObject({ status: 'idle', total: 0 });
+    const replacement = segment('Same paragraph.'); session.start([replacement]); await flush();
+    expect(requests()).toHaveLength(1);
+    expect(session.state).toMatchObject({ status: 'done', total: 1, completed: 1, pending: 0 });
+    expect(onSegment).toHaveBeenCalledWith(replacement, { status: 'done', text: '相同段落' });
+  });
+
+  it('returns detached translation snapshots that cannot mutate the owned cache', async () => {
+    const { session, done } = setup();
+    session.start([segment('Original paragraph')]); await flush(); done(0, ['原段落']); await flush();
+    const snapshot = session.translationSnapshot as Map<string, string>;
+    expect(snapshot.get('Original paragraph')).toBe('原段落');
+    snapshot.set('Original paragraph', '被修改'); snapshot.set('Injected paragraph', '外部注入');
+    expect([...session.translationSnapshot]).toEqual([['Original paragraph', '原段落']]);
+    snapshot.clear();
+    expect(session.translationSnapshot.size).toBe(1);
+    session.reset();
+    expect(session.translationSnapshot.size).toBe(0); session.dispose();
+  });
+
+  it('seeds a new idle view without requests and renders cached text only on explicit start', async () => {
+    const { session, requests, onChange, onSegment } = setup();
+    const entries = new Map([['First paragraph', '第一段'], ['Second paragraph', '第二段']]);
+    session.seedTranslations(entries); entries.clear();
+    expect(session.state.status).toBe('idle'); expect(onChange).not.toHaveBeenCalled();
+    expect(onSegment).not.toHaveBeenCalled(); expect(requests()).toHaveLength(0);
+    const first = segment('First paragraph'); const second = segment('Second paragraph');
+    session.start([first, second]); await flush();
+    expect(requests()).toHaveLength(0);
+    expect(session.state).toMatchObject({ status: 'done', total: 2, completed: 2, pending: 0 });
+    expect(onSegment).toHaveBeenCalledWith(first, { status: 'done', text: '第一段' });
+    expect(onSegment).toHaveBeenCalledWith(second, { status: 'done', text: '第二段' }); session.dispose();
+  });
+
+  it('requests only paragraphs missing from a seeded view', async () => {
+    const { session, requests, input, done, onSegment } = setup();
+    const cached = segment('Cached paragraph'); const missing = segment('Missing paragraph');
+    session.seedTranslations(new Map([[cached.text, '已有译文']]));
+    session.start([cached, missing]); await flush();
+    expect(requests()).toHaveLength(1); expect(input().pageSegments).toEqual([missing.text]);
+    expect(onSegment).toHaveBeenCalledWith(cached, { status: 'done', text: '已有译文' });
+    done(0, ['新译文']); await flush();
+    expect(session.state).toMatchObject({ status: 'done', total: 2, completed: 2 });
+    expect(onSegment).toHaveBeenCalledWith(missing, { status: 'done', text: '新译文' }); session.dispose();
+  });
+
+  it('reuses a complete seeded paragraph longer than one request without splitting or requests', async () => {
+    const { session, requests, onSegment } = setup();
+    const text = 'a'.repeat(MAX_TEXT_LENGTH + 1); const translation = '完整译文'.repeat(4_001);
+    const paragraph = segment(text);
+    session.seedTranslations(new Map([[text, translation]])); session.start([paragraph]); await flush();
+    expect(requests()).toHaveLength(0);
+    expect(session.state).toMatchObject({ status: 'done', total: 1, completed: 1, pending: 0 });
+    expect(onSegment).toHaveBeenCalledExactlyOnceWith(paragraph, { status: 'done', text: translation }); session.dispose();
+  });
+
+  it('ignores invalid seeded text', () => {
+    const { session } = setup();
+    const entries = new Map<unknown, unknown>([
+      ['', 'empty source'], ['  \n', 'blank source'], [7, 'numeric source'],
+      ['empty translation', ''], ['blank translation', '  \n'], ['numeric translation', 7],
+      ['Valid paragraph', '有效译文'],
+    ]);
+    session.seedTranslations(entries as ReadonlyMap<string, string>);
+    expect([...session.translationSnapshot]).toEqual([['Valid paragraph', '有效译文']]);
+    session.dispose();
+  });
+
+  it('accepts the exact two-MiB entry budget and rejects an oversized source or translation', () => {
+    const { session } = setup(); const boundary = 'a'.repeat(1_048_575);
+    session.seedTranslations(new Map([[boundary, '译']]));
+    expect(session.translationSnapshot.get(boundary)).toBe('译');
+    session.seedTranslations(new Map([
+      ['b'.repeat(1_048_576), '译'], ['oversized translation', '中'.repeat(1_048_576)],
+    ]));
+    expect([...session.translationSnapshot]).toEqual([[boundary, '译']]); session.dispose();
+  });
+
+  it('keeps seeded entries within the existing item and byte budgets', () => {
+    const { session } = setup();
+    session.seedTranslations(new Map(Array.from({ length: MAX_PAGE_SEGMENTS + 1 }, (_, index) => [`source ${index}`, `译文 ${index}`])));
+    expect(session.translationSnapshot.size).toBe(MAX_PAGE_SEGMENTS);
+    expect(session.translationSnapshot.has('source 0')).toBe(false);
+    session.reset();
+    session.seedTranslations(new Map(['first', 'second', 'third'].map(text => [text, '中'.repeat(400_000)])));
+    expect([...session.translationSnapshot.keys()]).toEqual(['second', 'third']); session.dispose();
+  });
+
+  it('ignores seeding after start, cancel, completion or disposal', async () => {
+    const { session, requests, done, onSegment } = setup(); const paragraph = segment('Active paragraph');
+    session.start([paragraph]); await flush();
+    session.seedTranslations(new Map([[paragraph.text, '不应覆盖任务']]));
+    expect(session.translationSnapshot.size).toBe(0); expect(session.state.status).toBe('running');
+    expect(onSegment).not.toHaveBeenCalledWith(paragraph, { status: 'done', text: '不应覆盖任务' });
+    done(0, ['真实结果']); await flush();
+    session.seedTranslations(new Map([[paragraph.text, '不应覆盖完成结果']]));
+    expect(session.translationSnapshot.get(paragraph.text)).toBe('真实结果');
+    session.cancel(); session.seedTranslations(new Map([['Stopped paragraph', '不应注入']]));
+    expect(session.translationSnapshot.has('Stopped paragraph')).toBe(false);
+    session.dispose(); session.seedTranslations(new Map([['Disposed paragraph', '不应注入']]));
+    expect(session.translationSnapshot.size).toBe(0); expect(requests()).toHaveLength(1);
+  });
+
+  it('clears seeded results on the existing default and explicit clear-cache resets', async () => {
+    const { session, requests } = setup(); const entries = new Map([['Seeded paragraph', '已有译文']]);
+    session.seedTranslations(entries); session.reset({ clearCache: true });
+    expect(session.translationSnapshot.size).toBe(0);
+    session.start([segment('Seeded paragraph')]); await flush(); expect(requests()).toHaveLength(1);
+    session.reset(); session.seedTranslations(entries); session.reset();
+    expect(session.translationSnapshot.size).toBe(0);
+    session.start([segment('Seeded paragraph')]); await flush(); expect(requests()).toHaveLength(2); session.dispose();
+  });
+
+  it('requests changed text and invalidates warm results on an explicit reset', async () => {
+    const { session, requests, done } = setup();
+    session.start([segment('Original text')]); await flush(); done(); await flush();
+    session.reset({ clearCache: false }); session.start([segment('Changed text')]); await flush();
+    expect(requests()).toHaveLength(2); done(); await flush();
+    session.reset(); session.start([segment('Original text')]); await flush();
+    expect(requests()).toHaveLength(3);
+    session.dispose();
+  });
+
+  it('never warms incomplete long paragraphs or canceled late results', async () => {
+    const { session, requests, input, clients, id, partial, fail, done } = setup();
+    const text = 'a'.repeat(1_600) + 'b'.repeat(1_600);
+    session.start([segment(text)], { concurrency: 1 }); await flush();
+    partial(0, 0, '只有一半'); done(); await flush(); fail(); await flush();
+    const old = id(); session.reset({ clearCache: false });
+    clients[0]!.receive({ type: 'result', requestId: old, result: { kind: 'text', translation: '迟到', segments: ['迟到'] } });
+    session.start([segment(text)], { concurrency: 1 }); await flush();
+    expect(requests()).toHaveLength(3);
+    expect(input().pageSegments).toEqual(['a'.repeat(1_600)]);
+    done(); await flush(); done(); await flush();
+    session.reset({ clearCache: false }); session.start([segment(text)]); await flush();
+    expect(requests()).toHaveLength(4);
+    expect(session.state.completed).toBe(1);
+  });
+
+  it('evicts old successful text when the in-memory character budget is exceeded', async () => {
+    const { session, requests, done } = setup();
+    for (const text of ['first', 'second', 'third']) {
+      session.start([segment(text)]); await flush(); done(0, ['中'.repeat(400_000)]); await flush();
+    }
+    session.reset({ clearCache: false }); session.start([segment('second')]); await flush();
+    expect(requests()).toHaveLength(3);
+    session.start([segment('first')]); await flush();
+    expect(requests()).toHaveLength(4); session.dispose();
   });
 
   it('disposes every transport and suppresses late callbacks', async () => {

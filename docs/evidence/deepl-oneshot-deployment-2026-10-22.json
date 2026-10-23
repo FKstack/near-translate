@@ -1,0 +1,16 @@
+{
+  "at": "2026-10-21T16:44:32.114Z",
+  "installed": "D:\\浏览器翻译扩展\\artifacts\\installed\\near-translate-edge-v0.1.0",
+  "source": "D:\\浏览器翻译扩展\\.output\\edge-mv3",
+  "backup": "D:\\浏览器翻译扩展\\.output\\installed-program-backup-oneshot-2026-10-21T16-44-30-279Z",
+  "extensionId": "dbdooijmbinjmnbmgglajigaoiinolnc",
+  "beforeVersion": "0.7.0",
+  "afterVersion": "0.7.0",
+  "protocol": "oneshot-anonymous",
+  "programFilesVerified": {
+    "manifest.json": "a017841aa0d1f64c66233068d9f5ff2bb6e15c7ece3fa933e1cf93438df775bd",
+    "background.js": "1aaff031c3763f18910534e258333a75c70b0b1e2db8e3650aa2aa9c1cf85303",
+    "content-scripts/selection.js": "896853833cada4bb4ebf5aa79c3e604a89fa1d83d8474bf752229a50096a361f"
+  },
+  "browserStorageAccessed": false
+}

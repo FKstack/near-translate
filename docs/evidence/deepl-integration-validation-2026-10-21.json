@@ -1,0 +1,39 @@
+{
+  "at": "2026-10-21T13:24:07.742Z",
+  "unit": {
+    "passed": 437,
+    "failed": 0
+  },
+  "e2e": {
+    "firstRun": {
+      "startTime": "2026-10-21T13:19:26.175Z",
+      "duration": 123708.948,
+      "expected": 52,
+      "skipped": 0,
+      "unexpected": 2,
+      "flaky": 0
+    },
+    "targetedRerun": {
+      "startTime": "2026-10-21T13:22:24.972Z",
+      "duration": 5248.4259999999995,
+      "expected": 2,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "repair": "Restored legacy model API permission-denied copy; only two affected tests rerun",
+    "deeplNewCases": 4
+  },
+  "static": {
+    "typecheck": "passed",
+    "boundaries": "passed"
+  },
+  "builds": {
+    "chrome": true,
+    "edge": true
+  },
+  "backgroundSha256": {
+    "chrome": "8e918ebab8703411e5e9bc218d69599db423dbdfd485fb02ef4ef03e18ac4f39",
+    "edge": "8e918ebab8703411e5e9bc218d69599db423dbdfd485fb02ef4ef03e18ac4f39"
+  }
+}

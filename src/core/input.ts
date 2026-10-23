@@ -1,6 +1,7 @@
 import { MAX_CONTEXT_LENGTH, MAX_PAGE_BATCH_ITEMS, MAX_TEXT_LENGTH, type TranslationInput } from '../shared/contracts';
 import { TranslationFailure } from './errors';
 import { canAnalyzeSentence } from './sentence-analysis';
+import { isSourceLanguage, isTargetLanguage, resolveLanguagePair, type LanguageOptions } from '../shared/languages';
 
 export function isEnglishWord(text: string): boolean {
   return /^[A-Za-z]+(?:['’\-][A-Za-z]+)*$/.test(text.trim());
@@ -9,11 +10,28 @@ export function isEnglishWord(text: string): boolean {
 /** Validate again in the background: content scripts are not a trusted input boundary. */
 export function normalizeTranslationInput(value: unknown): TranslationInput {
   if (!value || typeof value !== 'object') {
-    throw new TranslationFailure('INVALID_INPUT', '请选择需要翻译的英文。');
+    throw new TranslationFailure('INVALID_INPUT', '请选择需要翻译的文字。');
   }
   const input = value as Record<string, unknown>;
   if (typeof input.text !== 'string' || (input.kind !== 'word' && input.kind !== 'text')) {
     throw new TranslationFailure('INVALID_INPUT', '翻译内容格式不正确，请重新选择。');
+  }
+  const languages: LanguageOptions = {};
+  if (Object.hasOwn(input, 'sourceLanguage')) {
+    if (!isSourceLanguage(input.sourceLanguage)) throw new TranslationFailure('INVALID_INPUT', '请选择支持的源语言。');
+    languages.sourceLanguage = input.sourceLanguage;
+  }
+  if (Object.hasOwn(input, 'targetLanguage')) {
+    if (!isTargetLanguage(input.targetLanguage)) throw new TranslationFailure('INVALID_INPUT', '请选择支持的目标语言。');
+    languages.targetLanguage = input.targetLanguage;
+  }
+  const pair = resolveLanguagePair(languages);
+  const englishSource = pair.sourceLanguage === 'auto' || pair.sourceLanguage === 'en';
+  if (input.kind === 'word' && (!englishSource || !['zh-Hans', 'zh-Hant'].includes(pair.targetLanguage))) {
+    throw new TranslationFailure('INVALID_INPUT', '英语词典仅支持英语到简体或繁体中文，请使用普通文本翻译。');
+  }
+  if (input.task === 'sentence-analysis' && (!englishSource || pair.targetLanguage !== 'zh-Hans')) {
+    throw new TranslationFailure('INVALID_INPUT', '长难句拆解仅支持英语到简体中文，请使用普通文本翻译。');
   }
   if (input.task !== undefined && (input.task !== 'sentence-analysis' || input.kind !== 'text'
     || input.pageSegments !== undefined)) {
@@ -29,7 +47,7 @@ export function normalizeTranslationInput(value: unknown): TranslationInput {
     pageSegments = input.pageSegments.map(part => (part as string).replace(/\r\n?/g, '\n').trim());
   }
   const text = pageSegments ? pageSegments.join('\n') : input.text.replace(/\r\n?/g, '\n').trim();
-  if (!text) throw new TranslationFailure('INVALID_INPUT', '请选择需要翻译的英文。');
+  if (!text) throw new TranslationFailure('INVALID_INPUT', '请选择需要翻译的文字。');
   if (text.length > MAX_TEXT_LENGTH) {
     throw new TranslationFailure('INVALID_INPUT', `一次最多翻译 ${MAX_TEXT_LENGTH.toLocaleString('zh-CN')} 个字符，请缩短选区。`);
   }
@@ -45,6 +63,6 @@ export function normalizeTranslationInput(value: unknown): TranslationInput {
   const context = typeof input.context === 'string'
     ? input.context.replace(/\r\n?/g, '\n').trim().slice(0, MAX_CONTEXT_LENGTH)
     : '';
-  return { text, kind: input.kind, ...(pageSegments ? { pageSegments } : context ? { context } : {}),
+  return { text, kind: input.kind, ...languages, ...(pageSegments ? { pageSegments } : context ? { context } : {}),
     ...(input.task === 'sentence-analysis' ? { task: input.task } : {}) };
 }

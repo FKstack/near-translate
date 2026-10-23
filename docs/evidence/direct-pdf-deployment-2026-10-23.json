@@ -1,0 +1,148 @@
+{
+  "at": "2026-10-22T17:13:16.824Z",
+  "installed": "D:\\浏览器翻译扩展\\artifacts\\installed\\near-translate-edge-v0.1.0",
+  "source": "D:\\浏览器翻译扩展\\.output\\edge-mv3",
+  "backup": "D:\\浏览器翻译扩展\\.output\\direct-pdf-installed-backup-1792689196824",
+  "extensionId": "dbdooijmbinjmnbmgglajigaoiinolnc",
+  "changes": [
+    {
+      "file": "assets\\convert-rEPo31k-.css",
+      "beforeHash": null,
+      "afterHash": "4d1f27e260878d34495bc53f17378a193b6ce19eddb1a4467a25b000149bb104"
+    },
+    {
+      "file": "chunks\\convert-BfJFyaUn.js",
+      "beforeHash": null,
+      "afterHash": "790cc3a1c4cb27d0da4f415f95b5e91981eb026d29f575f8438c730c25241f62"
+    },
+    {
+      "file": "fonts\\NearDocumentSans.ttf",
+      "beforeHash": null,
+      "afterHash": "40d7aa23a3cb25765a3b019136fdfe70a9f08f428d8e1042f0d472fde376132a"
+    },
+    {
+      "file": "fonts\\README.md",
+      "beforeHash": null,
+      "afterHash": "841433615d6850a73d3c7cd87d83d1ae9cacbf7bce651a11de94be7c5d400103"
+    },
+    {
+      "file": "licenses\\NotoSansSC-OFL.txt",
+      "beforeHash": null,
+      "afterHash": "6a73f9541c2de74158c0e7cf6b0a58ef774f5a780bf191f2d7ec9cc53efe2bf2"
+    },
+    {
+      "file": "licenses\\pdf-lib-fontkit-README.md",
+      "beforeHash": null,
+      "afterHash": "7315fcc54511f5ffc906969c39333f93cd47f5217ab014fe45acff14bd5ec4c0"
+    },
+    {
+      "file": "licenses\\pdf-lib-fontkit.txt",
+      "beforeHash": null,
+      "afterHash": "3e810e84f067f9eec0656010274519473c617b14c81c62f4e7642f9cfce9e507"
+    },
+    {
+      "file": "convert.html",
+      "beforeHash": "78234b44ab012d6e797c8152e62ec2fc58898cab0e55d5e1cce65011959166b4",
+      "afterHash": "4c3001c3d381a432058b9a2b3640de4180e12c773a6e2f7e3d4d2d015a2d508e"
+    }
+  ],
+  "events": [
+    {
+      "phase": "before",
+      "extensionId": "dbdooijmbinjmnbmgglajigaoiinolnc",
+      "version": "0.9.0",
+      "settings": {
+        "translationEngine": "model",
+        "provider": "deepseek",
+        "model": "deepseek-flash",
+        "hasApiKey": true,
+        "enabled": true,
+        "webAccess": true,
+        "apiAccess": true,
+        "sourceLanguage": "auto",
+        "targetLanguage": "zh-Hans",
+        "includeContext": true,
+        "sentenceAnalysisEnabled": true,
+        "connectionRevision": 49,
+        "requiresApiKey": true
+      },
+      "permissions": {
+        "origins": [
+          "http://*/*",
+          "https://*/*",
+          "https://api.deepseek.com/*",
+          "https://oneshot-free.www.deepl.com/*",
+          "https://www2.deepl.com/*"
+        ],
+        "permissions": [
+          "activeTab",
+          "declarativeNetRequestWithHostAccess",
+          "scripting",
+          "storage"
+        ]
+      },
+      "helperTabId": 800038257
+    },
+    {
+      "phase": "reload-requested",
+      "helperTabId": 800038261
+    },
+    {
+      "phase": "after",
+      "extensionId": "dbdooijmbinjmnbmgglajigaoiinolnc",
+      "version": "0.9.0",
+      "settings": {
+        "translationEngine": "model",
+        "provider": "deepseek",
+        "model": "deepseek-flash",
+        "hasApiKey": true,
+        "enabled": true,
+        "webAccess": true,
+        "apiAccess": true,
+        "sourceLanguage": "auto",
+        "targetLanguage": "zh-Hans",
+        "includeContext": true,
+        "sentenceAnalysisEnabled": true,
+        "connectionRevision": 49,
+        "requiresApiKey": true
+      },
+      "permissions": {
+        "origins": [
+          "http://*/*",
+          "https://*/*",
+          "https://api.deepseek.com/*",
+          "https://oneshot-free.www.deepl.com/*",
+          "https://www2.deepl.com/*"
+        ],
+        "permissions": [
+          "activeTab",
+          "declarativeNetRequestWithHostAccess",
+          "scripting",
+          "storage"
+        ]
+      },
+      "conversionTabId": 800038270,
+      "verified": {
+        "toolCount": 6,
+        "previewTitle": "一份清晰的文档",
+        "table": true,
+        "code": true,
+        "directPdf": true,
+        "pdfBytes": 13136,
+        "automaticDownloadTriggered": true,
+        "sampleDownloadSuppressed": true,
+        "printingRequired": false,
+        "popupEntry": true,
+        "readerEntry": true
+      },
+      "helperTabId": 800038267
+    }
+  ],
+  "browserStorageWritten": false,
+  "apiKeysRead": false,
+  "completed": true,
+  "settingsUnchanged": true,
+  "permissionsUnchanged": true,
+  "verifiedFiles": 333,
+  "conversionTabId": 800038270
+}

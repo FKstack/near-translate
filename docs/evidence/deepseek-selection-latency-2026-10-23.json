@@ -1,0 +1,103 @@
+{
+  "date": "2026-10-23",
+  "timezone": "Asia/Singapore",
+  "realApi": true,
+  "scope": "Original installed Edge extension; one public word request before and one after the fix, plus one baseline public sentence request.",
+  "publicSample": {
+    "word": "scalable",
+    "context": "Go is efficient, scalable, and productive.",
+    "source": "https://go.dev/talks/2012/splash.article"
+  },
+  "sampleSize": {
+    "baselineWord": 1,
+    "baselineText": 1,
+    "fixedWord": 1,
+    "totalRequests": 3
+  },
+  "observedPublicSettings": {
+    "before": {
+      "version": "0.9.0",
+      "translationEngine": "model",
+      "provider": "deepseek",
+      "model": "deepseek-flash",
+      "enabled": true,
+      "hasApiKey": true,
+      "apiAccess": true,
+      "webAccess": true,
+      "includeContext": true
+    },
+    "after": {
+      "version": "0.9.0",
+      "translationEngine": "model",
+      "provider": "deepseek",
+      "model": "deepseek-flash",
+      "enabled": true,
+      "hasApiKey": true,
+      "apiAccess": true,
+      "webAccess": true,
+      "includeContext": true
+    },
+    "unchanged": true
+  },
+  "measurements": {
+    "baselineWord": {
+      "outcome": "complete",
+      "sampleChars": 8,
+      "startedMs": 1.8,
+      "resultMs": 1616,
+      "totalMs": 1616.1,
+      "senseCount": 3,
+      "progressPreviewEventsSupported": false
+    },
+    "baselineText": {
+      "outcome": "complete",
+      "sampleChars": 42,
+      "startedMs": 1.2,
+      "firstDeltaMs": 746.6,
+      "resultMs": 866.6,
+      "totalMs": 866.7
+    },
+    "fixedWord": {
+      "outcome": "complete",
+      "sampleChars": 8,
+      "startedMs": 1.9,
+      "progressMs": 206.8,
+      "firstPreviewMs": 1003.4,
+      "contextReadyMs": 1207.1,
+      "resultMs": 1602.8,
+      "totalMs": 1602.9,
+      "senseCount": 3,
+      "progressPreviewEventsSupported": true
+    }
+  },
+  "measurementDefinitions": {
+    "origin": "performance.now immediately before sending translate through the extension Port; includes local settings and permission checks.",
+    "startedMs": "Receipt of the background started event after settings and permission checks, immediately before provider execution.",
+    "progressMs": "Receipt of the first provider progress event caused by a valid model SSE choice, including a role-only event; not time to a translation token.",
+    "firstPreviewMs": "Receipt of the first word-preview with a nonempty, closed translation field.",
+    "contextReadyMs": "Receipt of enough word-preview fields to contain nonempty translation, partOfSpeech, and explanation.",
+    "resultMs": "Receipt of the fully parsed and validated final result.",
+    "paint": "Port event timing only; does not measure rendered DOM or a painted browser frame.",
+    "network": "No direct DNS, TLS, response-header, or server-compute measurement was taken."
+  },
+  "limits": [
+    "Each condition has only one sample. Service load, network conditions, and upstream caching vary between calls, so these measurements do not establish a model or network speedup.",
+    "The final dictionary duration stayed approximately 1.6 seconds. The observed improvement is that connection waiting ends on a real model event and the contextual meaning arrives before the remaining senses finish.",
+    "Baseline provider emitted no word delta or preview events, so progress and preview timings are unavailable for the baseline rather than measured as zero.",
+    "The unusually long wait described by the user was not reproduced during these three requests.",
+    "The reported apiAccess and webAccess booleans stayed unchanged; the probe did not enumerate the complete browser permission collection."
+  ],
+  "handling": {
+    "credentialsReadOrExported": false,
+    "browserStorageWritten": false,
+    "settingsChanged": false,
+    "existingProductionFilesChangedByProbe": false,
+    "temporaryHelperFilesRemoved": true,
+    "fixedExtensionReloadedBeforeMeasurement": true,
+    "requestsAfterFix": 1
+  },
+  "rawEvidence": {
+    "baseline": ".output/installed-model-baseline-1792744867998.json",
+    "fixed": ".output/installed-model-fixed-1792745226843.json"
+  }
+}

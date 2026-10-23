@@ -1,0 +1,1303 @@
+{
+  "generatedAt": "2026-10-21T16:57:22.345Z",
+  "endpoint": "https://oneshot-free.www.deepl.com/v1/translate",
+  "realInstalledExtensionId": "dbdooijmbinjmnbmgglajigaoiinolnc",
+  "anonymous": true,
+  "savedModelKeyReadOrExportedByTestHarness": false,
+  "savedModelKeyUsedForDeepLTranslation": false,
+  "cookiesUsed": false,
+  "officialClientIdentityCopied": false,
+  "budget": {
+    "maxTexts": 32,
+    "maxTotalUtf16": 1500,
+    "maxRequestBytes": 65536
+  },
+  "oldEndpointDiagnostic": {
+    "raw": ".output/diagnosis-2/installed-network-deca185d1ed47a8a6ffa0200817cad54acbbefc8.json",
+    "requestCount": 1,
+    "totalChars": 41,
+    "statusCounts": {
+      "429": 1
+    },
+    "rateLimitDiagnostics": [
+      {
+        "at": 1792599413240,
+        "httpStatus": 429,
+        "bodyOutcome": "json",
+        "bodyCompletedAt": 1792599413241,
+        "rpcErrorCode": 1042911
+      }
+    ],
+    "expectedOriginAndRefererPresent": true,
+    "cookiePresent": false,
+    "authorizationPresent": false,
+    "temporaryPermissionRemoved": true,
+    "temporaryPermissionPresentAfter": false,
+    "manifestRestored": true
+  },
+  "runs": [
+    {
+      "label": "deepl-oneshot-pipeline",
+      "raw": ".output/go-page-deepl-oneshot-pipeline-02c28bf187805d6e3ae8faca132da614c219e210.json",
+      "rawSha256": "57c1aeca0318da85a4b951071e6315a72103f0a54ae218aaa9e040ec4e456b10",
+      "sourceUrl": "https://go.dev/talks/2012/splash.article?utm_source=chatgpt.com",
+      "localDocumentCacheUsedForColdPass": false,
+      "qualified": false,
+      "cold": {
+        "elapsedMs": 32352,
+        "firstMs": 9240,
+        "firstViewportProseMs": 9282,
+        "completed": 251,
+        "total": 251,
+        "renderedSegments": 251,
+        "failed": 0,
+        "pending": 0,
+        "chineseSegments": 246,
+        "translatedChars": 18836,
+        "requestCount": 43,
+        "totalTexts": 252,
+        "totalChars": 53656,
+        "statusCounts": {
+          "200": 42
+        },
+        "errorCounts": {},
+        "maxConcurrent": 4,
+        "rateLimitDiagnostics": [],
+        "counterReset": false,
+        "requestRowsTruncated": false,
+        "requests": [
+          {
+            "sequence": 1,
+            "startedAt": 1792601084412,
+            "textCount": 26,
+            "charCount": 1345,
+            "endedAt": 1792601093627,
+            "status": 200
+          },
+          {
+            "sequence": 2,
+            "startedAt": 1792601084914,
+            "textCount": 7,
+            "charCount": 1352,
+            "endedAt": 1792601093983,
+            "status": 200
+          },
+          {
+            "sequence": 3,
+            "startedAt": 1792601085413,
+            "textCount": 7,
+            "charCount": 1408,
+            "endedAt": 1792601094002,
+            "status": 200
+          },
+          {
+            "sequence": 4,
+            "startedAt": 1792601085915,
+            "textCount": 11,
+            "charCount": 811,
+            "endedAt": 1792601093594,
+            "status": 200
+          },
+          {
+            "sequence": 5,
+            "startedAt": 1792601093622,
+            "textCount": 4,
+            "charCount": 1383,
+            "endedAt": 1792601095949,
+            "status": 200
+          },
+          {
+            "sequence": 6,
+            "startedAt": 1792601094123,
+            "textCount": 5,
+            "charCount": 1325,
+            "endedAt": 1792601096006,
+            "status": 200
+          },
+          {
+            "sequence": 7,
+            "startedAt": 1792601094624,
+            "textCount": 2,
+            "charCount": 1065,
+            "endedAt": 1792601096691,
+            "status": 200
+          },
+          {
+            "sequence": 8,
+            "startedAt": 1792601095125,
+            "textCount": 1,
+            "charCount": 1115,
+            "endedAt": 1792601097204,
+            "status": 200
+          },
+          {
+            "sequence": 9,
+            "startedAt": 1792601095965,
+            "textCount": 3,
+            "charCount": 1378,
+            "endedAt": 1792601098231,
+            "status": 200
+          },
+          {
+            "sequence": 10,
+            "startedAt": 1792601096465,
+            "textCount": 6,
+            "charCount": 1422,
+            "endedAt": 1792601098426,
+            "status": 200
+          },
+          {
+            "sequence": 11,
+            "startedAt": 1792601096967,
+            "textCount": 6,
+            "charCount": 1427,
+            "endedAt": 1792601098680,
+            "status": 200
+          },
+          {
+            "sequence": 12,
+            "startedAt": 1792601097467,
+            "textCount": 8,
+            "charCount": 1466,
+            "endedAt": 1792601099458,
+            "status": 200
+          },
+          {
+            "sequence": 13,
+            "startedAt": 1792601098236,
+            "textCount": 3,
+            "charCount": 1226,
+            "endedAt": 1792601100157,
+            "status": 200
+          },
+          {
+            "sequence": 14,
+            "startedAt": 1792601098737,
+            "textCount": 3,
+            "charCount": 1237,
+            "endedAt": 1792601100709,
+            "status": 200
+          },
+          {
+            "sequence": 15,
+            "startedAt": 1792601099238,
+            "textCount": 2,
+            "charCount": 1058,
+            "endedAt": 1792601101501,
+            "status": 200
+          },
+          {
+            "sequence": 16,
+            "startedAt": 1792601099737,
+            "textCount": 7,
+            "charCount": 1476,
+            "endedAt": 1792601101750,
+            "status": 200
+          },
+          {
+            "sequence": 17,
+            "startedAt": 1792601100242,
+            "textCount": 7,
+            "charCount": 1442,
+            "endedAt": 1792601102394,
+            "status": 200
+          },
+          {
+            "sequence": 18,
+            "startedAt": 1792601100743,
+            "textCount": 4,
+            "charCount": 924,
+            "endedAt": 1792601103120,
+            "status": 200
+          },
+          {
+            "sequence": 19,
+            "startedAt": 1792601101513,
+            "textCount": 5,
+            "charCount": 1440,
+            "endedAt": 1792601103303,
+            "status": 200
+          },
+          {
+            "sequence": 20,
+            "startedAt": 1792601102014,
+            "textCount": 6,
+            "charCount": 1454,
+            "endedAt": 1792601104047,
+            "status": 200
+          },
+          {
+            "sequence": 21,
+            "startedAt": 1792601102515,
+            "textCount": 7,
+            "charCount": 1444,
+            "endedAt": 1792601105083,
+            "status": 200
+          },
+          {
+            "sequence": 22,
+            "startedAt": 1792601103137,
+            "textCount": 9,
+            "charCount": 1009,
+            "endedAt": 1792601105175,
+            "status": 200
+          },
+          {
+            "sequence": 23,
+            "startedAt": 1792601103638,
+            "textCount": 4,
+            "charCount": 1175,
+            "endedAt": 1792601105572,
+            "status": 200
+          },
+          {
+            "sequence": 24,
+            "startedAt": 1792601104138,
+            "textCount": 13,
+            "charCount": 1488,
+            "endedAt": 1792601106178,
+            "status": 200
+          },
+          {
+            "sequence": 25,
+            "startedAt": 1792601105095,
+            "textCount": 10,
+            "charCount": 1313,
+            "endedAt": 1792601106988,
+            "status": 200
+          },
+          {
+            "sequence": 26,
+            "startedAt": 1792601105600,
+            "textCount": 4,
+            "charCount": 1375,
+            "endedAt": 1792601107468,
+            "status": 200
+          },
+          {
+            "sequence": 27,
+            "startedAt": 1792601106100,
+            "textCount": 6,
+            "charCount": 1342,
+            "endedAt": 1792601108150,
+            "status": 200
+          },
+          {
+            "sequence": 28,
+            "startedAt": 1792601106601,
+            "textCount": 4,
+            "charCount": 1282,
+            "endedAt": 1792601108713,
+            "status": 200
+          },
+          {
+            "sequence": 29,
+            "startedAt": 1792601107102,
+            "textCount": 2,
+            "charCount": 632,
+            "endedAt": 1792601108988,
+            "status": 200
+          },
+          {
+            "sequence": 30,
+            "startedAt": 1792601107606,
+            "textCount": 4,
+            "charCount": 1465,
+            "endedAt": 1792601109671,
+            "status": 200
+          },
+          {
+            "sequence": 31,
+            "startedAt": 1792601108158,
+            "textCount": 6,
+            "charCount": 1306,
+            "endedAt": 1792601110184,
+            "status": 200
+          },
+          {
+            "sequence": 32,
+            "startedAt": 1792601108723,
+            "textCount": 2,
+            "charCount": 1255,
+            "endedAt": 1792601110626,
+            "status": 200
+          },
+          {
+            "sequence": 33,
+            "startedAt": 1792601109223,
+            "textCount": 3,
+            "charCount": 1018,
+            "endedAt": 1792601111303,
+            "status": 200
+          },
+          {
+            "sequence": 34,
+            "startedAt": 1792601109723,
+            "textCount": 3,
+            "charCount": 1222,
+            "endedAt": 1792601111672,
+            "status": 200
+          },
+          {
+            "sequence": 35,
+            "startedAt": 1792601110225,
+            "textCount": 6,
+            "charCount": 1413,
+            "endedAt": 1792601112082,
+            "status": 200
+          },
+          {
+            "sequence": 36,
+            "startedAt": 1792601110727,
+            "textCount": 5,
+            "charCount": 1471,
+            "endedAt": 1792601112948,
+            "status": 200
+          },
+          {
+            "sequence": 37,
+            "startedAt": 1792601111312,
+            "textCount": 6,
+            "charCount": 1371,
+            "endedAt": 1792601113187,
+            "status": 200
+          },
+          {
+            "sequence": 38,
+            "startedAt": 1792601111813,
+            "textCount": 4,
+            "charCount": 1486,
+            "endedAt": 1792601114362,
+            "status": 200
+          },
+          {
+            "sequence": 39,
+            "startedAt": 1792601112314,
+            "textCount": 3,
+            "charCount": 1341,
+            "endedAt": 1792601114493,
+            "status": 200
+          },
+          {
+            "sequence": 40,
+            "startedAt": 1792601112958,
+            "textCount": 12,
+            "charCount": 1398,
+            "endedAt": 1792601114847,
+            "status": 200
+          },
+          {
+            "sequence": 41,
+            "startedAt": 1792601113460,
+            "textCount": 5,
+            "charCount": 1167,
+            "endedAt": 1792601115530,
+            "status": 200
+          },
+          {
+            "sequence": 42,
+            "startedAt": 1792601114375,
+            "textCount": 10,
+            "charCount": 778,
+            "endedAt": 1792601116681,
+            "status": 200
+          },
+          {
+            "sequence": 43,
+            "startedAt": 1792601116910,
+            "textCount": 1,
+            "charCount": 151
+          }
+        ]
+      },
+      "finalPhase": "error"
+    },
+    {
+      "label": "deepl-oneshot-pipeline",
+      "raw": ".output/go-page-deepl-oneshot-pipeline-06443ecd58e5af326b48a8e6e2852bc4c7cc5109.json",
+      "rawSha256": "2f4dad4dc5a8514973d647820463fb56b1240d71fd37342460bf2e72b909c64b",
+      "sourceUrl": "https://go.dev/talks/2012/splash.article?utm_source=chatgpt.com",
+      "localDocumentCacheUsedForColdPass": false,
+      "qualified": true,
+      "cold": {
+        "elapsedMs": 29330,
+        "firstMs": 7483,
+        "firstViewportProseMs": 7704,
+        "completed": 251,
+        "total": 251,
+        "renderedSegments": 251,
+        "failed": 0,
+        "pending": 0,
+        "chineseSegments": 246,
+        "translatedChars": 18842,
+        "requestCount": 42,
+        "totalTexts": 251,
+        "totalChars": 53505,
+        "statusCounts": {
+          "200": 42
+        },
+        "errorCounts": {},
+        "maxConcurrent": 4,
+        "rateLimitDiagnostics": [],
+        "counterReset": false,
+        "requestRowsTruncated": false,
+        "requests": [
+          {
+            "sequence": 1,
+            "startedAt": 1792601452223,
+            "textCount": 26,
+            "charCount": 1345,
+            "endedAt": 1792601459905,
+            "status": 200
+          },
+          {
+            "sequence": 2,
+            "startedAt": 1792601452722,
+            "textCount": 7,
+            "charCount": 1352,
+            "endedAt": 1792601459866,
+            "status": 200
+          },
+          {
+            "sequence": 3,
+            "startedAt": 1792601453223,
+            "textCount": 7,
+            "charCount": 1408,
+            "endedAt": 1792601460641,
+            "status": 200
+          },
+          {
+            "sequence": 4,
+            "startedAt": 1792601453724,
+            "textCount": 11,
+            "charCount": 811,
+            "endedAt": 1792601459646,
+            "status": 200
+          },
+          {
+            "sequence": 5,
+            "startedAt": 1792601459656,
+            "textCount": 4,
+            "charCount": 1383,
+            "endedAt": 1792601462126,
+            "status": 200
+          },
+          {
+            "sequence": 6,
+            "startedAt": 1792601460157,
+            "textCount": 5,
+            "charCount": 1325,
+            "endedAt": 1792601461931,
+            "status": 200
+          },
+          {
+            "sequence": 7,
+            "startedAt": 1792601460658,
+            "textCount": 2,
+            "charCount": 1065,
+            "endedAt": 1792601462488,
+            "status": 200
+          },
+          {
+            "sequence": 8,
+            "startedAt": 1792601461158,
+            "textCount": 1,
+            "charCount": 1115,
+            "endedAt": 1792601463601,
+            "status": 200
+          },
+          {
+            "sequence": 9,
+            "startedAt": 1792601461948,
+            "textCount": 3,
+            "charCount": 1378,
+            "endedAt": 1792601464152,
+            "status": 200
+          },
+          {
+            "sequence": 10,
+            "startedAt": 1792601462450,
+            "textCount": 6,
+            "charCount": 1422,
+            "endedAt": 1792601464606,
+            "status": 200
+          },
+          {
+            "sequence": 11,
+            "startedAt": 1792601462952,
+            "textCount": 6,
+            "charCount": 1427,
+            "endedAt": 1792601464738,
+            "status": 200
+          },
+          {
+            "sequence": 12,
+            "startedAt": 1792601463610,
+            "textCount": 8,
+            "charCount": 1466,
+            "endedAt": 1792601465681,
+            "status": 200
+          },
+          {
+            "sequence": 13,
+            "startedAt": 1792601464159,
+            "textCount": 3,
+            "charCount": 1226,
+            "endedAt": 1792601466305,
+            "status": 200
+          },
+          {
+            "sequence": 14,
+            "startedAt": 1792601464659,
+            "textCount": 3,
+            "charCount": 1237,
+            "endedAt": 1792601466661,
+            "status": 200
+          },
+          {
+            "sequence": 15,
+            "startedAt": 1792601465161,
+            "textCount": 2,
+            "charCount": 1058,
+            "endedAt": 1792601467286,
+            "status": 200
+          },
+          {
+            "sequence": 16,
+            "startedAt": 1792601465691,
+            "textCount": 7,
+            "charCount": 1476,
+            "endedAt": 1792601467567,
+            "status": 200
+          },
+          {
+            "sequence": 17,
+            "startedAt": 1792601466314,
+            "textCount": 7,
+            "charCount": 1442,
+            "endedAt": 1792601468379,
+            "status": 200
+          },
+          {
+            "sequence": 18,
+            "startedAt": 1792601466814,
+            "textCount": 4,
+            "charCount": 924,
+            "endedAt": 1792601468659,
+            "status": 200
+          },
+          {
+            "sequence": 19,
+            "startedAt": 1792601467316,
+            "textCount": 5,
+            "charCount": 1440,
+            "endedAt": 1792601469289,
+            "status": 200
+          },
+          {
+            "sequence": 20,
+            "startedAt": 1792601467817,
+            "textCount": 6,
+            "charCount": 1454,
+            "endedAt": 1792601469653,
+            "status": 200
+          },
+          {
+            "sequence": 21,
+            "startedAt": 1792601468394,
+            "textCount": 7,
+            "charCount": 1444,
+            "endedAt": 1792601470610,
+            "status": 200
+          },
+          {
+            "sequence": 22,
+            "startedAt": 1792601468894,
+            "textCount": 9,
+            "charCount": 1009,
+            "endedAt": 1792601470771,
+            "status": 200
+          },
+          {
+            "sequence": 23,
+            "startedAt": 1792601469394,
+            "textCount": 4,
+            "charCount": 1175,
+            "endedAt": 1792601471684,
+            "status": 200
+          },
+          {
+            "sequence": 24,
+            "startedAt": 1792601469895,
+            "textCount": 13,
+            "charCount": 1488,
+            "endedAt": 1792601471825,
+            "status": 200
+          },
+          {
+            "sequence": 25,
+            "startedAt": 1792601470622,
+            "textCount": 10,
+            "charCount": 1313,
+            "endedAt": 1792601472378,
+            "status": 200
+          },
+          {
+            "sequence": 26,
+            "startedAt": 1792601471123,
+            "textCount": 4,
+            "charCount": 1375,
+            "endedAt": 1792601472936,
+            "status": 200
+          },
+          {
+            "sequence": 27,
+            "startedAt": 1792601471691,
+            "textCount": 6,
+            "charCount": 1342,
+            "endedAt": 1792601473689,
+            "status": 200
+          },
+          {
+            "sequence": 28,
+            "startedAt": 1792601472192,
+            "textCount": 4,
+            "charCount": 1282,
+            "endedAt": 1792601474187,
+            "status": 200
+          },
+          {
+            "sequence": 29,
+            "startedAt": 1792601472691,
+            "textCount": 2,
+            "charCount": 632,
+            "endedAt": 1792601474501,
+            "status": 200
+          },
+          {
+            "sequence": 30,
+            "startedAt": 1792601473193,
+            "textCount": 4,
+            "charCount": 1465,
+            "endedAt": 1792601475196,
+            "status": 200
+          },
+          {
+            "sequence": 31,
+            "startedAt": 1792601473700,
+            "textCount": 6,
+            "charCount": 1306,
+            "endedAt": 1792601475806,
+            "status": 200
+          },
+          {
+            "sequence": 32,
+            "startedAt": 1792601474207,
+            "textCount": 2,
+            "charCount": 1255,
+            "endedAt": 1792601476028,
+            "status": 200
+          },
+          {
+            "sequence": 33,
+            "startedAt": 1792601474710,
+            "textCount": 3,
+            "charCount": 1018,
+            "endedAt": 1792601476944,
+            "status": 200
+          },
+          {
+            "sequence": 34,
+            "startedAt": 1792601475211,
+            "textCount": 3,
+            "charCount": 1222,
+            "endedAt": 1792601477239,
+            "status": 200
+          },
+          {
+            "sequence": 35,
+            "startedAt": 1792601475817,
+            "textCount": 6,
+            "charCount": 1413,
+            "endedAt": 1792601477853,
+            "status": 200
+          },
+          {
+            "sequence": 36,
+            "startedAt": 1792601476317,
+            "textCount": 5,
+            "charCount": 1471,
+            "endedAt": 1792601478501,
+            "status": 200
+          },
+          {
+            "sequence": 37,
+            "startedAt": 1792601476951,
+            "textCount": 6,
+            "charCount": 1371,
+            "endedAt": 1792601478888,
+            "status": 200
+          },
+          {
+            "sequence": 38,
+            "startedAt": 1792601477453,
+            "textCount": 4,
+            "charCount": 1486,
+            "endedAt": 1792601479521,
+            "status": 200
+          },
+          {
+            "sequence": 39,
+            "startedAt": 1792601477955,
+            "textCount": 3,
+            "charCount": 1341,
+            "endedAt": 1792601480503,
+            "status": 200
+          },
+          {
+            "sequence": 40,
+            "startedAt": 1792601478516,
+            "textCount": 12,
+            "charCount": 1398,
+            "endedAt": 1792601480206,
+            "status": 200
+          },
+          {
+            "sequence": 41,
+            "startedAt": 1792601479015,
+            "textCount": 5,
+            "charCount": 1167,
+            "endedAt": 1792601480808,
+            "status": 200
+          },
+          {
+            "sequence": 42,
+            "startedAt": 1792601479540,
+            "textCount": 10,
+            "charCount": 778,
+            "endedAt": 1792601481486,
+            "status": 200
+          }
+        ]
+      },
+      "warm": {
+        "elapsedMs": 118,
+        "firstMs": 118,
+        "firstViewportProseMs": 118,
+        "completed": 251,
+        "total": 251,
+        "renderedSegments": 251,
+        "failed": 0,
+        "pending": 0,
+        "chineseSegments": 246,
+        "translatedChars": 18842,
+        "requestCount": 0,
+        "totalTexts": 0,
+        "totalChars": 0,
+        "statusCounts": {},
+        "errorCounts": {},
+        "maxConcurrent": 0,
+        "rateLimitDiagnostics": [],
+        "cacheOutputMatches": true,
+        "cacheNoNetwork": true,
+        "counterReset": false,
+        "requestRowsTruncated": false,
+        "requests": []
+      },
+      "finalPhase": "complete"
+    },
+    {
+      "label": "deepl-oneshot-serial",
+      "raw": ".output/go-page-deepl-oneshot-serial-5ff86f2dbe4cafbbdace5acf6d59e48dbc448e4d.json",
+      "rawSha256": "c32b1e731d22de66bdc798b3240c7b001151b95e49a0d5e3b4b8965efa5ae7c7",
+      "sourceUrl": "https://go.dev/talks/2012/splash.article?utm_source=chatgpt.com",
+      "localDocumentCacheUsedForColdPass": false,
+      "qualified": true,
+      "cold": {
+        "elapsedMs": 95686,
+        "firstMs": 7890,
+        "firstViewportProseMs": 7892,
+        "completed": 251,
+        "total": 251,
+        "renderedSegments": 251,
+        "failed": 0,
+        "pending": 0,
+        "chineseSegments": 246,
+        "translatedChars": 18871,
+        "requestCount": 42,
+        "totalTexts": 251,
+        "totalChars": 53505,
+        "statusCounts": {
+          "200": 42
+        },
+        "errorCounts": {},
+        "maxConcurrent": 1,
+        "rateLimitDiagnostics": [],
+        "counterReset": false,
+        "requestRowsTruncated": false,
+        "requests": [
+          {
+            "sequence": 1,
+            "startedAt": 1792600291566,
+            "textCount": 26,
+            "charCount": 1345,
+            "endedAt": 1792600299250,
+            "status": 200
+          },
+          {
+            "sequence": 2,
+            "startedAt": 1792600299266,
+            "textCount": 7,
+            "charCount": 1352,
+            "endedAt": 1792600301059,
+            "status": 200
+          },
+          {
+            "sequence": 3,
+            "startedAt": 1792600301068,
+            "textCount": 7,
+            "charCount": 1408,
+            "endedAt": 1792600303116,
+            "status": 200
+          },
+          {
+            "sequence": 4,
+            "startedAt": 1792600303126,
+            "textCount": 11,
+            "charCount": 811,
+            "endedAt": 1792600304696,
+            "status": 200
+          },
+          {
+            "sequence": 5,
+            "startedAt": 1792600304708,
+            "textCount": 4,
+            "charCount": 1383,
+            "endedAt": 1792600307583,
+            "status": 200
+          },
+          {
+            "sequence": 6,
+            "startedAt": 1792600308215,
+            "textCount": 5,
+            "charCount": 1325,
+            "endedAt": 1792600310060,
+            "status": 200
+          },
+          {
+            "sequence": 7,
+            "startedAt": 1792600310066,
+            "textCount": 2,
+            "charCount": 1065,
+            "endedAt": 1792600312056,
+            "status": 200
+          },
+          {
+            "sequence": 8,
+            "startedAt": 1792600312062,
+            "textCount": 1,
+            "charCount": 1115,
+            "endedAt": 1792600314916,
+            "status": 200
+          },
+          {
+            "sequence": 9,
+            "startedAt": 1792600314924,
+            "textCount": 3,
+            "charCount": 1378,
+            "endedAt": 1792600317480,
+            "status": 200
+          },
+          {
+            "sequence": 10,
+            "startedAt": 1792600317645,
+            "textCount": 6,
+            "charCount": 1422,
+            "endedAt": 1792600319839,
+            "status": 200
+          },
+          {
+            "sequence": 11,
+            "startedAt": 1792600319846,
+            "textCount": 6,
+            "charCount": 1427,
+            "endedAt": 1792600321756,
+            "status": 200
+          },
+          {
+            "sequence": 12,
+            "startedAt": 1792600321768,
+            "textCount": 8,
+            "charCount": 1466,
+            "endedAt": 1792600323896,
+            "status": 200
+          },
+          {
+            "sequence": 13,
+            "startedAt": 1792600323904,
+            "textCount": 3,
+            "charCount": 1226,
+            "endedAt": 1792600325983,
+            "status": 200
+          },
+          {
+            "sequence": 14,
+            "startedAt": 1792600325989,
+            "textCount": 3,
+            "charCount": 1237,
+            "endedAt": 1792600328231,
+            "status": 200
+          },
+          {
+            "sequence": 15,
+            "startedAt": 1792600328244,
+            "textCount": 2,
+            "charCount": 1058,
+            "endedAt": 1792600330530,
+            "status": 200
+          },
+          {
+            "sequence": 16,
+            "startedAt": 1792600330538,
+            "textCount": 7,
+            "charCount": 1476,
+            "endedAt": 1792600332559,
+            "status": 200
+          },
+          {
+            "sequence": 17,
+            "startedAt": 1792600332585,
+            "textCount": 7,
+            "charCount": 1442,
+            "endedAt": 1792600334848,
+            "status": 200
+          },
+          {
+            "sequence": 18,
+            "startedAt": 1792600334864,
+            "textCount": 4,
+            "charCount": 924,
+            "endedAt": 1792600336811,
+            "status": 200
+          },
+          {
+            "sequence": 19,
+            "startedAt": 1792600336835,
+            "textCount": 5,
+            "charCount": 1440,
+            "endedAt": 1792600339009,
+            "status": 200
+          },
+          {
+            "sequence": 20,
+            "startedAt": 1792600339022,
+            "textCount": 6,
+            "charCount": 1454,
+            "endedAt": 1792600340880,
+            "status": 200
+          },
+          {
+            "sequence": 21,
+            "startedAt": 1792600340899,
+            "textCount": 7,
+            "charCount": 1444,
+            "endedAt": 1792600343148,
+            "status": 200
+          },
+          {
+            "sequence": 22,
+            "startedAt": 1792600343160,
+            "textCount": 9,
+            "charCount": 1009,
+            "endedAt": 1792600345171,
+            "status": 200
+          },
+          {
+            "sequence": 23,
+            "startedAt": 1792600345184,
+            "textCount": 4,
+            "charCount": 1175,
+            "endedAt": 1792600347187,
+            "status": 200
+          },
+          {
+            "sequence": 24,
+            "startedAt": 1792600347199,
+            "textCount": 13,
+            "charCount": 1488,
+            "endedAt": 1792600349196,
+            "status": 200
+          },
+          {
+            "sequence": 25,
+            "startedAt": 1792600349222,
+            "textCount": 10,
+            "charCount": 1313,
+            "endedAt": 1792600351211,
+            "status": 200
+          },
+          {
+            "sequence": 26,
+            "startedAt": 1792600351229,
+            "textCount": 4,
+            "charCount": 1375,
+            "endedAt": 1792600353250,
+            "status": 200
+          },
+          {
+            "sequence": 27,
+            "startedAt": 1792600353264,
+            "textCount": 6,
+            "charCount": 1342,
+            "endedAt": 1792600355308,
+            "status": 200
+          },
+          {
+            "sequence": 28,
+            "startedAt": 1792600355317,
+            "textCount": 4,
+            "charCount": 1282,
+            "endedAt": 1792600357342,
+            "status": 200
+          },
+          {
+            "sequence": 29,
+            "startedAt": 1792600357351,
+            "textCount": 2,
+            "charCount": 632,
+            "endedAt": 1792600359269,
+            "status": 200
+          },
+          {
+            "sequence": 30,
+            "startedAt": 1792600359283,
+            "textCount": 4,
+            "charCount": 1465,
+            "endedAt": 1792600361550,
+            "status": 200
+          },
+          {
+            "sequence": 31,
+            "startedAt": 1792600361604,
+            "textCount": 6,
+            "charCount": 1306,
+            "endedAt": 1792600363789,
+            "status": 200
+          },
+          {
+            "sequence": 32,
+            "startedAt": 1792600363799,
+            "textCount": 2,
+            "charCount": 1255,
+            "endedAt": 1792600365810,
+            "status": 200
+          },
+          {
+            "sequence": 33,
+            "startedAt": 1792600365816,
+            "textCount": 3,
+            "charCount": 1018,
+            "endedAt": 1792600368139,
+            "status": 200
+          },
+          {
+            "sequence": 34,
+            "startedAt": 1792600368147,
+            "textCount": 3,
+            "charCount": 1222,
+            "endedAt": 1792600370362,
+            "status": 200
+          },
+          {
+            "sequence": 35,
+            "startedAt": 1792600370373,
+            "textCount": 6,
+            "charCount": 1413,
+            "endedAt": 1792600372317,
+            "status": 200
+          },
+          {
+            "sequence": 36,
+            "startedAt": 1792600372329,
+            "textCount": 5,
+            "charCount": 1471,
+            "endedAt": 1792600374449,
+            "status": 200
+          },
+          {
+            "sequence": 37,
+            "startedAt": 1792600374460,
+            "textCount": 6,
+            "charCount": 1371,
+            "endedAt": 1792600376632,
+            "status": 200
+          },
+          {
+            "sequence": 38,
+            "startedAt": 1792600376656,
+            "textCount": 4,
+            "charCount": 1486,
+            "endedAt": 1792600378849,
+            "status": 200
+          },
+          {
+            "sequence": 39,
+            "startedAt": 1792600378858,
+            "textCount": 3,
+            "charCount": 1341,
+            "endedAt": 1792600380947,
+            "status": 200
+          },
+          {
+            "sequence": 40,
+            "startedAt": 1792600380965,
+            "textCount": 12,
+            "charCount": 1398,
+            "endedAt": 1792600382662,
+            "status": 200
+          },
+          {
+            "sequence": 41,
+            "startedAt": 1792600382703,
+            "textCount": 5,
+            "charCount": 1167,
+            "endedAt": 1792600384762,
+            "status": 200
+          },
+          {
+            "sequence": 42,
+            "startedAt": 1792600384773,
+            "textCount": 10,
+            "charCount": 778,
+            "endedAt": 1792600387030,
+            "status": 200
+          }
+        ]
+      },
+      "warm": {
+        "elapsedMs": 130,
+        "firstMs": 130,
+        "firstViewportProseMs": 130,
+        "completed": 251,
+        "total": 251,
+        "renderedSegments": 251,
+        "failed": 0,
+        "pending": 0,
+        "chineseSegments": 246,
+        "translatedChars": 18871,
+        "requestCount": 0,
+        "totalTexts": 0,
+        "totalChars": 0,
+        "statusCounts": {},
+        "errorCounts": {},
+        "maxConcurrent": 0,
+        "rateLimitDiagnostics": [],
+        "cacheOutputMatches": true,
+        "cacheNoNetwork": true,
+        "counterReset": false,
+        "requestRowsTruncated": false,
+        "requests": []
+      },
+      "finalPhase": "complete"
+    }
+  ],
+  "limits": [
+    "One public page on this machine/network, not a service availability guarantee.",
+    "Cold pass means no extension document cache; upstream caching/load is not controlled.",
+    "Counts and positional mapping verified; prose sampled, not a full human language-quality audit."
+  ],
+  "domVerification": {
+    "raw": ".output/diagnosis-2/inspect-installed-go-result.json",
+    "rawSha256": "1c98d69528cf65fb7a3da22467f74f6dbe6c69e14f43a18b9d82a02ab5066bbe",
+    "translationRequestsSentByInspector": 0,
+    "permissionsRequested": false,
+    "credentialsRead": false,
+    "bar": {
+      "completed": 251,
+      "errorCode": "",
+      "failed": 0,
+      "pending": 0,
+      "status": "done",
+      "statusText": "翻译完成 · 251 / 251",
+      "total": 251
+    },
+    "barHostCount": 1,
+    "doneHosts": 251,
+    "hanHosts": 246,
+    "originalSegmentCount": 251,
+    "originalCharacters": 53505,
+    "noHan": [
+      {
+        "index": 230,
+        "source": "BBC Worldwide",
+        "sourceTag": "LI",
+        "translated": "BBC Worldwide"
+      },
+      {
+        "index": 231,
+        "source": "Canonical",
+        "sourceTag": "LI",
+        "translated": "Canonical"
+      },
+      {
+        "index": 232,
+        "source": "Heroku",
+        "sourceTag": "LI",
+        "translated": "Heroku"
+      },
+      {
+        "index": 234,
+        "source": "SoundCloud",
+        "sourceTag": "LI",
+        "translated": "SoundCloud"
+      },
+      {
+        "index": 250,
+        "source": "go.dev",
+        "sourceTag": "P",
+        "translated": "go.dev"
+      }
+    ],
+    "protectedCounts": {
+      ".monaco-editor,.CodeMirror,.cm-editor,.ace_editor,.code-block,.codehilite,.highlight": {
+        "containers": 0,
+        "translationHosts": 0
+      },
+      "code": {
+        "containers": 176,
+        "translationHosts": 0
+      },
+      "input": {
+        "containers": 0,
+        "translationHosts": 0
+      },
+      "pre": {
+        "containers": 28,
+        "translationHosts": 0
+      },
+      "select": {
+        "containers": 0,
+        "translationHosts": 0
+      },
+      "textarea": {
+        "containers": 0,
+        "translationHosts": 0
+      }
+    },
+    "screenshotAvailable": false
+  },
+  "automatedValidation": {
+    "unitPassed": 541,
+    "unitFilesPassed": 24,
+    "edgeTargetedPassed": 23,
+    "edgeTargetedFailed": 0,
+    "browserTranslationsMocked": true,
+    "unitLog": ".output/diagnosis-2/unit-oneshot-final.log",
+    "edgeLog": ".output/diagnosis-2/e2e-oneshot-final.log",
+    "typecheckPassed": true,
+    "moduleBoundariesPassed": true,
+    "diffCheckPassed": true,
+    "chromeBuildPassed": true,
+    "edgeBuildPassed": true
+  }
+}

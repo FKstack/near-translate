@@ -1,0 +1,31 @@
+{
+  "date": "2026-10-23",
+  "timezone": "Asia/Singapore",
+  "unitTests": {
+    "files": 47,
+    "passed": 1157,
+    "failed": 0
+  },
+  "typecheck": "passed",
+  "moduleBoundaries": "passed",
+  "builds": {
+    "chrome": "passed",
+    "edge": "passed"
+  },
+  "browserTests": {
+    "edge": {
+      "tests": 27,
+      "failures": 0,
+      "skipped": 0,
+      "durationMs": 64575.207
+    },
+    "chrome": {
+      "tests": 27,
+      "failures": 0,
+      "skipped": 0,
+      "durationMs": 72205.397
+    }
+  },
+  "screenshot": "model-word-preview-2026-10-23.png",
+  "scope": "Browser regression used simulated model SSE responses; three installed-extension public sample calls are recorded separately."
+}

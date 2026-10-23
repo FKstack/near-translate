@@ -1,0 +1,4459 @@
+{
+  "at": "2026-10-22T15:47:39.894Z",
+  "browser": "daily Edge Default profile; no CDP",
+  "events": [
+    {
+      "phase": "reload"
+    },
+    {
+      "phase": "ready",
+      "version": "0.9.0",
+      "browser": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0",
+      "permissionsExpanded": false,
+      "credentialValuesRead": false,
+      "previousCredentialPresencePreserved": true
+    },
+    {
+      "phase": "group",
+      "groupId": 1433112227,
+      "named": false,
+      "tabs": [
+        {
+          "tabId": 800038062,
+          "label": "简体中文（中国大陆、新加坡等）",
+          "url": "https://developer.mozilla.org/zh-CN/docs/Glossary/HTML"
+        },
+        {
+          "tabId": 800038063,
+          "label": "繁体中文（台湾、香港、澳门等）",
+          "url": "https://developer.mozilla.org/zh-TW/docs/Glossary/HTML"
+        },
+        {
+          "tabId": 800038064,
+          "label": "英语（美国、英国等）",
+          "url": "https://developer.mozilla.org/en-US/docs/Glossary/HTML"
+        },
+        {
+          "tabId": 800038065,
+          "label": "日语（日本等）",
+          "url": "https://developer.mozilla.org/ja/docs/Glossary/HTML"
+        },
+        {
+          "tabId": 800038066,
+          "label": "韩语（韩国等）",
+          "url": "https://developer.mozilla.org/ko/docs/Glossary/HTML"
+        },
+        {
+          "tabId": 800038067,
+          "label": "德语（德国、奥地利、瑞士等）",
+          "url": "https://developer.mozilla.org/de/docs/Glossary/HTML"
+        },
+        {
+          "tabId": 800038068,
+          "label": "法语（法国、加拿大等）",
+          "url": "https://developer.mozilla.org/fr/docs/Glossary/HTML"
+        },
+        {
+          "tabId": 800038069,
+          "label": "西班牙语（西班牙、墨西哥等）",
+          "url": "https://developer.mozilla.org/es/docs/Glossary/HTML"
+        },
+        {
+          "tabId": 800038070,
+          "label": "俄语（俄罗斯等）",
+          "url": "https://developer.mozilla.org/ru/docs/Glossary/HTML"
+        },
+        {
+          "tabId": 800038071,
+          "label": "葡萄牙语（巴西、葡萄牙等）",
+          "url": "https://developer.mozilla.org/pt-BR/docs/Glossary/HTML"
+        },
+        {
+          "tabId": 800038072,
+          "label": "意大利语（意大利、瑞士等）",
+          "url": "https://support.mozilla.org/it/kb/Gestione%20dei%20cookie"
+        },
+        {
+          "tabId": 800038073,
+          "label": "阿拉伯语（沙特阿拉伯、埃及等）",
+          "url": "https://support.mozilla.org/ar/kb/cookies-information-websites-store-on-your-computer"
+        },
+        {
+          "tabId": 800038074,
+          "label": "印地语（印度等）",
+          "url": "https://support.mozilla.org/hi-IN/kb/cookies-information-websites-store-on-your-computer"
+        },
+        {
+          "tabId": 800038075,
+          "label": "印尼语（印度尼西亚等）",
+          "url": "https://support.mozilla.org/id/kb/Tentang%20Cookie"
+        },
+        {
+          "tabId": 800038076,
+          "label": "土耳其语（土耳其、塞浦路斯等）",
+          "url": "https://support.mozilla.org/tr/kb/cerezler-web-sitelerinin-bilgisayarinizda-depoladi"
+        },
+        {
+          "tabId": 800038077,
+          "label": "越南语（越南等）",
+          "url": "https://support.mozilla.org/vi/kb/cookie-thong-tin-ma-cac-trang-web-luu-tru-tren-may-tinh-cua-ban"
+        },
+        {
+          "tabId": 800038078,
+          "label": "英语→日语（目标语言验证）",
+          "url": "https://developer.mozilla.org/en-US/docs/Glossary/HTML"
+        },
+        {
+          "tabId": 800038079,
+          "label": "英语→阿拉伯语（目标语言验证）",
+          "url": "https://developer.mozilla.org/en-US/docs/Glossary/HTML"
+        },
+        {
+          "tabId": 800038080,
+          "label": "英语→印地语（目标语言验证）",
+          "url": "https://developer.mozilla.org/en-US/docs/Glossary/HTML"
+        },
+        {
+          "tabId": 800038081,
+          "label": "日语（自动识别验证）",
+          "url": "https://developer.mozilla.org/ja/docs/Glossary/HTML"
+        },
+        {
+          "tabId": 800038082,
+          "label": "阿拉伯语（自动识别验证）",
+          "url": "https://support.mozilla.org/ar/kb/cookies-information-websites-store-on-your-computer"
+        },
+        {
+          "tabId": 800038083,
+          "label": "印地语（自动识别验证）",
+          "url": "https://support.mozilla.org/hi-IN/kb/cookies-information-websites-store-on-your-computer"
+        }
+      ]
+    },
+    {
+      "phase": "case",
+      "result": {
+        "sourceLanguage": "zh-Hans",
+        "targetLanguage": "en",
+        "label": "简体中文（中国大陆、新加坡等）",
+        "url": "https://developer.mozilla.org/zh-CN/docs/Glossary/HTML",
+        "script": "\\p{Script=Han}",
+        "tabId": 800038062,
+        "actualUrl": "https://developer.mozilla.org/zh-CN/docs/Glossary/HTML",
+        "documentLanguage": "zh-CN",
+        "title": "HTML - MDN Web 文档术语表：Web 相关术语的定义 | MDN",
+        "paragraphs": 12,
+        "articleChars": 869,
+        "sourceSample": "此页面由社区从英文翻译而来。了解更多并加入 MDN Web Docs 社区。",
+        "reading": {
+          "chars": 818,
+          "direction": "ltr",
+          "language": "zh-CN",
+          "paragraphs": 6,
+          "sourceScriptPresent": true,
+          "bodyRequests": 0
+        },
+        "completed": 25,
+        "emptyOutputs": 0,
+        "failed": 0,
+        "notice": "翻译完成 · 25 / 25",
+        "outputCount": 25,
+        "outputDirections": [
+          "ltr"
+        ],
+        "outputLanguages": [
+          "en"
+        ],
+        "pending": 0,
+        "sample": "This page was translated from English by the community. Learn more and join the MDN Web Docs community.",
+        "state": "done",
+        "targetScriptCounts": {
+          "Arabic": 0,
+          "Devanagari": 0,
+          "Han": 0,
+          "Kana": 0,
+          "Latin": 1751
+        },
+        "total": 25,
+        "codeUnchanged": true,
+        "sourceTextUnchanged": true,
+        "firstMs": 3014,
+        "elapsedMs": 3016,
+        "operatorResumes": 0,
+        "requests": 2,
+        "requestMetrics": [
+          {
+            "sequence": 1,
+            "startedAt": 1792683969977,
+            "textCount": 1,
+            "charCount": 271,
+            "maxTextChars": 271,
+            "status": 200,
+            "endedAt": 1792683971887,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1883.2,
+              "downloadMs": 0.6,
+              "totalMs": 1909.6,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 2,
+            "startedAt": 1792683970036,
+            "textCount": 21,
+            "charCount": 678,
+            "maxTextChars": 182,
+            "status": 200,
+            "endedAt": 1792683971881,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1804.8,
+              "downloadMs": 0.5,
+              "totalMs": 1844.6,
+              "protocol": "h2"
+            }
+          }
+        ],
+        "cache": "new document, no extension translation cache",
+        "passed": true
+      }
+    },
+    {
+      "phase": "case",
+      "result": {
+        "sourceLanguage": "zh-Hant",
+        "targetLanguage": "zh-Hans",
+        "label": "繁体中文（台湾、香港、澳门等）",
+        "url": "https://developer.mozilla.org/zh-TW/docs/Glossary/HTML",
+        "script": "\\p{Script=Han}",
+        "tabId": 800038063,
+        "actualUrl": "https://developer.mozilla.org/zh-TW/docs/Glossary/HTML",
+        "documentLanguage": "zh-TW",
+        "title": "HTML - 術語表 | MDN",
+        "paragraphs": 12,
+        "articleChars": 825,
+        "sourceSample": "此頁面由社群從英文翻譯而來。了解更多並加入 MDN Web Docs 社群。",
+        "reading": {
+          "chars": 806,
+          "direction": "ltr",
+          "language": "zh-TW",
+          "paragraphs": 6,
+          "sourceScriptPresent": true,
+          "bodyRequests": 0
+        },
+        "completed": 28,
+        "emptyOutputs": 0,
+        "failed": 0,
+        "notice": "翻译完成 · 28 / 28",
+        "outputCount": 28,
+        "outputDirections": [
+          "ltr"
+        ],
+        "outputLanguages": [
+          "zh-Hans"
+        ],
+        "pending": 0,
+        "sample": "此頁面由社群從英文翻譯而來。了解更多並加入 MDN Web Docs 社群。",
+        "state": "done",
+        "targetScriptCounts": {
+          "Arabic": 0,
+          "Devanagari": 0,
+          "Han": 385,
+          "Kana": 0,
+          "Latin": 374
+        },
+        "total": 28,
+        "codeUnchanged": true,
+        "sourceTextUnchanged": true,
+        "firstMs": 1854,
+        "elapsedMs": 1856,
+        "operatorResumes": 0,
+        "requests": 2,
+        "requestMetrics": [
+          {
+            "sequence": 3,
+            "startedAt": 1792683973969,
+            "textCount": 1,
+            "charCount": 269,
+            "maxTextChars": 269,
+            "status": 200,
+            "endedAt": 1792683974902,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 925.9,
+              "downloadMs": 2.1,
+              "totalMs": 929,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 4,
+            "startedAt": 1792683974070,
+            "textCount": 24,
+            "charCount": 725,
+            "maxTextChars": 128,
+            "status": 200,
+            "endedAt": 1792683975023,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 929.6,
+              "downloadMs": 11.3,
+              "totalMs": 941.8,
+              "protocol": "h2"
+            }
+          }
+        ],
+        "cache": "new document, no extension translation cache",
+        "passed": true
+      }
+    },
+    {
+      "phase": "case",
+      "result": {
+        "sourceLanguage": "en",
+        "targetLanguage": "zh-Hans",
+        "label": "英语（美国、英国等）",
+        "url": "https://developer.mozilla.org/en-US/docs/Glossary/HTML",
+        "script": "\\p{Script=Latin}",
+        "tabId": 800038064,
+        "actualUrl": "https://developer.mozilla.org/en-US/docs/Glossary/HTML",
+        "documentLanguage": "en-US",
+        "title": "HTML - Glossary | MDN",
+        "paragraphs": 8,
+        "articleChars": 1585,
+        "sourceSample": "HTML (HyperText Markup Language) is a descriptive language that specifies webpage structure.",
+        "reading": {
+          "chars": 1656,
+          "direction": "ltr",
+          "language": "en-US",
+          "paragraphs": 6,
+          "sourceScriptPresent": true,
+          "bodyRequests": 0
+        },
+        "completed": 23,
+        "emptyOutputs": 0,
+        "failed": 0,
+        "notice": "翻译完成 · 23 / 23",
+        "outputCount": 23,
+        "outputDirections": [
+          "ltr"
+        ],
+        "outputLanguages": [
+          "zh-Hans"
+        ],
+        "pending": 0,
+        "sample": "1990年，作为其万维网愿景的一部分，蒂姆·伯纳斯-李提出了超文本的概念，并于次年通过一种主要基于SGML的标记语言将其正式化。IETF于1993年开始正式制定HTML规范，经过多次草案修订后，于1995年发布了2.0版。1994年，伯纳斯-李创立了W3C以推动万维网的发展。1996年，W3C接手了HTML相关工作，并于一年后发布了HTML 3.2建议书。H",
+        "state": "done",
+        "targetScriptCounts": {
+          "Arabic": 0,
+          "Devanagari": 0,
+          "Han": 464,
+          "Kana": 0,
+          "Latin": 150
+        },
+        "total": 23,
+        "codeUnchanged": true,
+        "sourceTextUnchanged": true,
+        "firstMs": 1944,
+        "elapsedMs": 2952,
+        "operatorResumes": 0,
+        "requests": 2,
+        "requestMetrics": [
+          {
+            "sequence": 5,
+            "startedAt": 1792683976888,
+            "textCount": 2,
+            "charCount": 594,
+            "maxTextChars": 502,
+            "status": 200,
+            "endedAt": 1792683978747,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1857.7,
+              "downloadMs": 4,
+              "totalMs": 1862.5,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 6,
+            "startedAt": 1792683976988,
+            "textCount": 18,
+            "charCount": 1251,
+            "maxTextChars": 389,
+            "status": 200,
+            "endedAt": 1792683978995,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2004.1,
+              "downloadMs": 0.7,
+              "totalMs": 2005.8,
+              "protocol": "h2"
+            }
+          }
+        ],
+        "cache": "new document, no extension translation cache",
+        "passed": true
+      }
+    },
+    {
+      "phase": "case",
+      "result": {
+        "sourceLanguage": "ja",
+        "targetLanguage": "zh-Hans",
+        "label": "日语（日本等）",
+        "url": "https://developer.mozilla.org/ja/docs/Glossary/HTML",
+        "script": "(?:\\p{Script=Hiragana}|\\p{Script=Katakana}|\\p{Script=Han})",
+        "tabId": 800038065,
+        "actualUrl": "https://developer.mozilla.org/ja/docs/Glossary/HTML",
+        "documentLanguage": "ja",
+        "title": "HTML - 用語集 | MDN",
+        "paragraphs": 12,
+        "articleChars": 1111,
+        "sourceSample": "このページはコミュニティーの尽力で英語から翻訳されました。MDN\n          Web Docs\n          コミュニティーについてもっと知り、仲間になるにはこちらから。",
+        "reading": {
+          "chars": 1023,
+          "direction": "ltr",
+          "language": "ja",
+          "paragraphs": 6,
+          "sourceScriptPresent": true,
+          "bodyRequests": 0
+        },
+        "completed": 25,
+        "emptyOutputs": 0,
+        "failed": 0,
+        "notice": "翻译完成 · 25 / 25",
+        "outputCount": 25,
+        "outputDirections": [
+          "ltr"
+        ],
+        "outputLanguages": [
+          "zh-Hans"
+        ],
+        "pending": 0,
+        "sample": "本页面由社区成员从英语翻译而来。如需进一步了解 MDN Web Docs 社区并加入其中，请点击此处。",
+        "state": "done",
+        "targetScriptCounts": {
+          "Arabic": 0,
+          "Devanagari": 0,
+          "Han": 501,
+          "Kana": 0,
+          "Latin": 178
+        },
+        "total": 25,
+        "codeUnchanged": true,
+        "sourceTextUnchanged": true,
+        "firstMs": 1938,
+        "elapsedMs": 2941,
+        "operatorResumes": 0,
+        "requests": 2,
+        "requestMetrics": [
+          {
+            "sequence": 7,
+            "startedAt": 1792683980890,
+            "textCount": 1,
+            "charCount": 245,
+            "maxTextChars": 245,
+            "status": 200,
+            "endedAt": 1792683982765,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1872.8,
+              "downloadMs": 0.8,
+              "totalMs": 1874.5,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 8,
+            "startedAt": 1792683980991,
+            "textCount": 21,
+            "charCount": 960,
+            "maxTextChars": 329,
+            "status": 200,
+            "endedAt": 1792683983079,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2084.7,
+              "downloadMs": 3,
+              "totalMs": 2088.7,
+              "protocol": "h2"
+            }
+          }
+        ],
+        "cache": "new document, no extension translation cache",
+        "passed": true
+      }
+    },
+    {
+      "phase": "case",
+      "result": {
+        "sourceLanguage": "ko",
+        "targetLanguage": "zh-Hans",
+        "label": "韩语（韩国等）",
+        "url": "https://developer.mozilla.org/ko/docs/Glossary/HTML",
+        "script": "\\p{Script=Hangul}",
+        "tabId": 800038066,
+        "actualUrl": "https://developer.mozilla.org/ko/docs/Glossary/HTML",
+        "documentLanguage": "ko",
+        "title": "HTML - MDN Web Docs 용어 사전: 웹 용어 정의 | MDN",
+        "paragraphs": 12,
+        "articleChars": 1048,
+        "sourceSample": "HTML(Hypertext Markup Language)은 웹페이지의 구조를 지정하는 기술적인 언어입니다.",
+        "reading": {
+          "chars": 906,
+          "direction": "ltr",
+          "language": "ko",
+          "paragraphs": 6,
+          "sourceScriptPresent": true,
+          "bodyRequests": 0
+        },
+        "completed": 25,
+        "emptyOutputs": 0,
+        "failed": 0,
+        "notice": "翻译完成 · 25 / 25",
+        "outputCount": 25,
+        "outputDirections": [
+          "ltr"
+        ],
+        "outputLanguages": [
+          "zh-Hans"
+        ],
+        "pending": 0,
+        "sample": "本页面由社区从英语翻译而来。了解更多信息并加入 MDN Web Docs 社区。",
+        "state": "done",
+        "targetScriptCounts": {
+          "Arabic": 0,
+          "Devanagari": 0,
+          "Han": 470,
+          "Kana": 0,
+          "Latin": 171
+        },
+        "total": 25,
+        "codeUnchanged": true,
+        "sourceTextUnchanged": true,
+        "firstMs": 1944,
+        "elapsedMs": 2945,
+        "operatorResumes": 0,
+        "requests": 2,
+        "requestMetrics": [
+          {
+            "sequence": 9,
+            "startedAt": 1792683984887,
+            "textCount": 2,
+            "charCount": 385,
+            "maxTextChars": 282,
+            "status": 200,
+            "endedAt": 1792683986635,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1746.7,
+              "downloadMs": 1.6,
+              "totalMs": 1749.1,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 10,
+            "startedAt": 1792683984987,
+            "textCount": 20,
+            "charCount": 820,
+            "maxTextChars": 216,
+            "status": 200,
+            "endedAt": 1792683987205,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2215.7,
+              "downloadMs": 0.7,
+              "totalMs": 2217.4,
+              "protocol": "h2"
+            }
+          }
+        ],
+        "cache": "new document, no extension translation cache",
+        "passed": true
+      }
+    },
+    {
+      "phase": "case",
+      "result": {
+        "sourceLanguage": "de",
+        "targetLanguage": "zh-Hans",
+        "label": "德语（德国、奥地利、瑞士等）",
+        "url": "https://developer.mozilla.org/de/docs/Glossary/HTML",
+        "script": "\\p{Script=Latin}",
+        "tabId": 800038067,
+        "actualUrl": "https://developer.mozilla.org/de/docs/Glossary/HTML",
+        "documentLanguage": "de",
+        "title": "HTML - Glossary | MDN",
+        "paragraphs": 11,
+        "articleChars": 1981,
+        "sourceSample": "Dieser Inhalt wurde automatisch aus dem Englischen\n          übersetzt, und kann Fehler enthalten.\n          Erfahre mehr übe",
+        "reading": {
+          "chars": 1909,
+          "direction": "ltr",
+          "language": "de",
+          "paragraphs": 6,
+          "sourceScriptPresent": true,
+          "bodyRequests": 0
+        },
+        "completed": 24,
+        "emptyOutputs": 0,
+        "failed": 0,
+        "notice": "翻译完成 · 24 / 24",
+        "outputCount": 24,
+        "outputDirections": [
+          "ltr"
+        ],
+        "outputLanguages": [
+          "zh-Hans"
+        ],
+        "pending": 0,
+        "sample": "此内容由系统自动从英语翻译而来，可能存在错误。了解更多关于此实验的信息。",
+        "state": "done",
+        "targetScriptCounts": {
+          "Arabic": 0,
+          "Devanagari": 0,
+          "Han": 504,
+          "Kana": 0,
+          "Latin": 151
+        },
+        "total": 24,
+        "codeUnchanged": true,
+        "sourceTextUnchanged": true,
+        "firstMs": 1958,
+        "elapsedMs": 2940,
+        "operatorResumes": 0,
+        "requests": 3,
+        "requestMetrics": [
+          {
+            "sequence": 11,
+            "startedAt": 1792683988890,
+            "textCount": 2,
+            "charCount": 234,
+            "maxTextChars": 125,
+            "status": 200,
+            "endedAt": 1792683990136,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1243.5,
+              "downloadMs": 0.8,
+              "totalMs": 1245.2,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 12,
+            "startedAt": 1792683988991,
+            "textCount": 12,
+            "charCount": 1500,
+            "maxTextChars": 591,
+            "status": 200,
+            "endedAt": 1792683990907,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1914.2,
+              "downloadMs": 0.7,
+              "totalMs": 1915.9,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 13,
+            "startedAt": 1792683989093,
+            "textCount": 7,
+            "charCount": 568,
+            "maxTextChars": 166,
+            "status": 200,
+            "endedAt": 1792683990379,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1283.6,
+              "downloadMs": 1,
+              "totalMs": 1285.9,
+              "protocol": "h2"
+            }
+          }
+        ],
+        "cache": "new document, no extension translation cache",
+        "passed": true
+      }
+    },
+    {
+      "phase": "case",
+      "result": {
+        "sourceLanguage": "fr",
+        "targetLanguage": "zh-Hans",
+        "label": "法语（法国、加拿大等）",
+        "url": "https://developer.mozilla.org/fr/docs/Glossary/HTML",
+        "script": "\\p{Script=Latin}",
+        "tabId": 800038068,
+        "actualUrl": "https://developer.mozilla.org/fr/docs/Glossary/HTML",
+        "documentLanguage": "fr",
+        "title": "HTML - Glossaire | MDN",
+        "paragraphs": 12,
+        "articleChars": 2043,
+        "sourceSample": "Cette page a été traduite à partir de l'anglais par la\n          communauté.\n          Vous pouvez contribuer en rejoignant l",
+        "reading": {
+          "chars": 1886,
+          "direction": "ltr",
+          "language": "fr",
+          "paragraphs": 6,
+          "sourceScriptPresent": true,
+          "bodyRequests": 0
+        },
+        "completed": 25,
+        "emptyOutputs": 0,
+        "failed": 0,
+        "notice": "翻译完成 · 25 / 25",
+        "outputCount": 25,
+        "outputDirections": [
+          "ltr"
+        ],
+        "outputLanguages": [
+          "zh-Hans"
+        ],
+        "pending": 0,
+        "sample": "本页面由社区从英语翻译而来。您可以加入 MDN Web Docs 的法语社区，为翻译工作贡献力量。",
+        "state": "done",
+        "targetScriptCounts": {
+          "Arabic": 0,
+          "Devanagari": 0,
+          "Han": 512,
+          "Kana": 0,
+          "Latin": 160
+        },
+        "total": 25,
+        "codeUnchanged": true,
+        "sourceTextUnchanged": true,
+        "firstMs": 1941,
+        "elapsedMs": 1943,
+        "operatorResumes": 0,
+        "requests": 3,
+        "requestMetrics": [
+          {
+            "sequence": 14,
+            "startedAt": 1792683992887,
+            "textCount": 2,
+            "charCount": 615,
+            "maxTextChars": 516,
+            "status": 200,
+            "endedAt": 1792683994766,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1877.1,
+              "downloadMs": 0.6,
+              "totalMs": 1878.5,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 15,
+            "startedAt": 1792683992989,
+            "textCount": 16,
+            "charCount": 1491,
+            "maxTextChars": 433,
+            "status": 200,
+            "endedAt": 1792683994626,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1635,
+              "downloadMs": 2,
+              "totalMs": 1638.1,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 16,
+            "startedAt": 1792683993090,
+            "textCount": 4,
+            "charCount": 183,
+            "maxTextChars": 75,
+            "status": 200,
+            "endedAt": 1792683994519,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1426.6,
+              "downloadMs": 0.7,
+              "totalMs": 1428.2,
+              "protocol": "h2"
+            }
+          }
+        ],
+        "cache": "new document, no extension translation cache",
+        "passed": true
+      }
+    },
+    {
+      "phase": "case",
+      "result": {
+        "sourceLanguage": "es",
+        "targetLanguage": "zh-Hans",
+        "label": "西班牙语（西班牙、墨西哥等）",
+        "url": "https://developer.mozilla.org/es/docs/Glossary/HTML",
+        "script": "\\p{Script=Latin}",
+        "tabId": 800038069,
+        "actualUrl": "https://developer.mozilla.org/es/docs/Glossary/HTML",
+        "documentLanguage": "es",
+        "title": "HTML - Glosario de MDN Web Docs | MDN",
+        "paragraphs": 12,
+        "articleChars": 2286,
+        "sourceSample": "Esta página ha sido traducida del inglés por la comunidad.\n          Aprende más y únete a la comunidad de MDN Web Docs.",
+        "reading": {
+          "chars": 2221,
+          "direction": "ltr",
+          "language": "es",
+          "paragraphs": 6,
+          "sourceScriptPresent": true,
+          "bodyRequests": 0
+        },
+        "completed": 28,
+        "emptyOutputs": 0,
+        "failed": 0,
+        "notice": "翻译完成 · 28 / 28",
+        "outputCount": 28,
+        "outputDirections": [
+          "ltr"
+        ],
+        "outputLanguages": [
+          "zh-Hans"
+        ],
+        "pending": 0,
+        "sample": "本页面由社区从英语翻译而来。了解更多信息并加入 MDN Web Docs 社区。",
+        "state": "done",
+        "targetScriptCounts": {
+          "Arabic": 0,
+          "Devanagari": 0,
+          "Han": 592,
+          "Kana": 0,
+          "Latin": 209
+        },
+        "total": 28,
+        "codeUnchanged": true,
+        "sourceTextUnchanged": true,
+        "firstMs": 1927,
+        "elapsedMs": 2929,
+        "operatorResumes": 0,
+        "requests": 3,
+        "requestMetrics": [
+          {
+            "sequence": 17,
+            "startedAt": 1792683995897,
+            "textCount": 2,
+            "charCount": 279,
+            "maxTextChars": 169,
+            "status": 200,
+            "endedAt": 1792683997018,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1118.4,
+              "downloadMs": 1.9,
+              "totalMs": 1121.2,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 18,
+            "startedAt": 1792683995998,
+            "textCount": 9,
+            "charCount": 1497,
+            "maxTextChars": 642,
+            "status": 200,
+            "endedAt": 1792683998194,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2193.9,
+              "downloadMs": 0.8,
+              "totalMs": 2195.8,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 19,
+            "startedAt": 1792683996098,
+            "textCount": 14,
+            "charCount": 847,
+            "maxTextChars": 236,
+            "status": 200,
+            "endedAt": 1792683997669,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1568.4,
+              "downloadMs": 0.7,
+              "totalMs": 1570.1,
+              "protocol": "h2"
+            }
+          }
+        ],
+        "cache": "new document, no extension translation cache",
+        "passed": true
+      }
+    },
+    {
+      "phase": "case",
+      "result": {
+        "sourceLanguage": "ru",
+        "targetLanguage": "zh-Hans",
+        "label": "俄语（俄罗斯等）",
+        "url": "https://developer.mozilla.org/ru/docs/Glossary/HTML",
+        "script": "\\p{Script=Cyrillic}",
+        "tabId": 800038070,
+        "actualUrl": "https://developer.mozilla.org/ru/docs/Glossary/HTML",
+        "documentLanguage": "ru",
+        "title": "HTML - Глоссарий MDN Web Docs | MDN",
+        "paragraphs": 12,
+        "articleChars": 1671,
+        "sourceSample": "HTML (от англ. HyperText Markup Language — «язык гипертекстовой разметки») — язык разметки, определяющий структуру веб-страни",
+        "reading": {
+          "chars": 1566,
+          "direction": "ltr",
+          "language": "ru",
+          "paragraphs": 6,
+          "sourceScriptPresent": true,
+          "bodyRequests": 0
+        },
+        "completed": 26,
+        "emptyOutputs": 0,
+        "failed": 0,
+        "notice": "翻译完成 · 26 / 26",
+        "outputCount": 26,
+        "outputDirections": [
+          "ltr"
+        ],
+        "outputLanguages": [
+          "zh-Hans"
+        ],
+        "pending": 0,
+        "sample": "本页面由社区从英语翻译而来。了解更多信息并加入 MDN Web Docs 社区。",
+        "state": "done",
+        "targetScriptCounts": {
+          "Arabic": 0,
+          "Devanagari": 0,
+          "Han": 491,
+          "Kana": 0,
+          "Latin": 165
+        },
+        "total": 26,
+        "codeUnchanged": true,
+        "sourceTextUnchanged": true,
+        "firstMs": 1928,
+        "elapsedMs": 1930,
+        "operatorResumes": 0,
+        "requests": 2,
+        "requestMetrics": [
+          {
+            "sequence": 20,
+            "startedAt": 1792683999899,
+            "textCount": 2,
+            "charCount": 587,
+            "maxTextChars": 484,
+            "status": 200,
+            "endedAt": 1792684001788,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1886.8,
+              "downloadMs": 0.9,
+              "totalMs": 1888.6,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 21,
+            "startedAt": 1792684000000,
+            "textCount": 21,
+            "charCount": 1323,
+            "maxTextChars": 270,
+            "status": 200,
+            "endedAt": 1792684001766,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1763.7,
+              "downloadMs": 21.2,
+              "totalMs": 1785.9,
+              "protocol": "h2"
+            }
+          }
+        ],
+        "cache": "new document, no extension translation cache",
+        "passed": true
+      }
+    },
+    {
+      "phase": "case",
+      "result": {
+        "sourceLanguage": "pt",
+        "targetLanguage": "zh-Hans",
+        "label": "葡萄牙语（巴西、葡萄牙等）",
+        "url": "https://developer.mozilla.org/pt-BR/docs/Glossary/HTML",
+        "script": "\\p{Script=Latin}",
+        "tabId": 800038071,
+        "actualUrl": "https://developer.mozilla.org/pt-BR/docs/Glossary/HTML",
+        "documentLanguage": "pt-BR",
+        "title": "HTML - Glossário do MDN Web Docs | MDN",
+        "paragraphs": 12,
+        "articleChars": 1731,
+        "sourceSample": "Esta página foi traduzida do inglês pela comunidade.\n          Saiba mais e junte-se à comunidade MDN Web Docs.",
+        "reading": {
+          "chars": 1708,
+          "direction": "ltr",
+          "language": "pt-BR",
+          "paragraphs": 6,
+          "sourceScriptPresent": true,
+          "bodyRequests": 0
+        },
+        "completed": 28,
+        "emptyOutputs": 0,
+        "failed": 0,
+        "notice": "翻译完成 · 28 / 28",
+        "outputCount": 28,
+        "outputDirections": [
+          "ltr"
+        ],
+        "outputLanguages": [
+          "zh-Hans"
+        ],
+        "pending": 0,
+        "sample": "本页面由社区从英语翻译而来。了解更多信息并加入 MDN Web Docs 社区。",
+        "state": "done",
+        "targetScriptCounts": {
+          "Arabic": 0,
+          "Devanagari": 0,
+          "Han": 482,
+          "Kana": 0,
+          "Latin": 152
+        },
+        "total": 28,
+        "codeUnchanged": true,
+        "sourceTextUnchanged": true,
+        "firstMs": 14920,
+        "elapsedMs": 15923,
+        "operatorResumes": 0,
+        "requests": 3,
+        "requestMetrics": [
+          {
+            "sequence": 22,
+            "startedAt": 1792684002906,
+            "textCount": 2,
+            "charCount": 206,
+            "maxTextChars": 105,
+            "status": 200,
+            "endedAt": 1792684017450,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 921.4,
+              "tlsMs": 919.8,
+              "waitMs": 968.9,
+              "downloadMs": 0.7,
+              "totalMs": 14542.8,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 23,
+            "startedAt": 1792684003009,
+            "textCount": 12,
+            "charCount": 1486,
+            "maxTextChars": 509,
+            "status": 200,
+            "endedAt": 1792684017959,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1477.8,
+              "downloadMs": 0.8,
+              "totalMs": 14949.6,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 24,
+            "startedAt": 1792684003109,
+            "textCount": 11,
+            "charCount": 324,
+            "maxTextChars": 70,
+            "status": 200,
+            "endedAt": 1792684017561,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1080.6,
+              "downloadMs": 0.6,
+              "totalMs": 14451.6,
+              "protocol": "h2"
+            }
+          }
+        ],
+        "cache": "new document, no extension translation cache",
+        "passed": true
+      }
+    },
+    {
+      "phase": "case",
+      "result": {
+        "sourceLanguage": "it",
+        "targetLanguage": "zh-Hans",
+        "label": "意大利语（意大利、瑞士等）",
+        "url": "https://support.mozilla.org/it/kb/Gestione%20dei%20cookie",
+        "script": "\\p{Script=Latin}",
+        "tabId": 800038072,
+        "actualUrl": "https://support.mozilla.org/it/kb/Gestione%20dei%20cookie",
+        "documentLanguage": "it",
+        "title": "Gestione dei cookie | Supporto a Firefox",
+        "paragraphs": 13,
+        "articleChars": 2567,
+        "sourceSample": "Questo articolo spiega cosa sono i \"cookie\", come vengono utilizzati dai siti web e come sia possibile gestirli in Firefox.",
+        "reading": {
+          "chars": 3387,
+          "direction": "ltr",
+          "language": "it",
+          "paragraphs": 10,
+          "sourceScriptPresent": true,
+          "bodyRequests": 0
+        },
+        "completed": 27,
+        "emptyOutputs": 0,
+        "failed": 0,
+        "notice": "翻译完成 · 27 / 27",
+        "outputCount": 27,
+        "outputDirections": [
+          "ltr"
+        ],
+        "outputLanguages": [
+          "zh-Hans"
+        ],
+        "pending": 0,
+        "sample": "本文介绍了什么是“Cookie”、网站如何使用它们，以及如何在Firefox中管理它们。",
+        "state": "done",
+        "targetScriptCounts": {
+          "Arabic": 0,
+          "Devanagari": 0,
+          "Han": 589,
+          "Kana": 0,
+          "Latin": 246
+        },
+        "total": 27,
+        "codeUnchanged": true,
+        "sourceTextUnchanged": true,
+        "firstMs": 1952,
+        "elapsedMs": 1955,
+        "operatorResumes": 0,
+        "requests": 3,
+        "requestMetrics": [
+          {
+            "sequence": 25,
+            "startedAt": 1792684019871,
+            "textCount": 2,
+            "charCount": 383,
+            "maxTextChars": 260,
+            "status": 200,
+            "endedAt": 1792684021263,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1389.9,
+              "downloadMs": 0.8,
+              "totalMs": 1391.6,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 26,
+            "startedAt": 1792684019972,
+            "textCount": 12,
+            "charCount": 1500,
+            "maxTextChars": 611,
+            "status": 200,
+            "endedAt": 1792684021590,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1615.2,
+              "downloadMs": 3.2,
+              "totalMs": 1619.3,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 27,
+            "startedAt": 1792684020072,
+            "textCount": 10,
+            "charCount": 1073,
+            "maxTextChars": 324,
+            "status": 200,
+            "endedAt": 1792684021362,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1286.8,
+              "downloadMs": 0.8,
+              "totalMs": 1288.6,
+              "protocol": "h2"
+            }
+          }
+        ],
+        "cache": "new document, no extension translation cache",
+        "passed": true
+      }
+    },
+    {
+      "phase": "case",
+      "result": {
+        "sourceLanguage": "ar",
+        "targetLanguage": "zh-Hans",
+        "label": "阿拉伯语（沙特阿拉伯、埃及等）",
+        "url": "https://support.mozilla.org/ar/kb/cookies-information-websites-store-on-your-computer",
+        "script": "\\p{Script=Arabic}",
+        "tabId": 800038073,
+        "actualUrl": "https://support.mozilla.org/ar/kb/cookies-information-websites-store-on-your-computer",
+        "documentLanguage": "ar",
+        "title": "الكعكات | مساعدة Firefox",
+        "paragraphs": 13,
+        "articleChars": 1546,
+        "sourceSample": "تشرح هذه المقالة ماهيّة \"الكعكات\"، وكيفيّة استخدامها وإدارتها في فايرفوكس.",
+        "reading": {
+          "chars": 2409,
+          "direction": "rtl",
+          "language": "ar",
+          "paragraphs": 10,
+          "sourceScriptPresent": true,
+          "bodyRequests": 0
+        },
+        "completed": 28,
+        "emptyOutputs": 0,
+        "failed": 0,
+        "notice": "翻译完成 · 28 / 28",
+        "outputCount": 28,
+        "outputDirections": [
+          "ltr"
+        ],
+        "outputLanguages": [
+          "zh-Hans"
+        ],
+        "pending": 0,
+        "sample": "本文将介绍什么是“Cookie”，以及如何在Firefox中使用和管理它们。",
+        "state": "done",
+        "targetScriptCounts": {
+          "Arabic": 0,
+          "Devanagari": 0,
+          "Han": 607,
+          "Kana": 0,
+          "Latin": 241
+        },
+        "total": 28,
+        "codeUnchanged": true,
+        "sourceTextUnchanged": true,
+        "firstMs": 1584,
+        "elapsedMs": 1586,
+        "operatorResumes": 0,
+        "requests": 2,
+        "requestMetrics": [
+          {
+            "sequence": 28,
+            "startedAt": 1792684022251,
+            "textCount": 18,
+            "charCount": 1480,
+            "maxTextChars": 314,
+            "status": 200,
+            "endedAt": 1792684023754,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1500.1,
+              "downloadMs": 0.9,
+              "totalMs": 1501.9,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 29,
+            "startedAt": 1792684022352,
+            "textCount": 7,
+            "charCount": 603,
+            "maxTextChars": 143,
+            "status": 200,
+            "endedAt": 1792684023451,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1096.8,
+              "downloadMs": 0.7,
+              "totalMs": 1098.5,
+              "protocol": "h2"
+            }
+          }
+        ],
+        "cache": "new document, no extension translation cache",
+        "passed": true
+      }
+    },
+    {
+      "phase": "case",
+      "result": {
+        "sourceLanguage": "hi",
+        "targetLanguage": "zh-Hans",
+        "label": "印地语（印度等）",
+        "url": "https://support.mozilla.org/hi-IN/kb/cookies-information-websites-store-on-your-computer",
+        "script": "\\p{Script=Devanagari}",
+        "tabId": 800038074,
+        "actualUrl": "https://support.mozilla.org/hi-IN/kb/cookies-information-websites-store-on-your-computer",
+        "documentLanguage": "hi-IN",
+        "title": "कूकीज़ - जानकारियाँ जिन्हें वेबसाइटों द्वारा आपके कंप्यूटर पर सहेजा जाता है | Firefox सहायता",
+        "paragraphs": 15,
+        "articleChars": 2184,
+        "sourceSample": "ये लेख बतलाता है कि \"कूकीज़\" क्या हैं, उनका इस्तेमाल कैसे होता है, और Firefox में उन्हें कैसे नियंत्रित करें.",
+        "reading": {
+          "chars": 3496,
+          "direction": "ltr",
+          "language": "hi-IN",
+          "paragraphs": 14,
+          "sourceScriptPresent": true,
+          "bodyRequests": 0
+        },
+        "completed": 28,
+        "emptyOutputs": 0,
+        "failed": 0,
+        "notice": "翻译完成 · 28 / 28",
+        "outputCount": 28,
+        "outputDirections": [
+          "ltr"
+        ],
+        "outputLanguages": [
+          "zh-Hans"
+        ],
+        "pending": 0,
+        "sample": "本文介绍了什么是“Cookie”、它们是如何被使用的，以及如何在 Firefox 中管理它们。",
+        "state": "done",
+        "targetScriptCounts": {
+          "Arabic": 0,
+          "Devanagari": 0,
+          "Han": 585,
+          "Kana": 0,
+          "Latin": 278
+        },
+        "total": 28,
+        "codeUnchanged": true,
+        "sourceTextUnchanged": true,
+        "firstMs": 1956,
+        "elapsedMs": 2957,
+        "operatorResumes": 0,
+        "requests": 2,
+        "requestMetrics": [
+          {
+            "sequence": 30,
+            "startedAt": 1792684024879,
+            "textCount": 14,
+            "charCount": 1487,
+            "maxTextChars": 372,
+            "status": 200,
+            "endedAt": 1792684027073,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2192.4,
+              "downloadMs": 6,
+              "totalMs": 2199.4,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 31,
+            "startedAt": 1792684024980,
+            "textCount": 11,
+            "charCount": 1018,
+            "maxTextChars": 157,
+            "status": 200,
+            "endedAt": 1792684026536,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1553.5,
+              "downloadMs": 0.7,
+              "totalMs": 1555.3,
+              "protocol": "h2"
+            }
+          }
+        ],
+        "cache": "new document, no extension translation cache",
+        "passed": true
+      }
+    },
+    {
+      "phase": "case",
+      "result": {
+        "sourceLanguage": "id",
+        "targetLanguage": "zh-Hans",
+        "label": "印尼语（印度尼西亚等）",
+        "url": "https://support.mozilla.org/id/kb/Tentang%20Cookie",
+        "script": "\\p{Script=Latin}",
+        "tabId": 800038075,
+        "actualUrl": "https://support.mozilla.org/id/kb/Tentang%20Cookie",
+        "documentLanguage": "id",
+        "title": "Tentang Cookie | Bantuan Firefox",
+        "paragraphs": 13,
+        "articleChars": 2141,
+        "sourceSample": "Artikel ini menjelaskan apa itu \"cookie\", bagaimana situs web menggunakannya, dan bagaimana Anda dapat mengelola cookie yang ",
+        "reading": {
+          "chars": 3193,
+          "direction": "ltr",
+          "language": "id",
+          "paragraphs": 10,
+          "sourceScriptPresent": true,
+          "bodyRequests": 0
+        },
+        "completed": 28,
+        "emptyOutputs": 0,
+        "failed": 0,
+        "notice": "翻译完成 · 28 / 28",
+        "outputCount": 28,
+        "outputDirections": [
+          "ltr"
+        ],
+        "outputLanguages": [
+          "zh-Hans"
+        ],
+        "pending": 0,
+        "sample": "本文介绍了什么是“Cookie”、网站如何使用Cookie，以及您如何管理Firefox中存储的Cookie。",
+        "state": "done",
+        "targetScriptCounts": {
+          "Arabic": 0,
+          "Devanagari": 0,
+          "Han": 589,
+          "Kana": 0,
+          "Latin": 258
+        },
+        "total": 28,
+        "codeUnchanged": true,
+        "sourceTextUnchanged": true,
+        "firstMs": 1952,
+        "elapsedMs": 1954,
+        "operatorResumes": 0,
+        "requests": 3,
+        "requestMetrics": [
+          {
+            "sequence": 32,
+            "startedAt": 1792684028870,
+            "textCount": 2,
+            "charCount": 328,
+            "maxTextChars": 186,
+            "status": 200,
+            "endedAt": 1792684030143,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1270.1,
+              "downloadMs": 0.7,
+              "totalMs": 1271.8,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 33,
+            "startedAt": 1792684028971,
+            "textCount": 11,
+            "charCount": 1499,
+            "maxTextChars": 442,
+            "status": 200,
+            "endedAt": 1792684030544,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1570.5,
+              "downloadMs": 0.8,
+              "totalMs": 1572.2,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 34,
+            "startedAt": 1792684029072,
+            "textCount": 12,
+            "charCount": 899,
+            "maxTextChars": 140,
+            "status": 200,
+            "endedAt": 1792684030406,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1331.7,
+              "downloadMs": 1.1,
+              "totalMs": 1333.8,
+              "protocol": "h2"
+            }
+          }
+        ],
+        "cache": "new document, no extension translation cache",
+        "passed": true
+      }
+    },
+    {
+      "phase": "case",
+      "result": {
+        "sourceLanguage": "tr",
+        "targetLanguage": "zh-Hans",
+        "label": "土耳其语（土耳其、塞浦路斯等）",
+        "url": "https://support.mozilla.org/tr/kb/cerezler-web-sitelerinin-bilgisayarinizda-depoladi",
+        "script": "\\p{Script=Latin}",
+        "tabId": 800038076,
+        "actualUrl": "https://support.mozilla.org/tr/kb/cerezler-web-sitelerinin-bilgisayarinizda-depoladi",
+        "documentLanguage": "tr",
+        "title": "Çerezler - Web sitelerinin bilgisayarınızda depoladığı bilgiler | Firefox Yardımı",
+        "paragraphs": 13,
+        "articleChars": 1968,
+        "sourceSample": "Bu makale \"çerezlerin\" ne olduğu, web sitelerinin bunları nasıl kullandığını ve Firefox'un depoladığı çerezleri nasıl yöneteb",
+        "reading": {
+          "chars": 3575,
+          "direction": "ltr",
+          "language": "tr",
+          "paragraphs": 13,
+          "sourceScriptPresent": true,
+          "bodyRequests": 0
+        },
+        "completed": 27,
+        "emptyOutputs": 0,
+        "failed": 0,
+        "notice": "翻译完成 · 27 / 27",
+        "outputCount": 27,
+        "outputDirections": [
+          "ltr"
+        ],
+        "outputLanguages": [
+          "zh-Hans"
+        ],
+        "pending": 0,
+        "sample": "本文介绍了什么是“Cookie”、网站如何使用它们，以及如何管理 Firefox 存储的 Cookie。",
+        "state": "done",
+        "targetScriptCounts": {
+          "Arabic": 0,
+          "Devanagari": 0,
+          "Han": 588,
+          "Kana": 0,
+          "Latin": 258
+        },
+        "total": 27,
+        "codeUnchanged": true,
+        "sourceTextUnchanged": true,
+        "firstMs": 1950,
+        "elapsedMs": 1952,
+        "operatorResumes": 0,
+        "requests": 3,
+        "requestMetrics": [
+          {
+            "sequence": 35,
+            "startedAt": 1792684031871,
+            "textCount": 2,
+            "charCount": 393,
+            "maxTextChars": 246,
+            "status": 200,
+            "endedAt": 1792684033438,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1564.7,
+              "downloadMs": 0.9,
+              "totalMs": 1566.5,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 36,
+            "startedAt": 1792684031973,
+            "textCount": 15,
+            "charCount": 1479,
+            "maxTextChars": 339,
+            "status": 200,
+            "endedAt": 1792684033511,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1536.4,
+              "downloadMs": 4.8,
+              "totalMs": 1542.2,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 37,
+            "startedAt": 1792684032073,
+            "textCount": 7,
+            "charCount": 599,
+            "maxTextChars": 218,
+            "status": 200,
+            "endedAt": 1792684033598,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1523.1,
+              "downloadMs": 0.8,
+              "totalMs": 1524.9,
+              "protocol": "h2"
+            }
+          }
+        ],
+        "cache": "new document, no extension translation cache",
+        "passed": true
+      }
+    },
+    {
+      "phase": "case",
+      "result": {
+        "sourceLanguage": "vi",
+        "targetLanguage": "zh-Hans",
+        "label": "越南语（越南等）",
+        "url": "https://support.mozilla.org/vi/kb/cookie-thong-tin-ma-cac-trang-web-luu-tru-tren-may-tinh-cua-ban",
+        "script": "\\p{Script=Latin}",
+        "tabId": 800038077,
+        "actualUrl": "https://support.mozilla.org/vi/kb/cookie-thong-tin-ma-cac-trang-web-luu-tru-tren-may-tinh-cua-ban",
+        "documentLanguage": "vi",
+        "title": "Cookie - Thông tin mà các trang web lưu trữ trên máy tính của bạn | Trợ giúp về Firefox",
+        "paragraphs": 13,
+        "articleChars": 1929,
+        "sourceSample": "Bài viết này mô tả \"cookie\" là gì, cách các trang web sử dụng chúng và cách bạn có thể quản lý các cookie mà Firefox lưu trữ.",
+        "reading": {
+          "chars": 3630,
+          "direction": "ltr",
+          "language": "vi",
+          "paragraphs": 13,
+          "sourceScriptPresent": true,
+          "bodyRequests": 0
+        },
+        "completed": 28,
+        "emptyOutputs": 0,
+        "failed": 0,
+        "notice": "翻译完成 · 28 / 28",
+        "outputCount": 28,
+        "outputDirections": [
+          "ltr"
+        ],
+        "outputLanguages": [
+          "zh-Hans"
+        ],
+        "pending": 0,
+        "sample": "本文介绍了什么是“Cookie”、网站如何使用它们，以及您如何管理 Firefox 存储的 Cookie。",
+        "state": "done",
+        "targetScriptCounts": {
+          "Arabic": 0,
+          "Devanagari": 0,
+          "Han": 597,
+          "Kana": 0,
+          "Latin": 266
+        },
+        "total": 28,
+        "codeUnchanged": true,
+        "sourceTextUnchanged": true,
+        "firstMs": 1946,
+        "elapsedMs": 1949,
+        "operatorResumes": 0,
+        "requests": 3,
+        "requestMetrics": [
+          {
+            "sequence": 38,
+            "startedAt": 1792684034872,
+            "textCount": 2,
+            "charCount": 310,
+            "maxTextChars": 185,
+            "status": 200,
+            "endedAt": 1792684036066,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1192,
+              "downloadMs": 1,
+              "totalMs": 1193.9,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 39,
+            "startedAt": 1792684034973,
+            "textCount": 13,
+            "charCount": 1477,
+            "maxTextChars": 341,
+            "status": 200,
+            "endedAt": 1792684036692,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1716.5,
+              "downloadMs": 3.9,
+              "totalMs": 1721.4,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 40,
+            "startedAt": 1792684035074,
+            "textCount": 10,
+            "charCount": 694,
+            "maxTextChars": 137,
+            "status": 200,
+            "endedAt": 1792684036170,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1094.2,
+              "downloadMs": 24.1,
+              "totalMs": 1119.3,
+              "protocol": "h2"
+            }
+          }
+        ],
+        "cache": "new document, no extension translation cache",
+        "passed": true
+      }
+    },
+    {
+      "phase": "case",
+      "result": {
+        "sourceLanguage": "en",
+        "targetLanguage": "ja",
+        "label": "英语→日语（目标语言验证）",
+        "url": "https://developer.mozilla.org/en-US/docs/Glossary/HTML",
+        "script": "\\p{Script=Latin}",
+        "tabId": 800038078,
+        "actualUrl": "https://developer.mozilla.org/en-US/docs/Glossary/HTML",
+        "documentLanguage": "en-US",
+        "title": "HTML - Glossary | MDN",
+        "paragraphs": 8,
+        "articleChars": 1585,
+        "sourceSample": "HTML (HyperText Markup Language) is a descriptive language that specifies webpage structure.",
+        "reading": {
+          "chars": 1656,
+          "direction": "ltr",
+          "language": "en-US",
+          "paragraphs": 6,
+          "sourceScriptPresent": true,
+          "bodyRequests": 0
+        },
+        "completed": 23,
+        "emptyOutputs": 0,
+        "failed": 0,
+        "notice": "翻译完成 · 23 / 23",
+        "outputCount": 23,
+        "outputDirections": [
+          "ltr"
+        ],
+        "outputLanguages": [
+          "ja"
+        ],
+        "pending": 0,
+        "sample": "HTML（HyperText Markup Language）は、ウェブページの構造を定義する記述言語です。",
+        "state": "done",
+        "targetScriptCounts": {
+          "Arabic": 0,
+          "Devanagari": 0,
+          "Han": 235,
+          "Kana": 452,
+          "Latin": 173
+        },
+        "total": 23,
+        "codeUnchanged": true,
+        "sourceTextUnchanged": true,
+        "firstMs": 1943,
+        "elapsedMs": 2945,
+        "operatorResumes": 0,
+        "requests": 2,
+        "requestMetrics": [
+          {
+            "sequence": 41,
+            "startedAt": 1792684037887,
+            "textCount": 2,
+            "charCount": 594,
+            "maxTextChars": 502,
+            "status": 200,
+            "endedAt": 1792684039658,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1767.8,
+              "downloadMs": 1,
+              "totalMs": 1769.6,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 42,
+            "startedAt": 1792684037989,
+            "textCount": 18,
+            "charCount": 1251,
+            "maxTextChars": 389,
+            "status": 200,
+            "endedAt": 1792684040054,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2062.5,
+              "downloadMs": 0.8,
+              "totalMs": 2064.3,
+              "protocol": "h2"
+            }
+          }
+        ],
+        "cache": "new document, no extension translation cache",
+        "passed": true
+      }
+    },
+    {
+      "phase": "case",
+      "result": {
+        "sourceLanguage": "en",
+        "targetLanguage": "ar",
+        "label": "英语→阿拉伯语（目标语言验证）",
+        "url": "https://developer.mozilla.org/en-US/docs/Glossary/HTML",
+        "script": "\\p{Script=Latin}",
+        "tabId": 800038079,
+        "actualUrl": "https://developer.mozilla.org/en-US/docs/Glossary/HTML",
+        "documentLanguage": "en-US",
+        "title": "HTML - Glossary | MDN",
+        "paragraphs": 8,
+        "articleChars": 1585,
+        "sourceSample": "HTML (HyperText Markup Language) is a descriptive language that specifies webpage structure.",
+        "reading": {
+          "chars": 1656,
+          "direction": "ltr",
+          "language": "en-US",
+          "paragraphs": 6,
+          "sourceScriptPresent": true,
+          "bodyRequests": 0
+        },
+        "completed": 23,
+        "emptyOutputs": 0,
+        "failed": 0,
+        "notice": "翻译完成 · 23 / 23",
+        "outputCount": 23,
+        "outputDirections": [
+          "rtl"
+        ],
+        "outputLanguages": [
+          "ar"
+        ],
+        "pending": 0,
+        "sample": "لغة HTML (لغة ترميز النص التشعبي) هي لغة وصفية تحدد بنية صفحة الويب.",
+        "state": "done",
+        "targetScriptCounts": {
+          "Arabic": 1182,
+          "Devanagari": 0,
+          "Han": 0,
+          "Kana": 0,
+          "Latin": 144
+        },
+        "total": 23,
+        "codeUnchanged": true,
+        "sourceTextUnchanged": true,
+        "firstMs": 2943,
+        "elapsedMs": 2945,
+        "operatorResumes": 0,
+        "requests": 2,
+        "requestMetrics": [
+          {
+            "sequence": 43,
+            "startedAt": 1792684041888,
+            "textCount": 2,
+            "charCount": 594,
+            "maxTextChars": 502,
+            "status": 200,
+            "endedAt": 1792684044215,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2325.4,
+              "downloadMs": 2.1,
+              "totalMs": 2328.4,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 44,
+            "startedAt": 1792684041988,
+            "textCount": 18,
+            "charCount": 1251,
+            "maxTextChars": 389,
+            "status": 200,
+            "endedAt": 1792684044357,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2365.8,
+              "downloadMs": 10,
+              "totalMs": 2376.8,
+              "protocol": "h2"
+            }
+          }
+        ],
+        "cache": "new document, no extension translation cache",
+        "passed": true
+      }
+    },
+    {
+      "phase": "case",
+      "result": {
+        "sourceLanguage": "en",
+        "targetLanguage": "hi",
+        "label": "英语→印地语（目标语言验证）",
+        "url": "https://developer.mozilla.org/en-US/docs/Glossary/HTML",
+        "script": "\\p{Script=Latin}",
+        "tabId": 800038080,
+        "actualUrl": "https://developer.mozilla.org/en-US/docs/Glossary/HTML",
+        "documentLanguage": "en-US",
+        "title": "HTML - Glossary | MDN",
+        "paragraphs": 8,
+        "articleChars": 1585,
+        "sourceSample": "HTML (HyperText Markup Language) is a descriptive language that specifies webpage structure.",
+        "reading": {
+          "chars": 1656,
+          "direction": "ltr",
+          "language": "en-US",
+          "paragraphs": 6,
+          "sourceScriptPresent": true,
+          "bodyRequests": 0
+        },
+        "completed": 23,
+        "emptyOutputs": 0,
+        "failed": 0,
+        "notice": "翻译完成 · 23 / 23",
+        "outputCount": 23,
+        "outputDirections": [
+          "ltr"
+        ],
+        "outputLanguages": [
+          "hi"
+        ],
+        "pending": 0,
+        "sample": "HTML (हाइपरटेक्स्ट मार्कअप भाषा) एक वर्णनात्मक भाषा है जो वेबपेज की संरचना निर्दिष्ट करती है।",
+        "state": "done",
+        "targetScriptCounts": {
+          "Arabic": 0,
+          "Devanagari": 1378,
+          "Han": 0,
+          "Kana": 0,
+          "Latin": 136
+        },
+        "total": 23,
+        "codeUnchanged": true,
+        "sourceTextUnchanged": true,
+        "firstMs": 2946,
+        "elapsedMs": 2948,
+        "operatorResumes": 0,
+        "requests": 2,
+        "requestMetrics": [
+          {
+            "sequence": 45,
+            "startedAt": 1792684045887,
+            "textCount": 2,
+            "charCount": 594,
+            "maxTextChars": 502,
+            "status": 200,
+            "endedAt": 1792684047901,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2011.7,
+              "downloadMs": 0.8,
+              "totalMs": 2013.4,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 46,
+            "startedAt": 1792684045987,
+            "textCount": 18,
+            "charCount": 1251,
+            "maxTextChars": 389,
+            "status": 200,
+            "endedAt": 1792684047911,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1921.5,
+              "downloadMs": 14.9,
+              "totalMs": 1937.2,
+              "protocol": "h2"
+            }
+          }
+        ],
+        "cache": "new document, no extension translation cache",
+        "passed": true
+      }
+    },
+    {
+      "phase": "case",
+      "result": {
+        "sourceLanguage": "auto",
+        "targetLanguage": "zh-Hans",
+        "label": "日语（自动识别验证）",
+        "url": "https://developer.mozilla.org/ja/docs/Glossary/HTML",
+        "script": "(?:\\p{Script=Hiragana}|\\p{Script=Katakana}|\\p{Script=Han})",
+        "tabId": 800038081,
+        "actualUrl": "https://developer.mozilla.org/ja/docs/Glossary/HTML",
+        "documentLanguage": "ja",
+        "title": "HTML - 用語集 | MDN",
+        "paragraphs": 12,
+        "articleChars": 1111,
+        "sourceSample": "このページはコミュニティーの尽力で英語から翻訳されました。MDN\n          Web Docs\n          コミュニティーについてもっと知り、仲間になるにはこちらから。",
+        "reading": {
+          "chars": 1023,
+          "direction": "ltr",
+          "language": "ja",
+          "paragraphs": 6,
+          "sourceScriptPresent": true,
+          "bodyRequests": 0
+        },
+        "completed": 25,
+        "emptyOutputs": 0,
+        "failed": 0,
+        "notice": "翻译完成 · 25 / 25",
+        "outputCount": 25,
+        "outputDirections": [
+          "ltr"
+        ],
+        "outputLanguages": [
+          "zh-Hans"
+        ],
+        "pending": 0,
+        "sample": "本页面由社区成员从英语翻译而来。如需进一步了解 MDN Web Docs 社区并加入其中，请点击此处。",
+        "state": "done",
+        "targetScriptCounts": {
+          "Arabic": 0,
+          "Devanagari": 0,
+          "Han": 501,
+          "Kana": 0,
+          "Latin": 178
+        },
+        "total": 25,
+        "codeUnchanged": true,
+        "sourceTextUnchanged": true,
+        "firstMs": 1933,
+        "elapsedMs": 2934,
+        "operatorResumes": 0,
+        "requests": 2,
+        "requestMetrics": [
+          {
+            "sequence": 47,
+            "startedAt": 1792684049895,
+            "textCount": 1,
+            "charCount": 245,
+            "maxTextChars": 245,
+            "status": 200,
+            "endedAt": 1792684051758,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1860.9,
+              "downloadMs": 0.7,
+              "totalMs": 1862.5,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 48,
+            "startedAt": 1792684049998,
+            "textCount": 21,
+            "charCount": 960,
+            "maxTextChars": 329,
+            "status": 200,
+            "endedAt": 1792684051847,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1847.1,
+              "downloadMs": 5.9,
+              "totalMs": 1854,
+              "protocol": "h2"
+            }
+          }
+        ],
+        "cache": "new document, no extension translation cache",
+        "passed": true
+      }
+    },
+    {
+      "phase": "case",
+      "result": {
+        "sourceLanguage": "auto",
+        "targetLanguage": "zh-Hans",
+        "label": "阿拉伯语（自动识别验证）",
+        "url": "https://support.mozilla.org/ar/kb/cookies-information-websites-store-on-your-computer",
+        "script": "\\p{Script=Arabic}",
+        "tabId": 800038082,
+        "actualUrl": "https://support.mozilla.org/ar/kb/cookies-information-websites-store-on-your-computer",
+        "documentLanguage": "ar",
+        "title": "الكعكات | مساعدة Firefox",
+        "paragraphs": 13,
+        "articleChars": 1546,
+        "sourceSample": "تشرح هذه المقالة ماهيّة \"الكعكات\"، وكيفيّة استخدامها وإدارتها في فايرفوكس.",
+        "reading": {
+          "chars": 2409,
+          "direction": "rtl",
+          "language": "ar",
+          "paragraphs": 10,
+          "sourceScriptPresent": true,
+          "bodyRequests": 0
+        },
+        "completed": 28,
+        "emptyOutputs": 0,
+        "failed": 0,
+        "notice": "翻译完成 · 28 / 28",
+        "outputCount": 28,
+        "outputDirections": [
+          "ltr"
+        ],
+        "outputLanguages": [
+          "zh-Hans"
+        ],
+        "pending": 0,
+        "sample": "本文将介绍什么是“Cookie”，以及如何在Firefox中使用和管理它们。",
+        "state": "done",
+        "targetScriptCounts": {
+          "Arabic": 0,
+          "Devanagari": 0,
+          "Han": 607,
+          "Kana": 0,
+          "Latin": 241
+        },
+        "total": 28,
+        "codeUnchanged": true,
+        "sourceTextUnchanged": true,
+        "firstMs": 1953,
+        "elapsedMs": 1955,
+        "operatorResumes": 0,
+        "requests": 2,
+        "requestMetrics": [
+          {
+            "sequence": 49,
+            "startedAt": 1792684053883,
+            "textCount": 18,
+            "charCount": 1480,
+            "maxTextChars": 314,
+            "status": 200,
+            "endedAt": 1792684055426,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1540.3,
+              "downloadMs": 8.1,
+              "totalMs": 1549.4,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 50,
+            "startedAt": 1792684053983,
+            "textCount": 7,
+            "charCount": 603,
+            "maxTextChars": 143,
+            "status": 200,
+            "endedAt": 1792684055269,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1283.5,
+              "downloadMs": 9.9,
+              "totalMs": 1294.2,
+              "protocol": "h2"
+            }
+          }
+        ],
+        "cache": "new document, no extension translation cache",
+        "passed": true
+      }
+    },
+    {
+      "phase": "case",
+      "result": {
+        "sourceLanguage": "auto",
+        "targetLanguage": "zh-Hans",
+        "label": "印地语（自动识别验证）",
+        "url": "https://support.mozilla.org/hi-IN/kb/cookies-information-websites-store-on-your-computer",
+        "script": "\\p{Script=Devanagari}",
+        "tabId": 800038083,
+        "actualUrl": "https://support.mozilla.org/hi-IN/kb/cookies-information-websites-store-on-your-computer",
+        "documentLanguage": "hi-IN",
+        "title": "कूकीज़ - जानकारियाँ जिन्हें वेबसाइटों द्वारा आपके कंप्यूटर पर सहेजा जाता है | Firefox सहायता",
+        "paragraphs": 15,
+        "articleChars": 2184,
+        "sourceSample": "ये लेख बतलाता है कि \"कूकीज़\" क्या हैं, उनका इस्तेमाल कैसे होता है, और Firefox में उन्हें कैसे नियंत्रित करें.",
+        "reading": {
+          "chars": 3496,
+          "direction": "ltr",
+          "language": "hi-IN",
+          "paragraphs": 14,
+          "sourceScriptPresent": true,
+          "bodyRequests": 0
+        },
+        "completed": 28,
+        "emptyOutputs": 0,
+        "failed": 0,
+        "notice": "翻译完成 · 28 / 28",
+        "outputCount": 28,
+        "outputDirections": [
+          "ltr"
+        ],
+        "outputLanguages": [
+          "zh-Hans"
+        ],
+        "pending": 0,
+        "sample": "本文介绍了什么是“Cookie”、它们是如何被使用的，以及如何在 Firefox 中管理它们。",
+        "state": "done",
+        "targetScriptCounts": {
+          "Arabic": 0,
+          "Devanagari": 0,
+          "Han": 582,
+          "Kana": 0,
+          "Latin": 272
+        },
+        "total": 28,
+        "codeUnchanged": true,
+        "sourceTextUnchanged": true,
+        "firstMs": 1949,
+        "elapsedMs": 2950,
+        "operatorResumes": 0,
+        "requests": 2,
+        "requestMetrics": [
+          {
+            "sequence": 51,
+            "startedAt": 1792684056886,
+            "textCount": 14,
+            "charCount": 1487,
+            "maxTextChars": 372,
+            "status": 200,
+            "endedAt": 1792684058967,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 2078.7,
+              "downloadMs": 0.7,
+              "totalMs": 2080.4,
+              "protocol": "h2"
+            }
+          },
+          {
+            "sequence": 52,
+            "startedAt": 1792684056986,
+            "textCount": 11,
+            "charCount": 1018,
+            "maxTextChars": 157,
+            "status": 200,
+            "endedAt": 1792684058400,
+            "networkTiming": {
+              "dnsMs": 0,
+              "connectMs": 0,
+              "tlsMs": 0,
+              "waitMs": 1411.9,
+              "downloadMs": 0.7,
+              "totalMs": 1413.5,
+              "protocol": "h2"
+            }
+          }
+        ],
+        "cache": "new document, no extension translation cache",
+        "passed": true
+      }
+    },
+    {
+      "phase": "complete",
+      "version": "0.9.0",
+      "groupId": 1433112227,
+      "total": 22,
+      "passed": 22,
+      "settingsRestored": true,
+      "credentialValuesRead": false,
+      "results": [
+        {
+          "sourceLanguage": "zh-Hans",
+          "targetLanguage": "en",
+          "label": "简体中文（中国大陆、新加坡等）",
+          "url": "https://developer.mozilla.org/zh-CN/docs/Glossary/HTML",
+          "script": "\\p{Script=Han}",
+          "tabId": 800038062,
+          "actualUrl": "https://developer.mozilla.org/zh-CN/docs/Glossary/HTML",
+          "documentLanguage": "zh-CN",
+          "title": "HTML - MDN Web 文档术语表：Web 相关术语的定义 | MDN",
+          "paragraphs": 12,
+          "articleChars": 869,
+          "sourceSample": "此页面由社区从英文翻译而来。了解更多并加入 MDN Web Docs 社区。",
+          "reading": {
+            "chars": 818,
+            "direction": "ltr",
+            "language": "zh-CN",
+            "paragraphs": 6,
+            "sourceScriptPresent": true,
+            "bodyRequests": 0
+          },
+          "completed": 25,
+          "emptyOutputs": 0,
+          "failed": 0,
+          "notice": "翻译完成 · 25 / 25",
+          "outputCount": 25,
+          "outputDirections": [
+            "ltr"
+          ],
+          "outputLanguages": [
+            "en"
+          ],
+          "pending": 0,
+          "sample": "This page was translated from English by the community. Learn more and join the MDN Web Docs community.",
+          "state": "done",
+          "targetScriptCounts": {
+            "Arabic": 0,
+            "Devanagari": 0,
+            "Han": 0,
+            "Kana": 0,
+            "Latin": 1751
+          },
+          "total": 25,
+          "codeUnchanged": true,
+          "sourceTextUnchanged": true,
+          "firstMs": 3014,
+          "elapsedMs": 3016,
+          "operatorResumes": 0,
+          "requests": 2,
+          "requestMetrics": [
+            {
+              "sequence": 1,
+              "startedAt": 1792683969977,
+              "textCount": 1,
+              "charCount": 271,
+              "maxTextChars": 271,
+              "status": 200,
+              "endedAt": 1792683971887,
+              "networkTiming": {
+                "dnsMs": 0,
+                "connectMs": 0,
+                "tlsMs": 0,
+                "waitMs": 1883.2,
+                "downloadMs": 0.6,
+                "totalMs": 1909.6,
+                "protocol": "h2"
+              }
+            },
+            {
+              "sequence": 2,
+              "startedAt": 1792683970036,
+              "textCount": 21,
+              "charCount": 678,
+              "maxTextChars": 182,
+              "status": 200,
+              "endedAt": 1792683971881,
+              "networkTiming": {
+                "dnsMs": 0,
+                "connectMs": 0,
+                "tlsMs": 0,
+                "waitMs": 1804.8,
+                "downloadMs": 0.5,
+                "totalMs": 1844.6,
+                "protocol": "h2"
+              }
+            }
+          ],
+          "cache": "new document, no extension translation cache",
+          "passed": true
+        },
+        {
+          "sourceLanguage": "zh-Hant",
+          "targetLanguage": "zh-Hans",
+          "label": "繁体中文（台湾、香港、澳门等）",
+          "url": "https://developer.mozilla.org/zh-TW/docs/Glossary/HTML",
+          "script": "\\p{Script=Han}",
+          "tabId": 800038063,
+          "actualUrl": "https://developer.mozilla.org/zh-TW/docs/Glossary/HTML",
+          "documentLanguage": "zh-TW",
+          "title": "HTML - 術語表 | MDN",
+          "paragraphs": 12,
+          "articleChars": 825,
+          "sourceSample": "此頁面由社群從英文翻譯而來。了解更多並加入 MDN Web Docs 社群。",
+          "reading": {
+            "chars": 806,
+            "direction": "ltr",
+            "language": "zh-TW",
+            "paragraphs": 6,
+            "sourceScriptPresent": true,
+            "bodyRequests": 0
+          },
+          "completed": 28,
+          "emptyOutputs": 0,
+          "failed": 0,
+          "notice": "翻译完成 · 28 / 28",
+          "outputCount": 28,
+          "outputDirections": [
+            "ltr"
+          ],
+          "outputLanguages": [
+            "zh-Hans"
+          ],
+          "pending": 0,
+          "sample": "此頁面由社群從英文翻譯而來。了解更多並加入 MDN Web Docs 社群。",
+          "state": "done",
+          "targetScriptCounts": {
+            "Arabic": 0,
+            "Devanagari": 0,
+            "Han": 385,
+            "Kana": 0,
+            "Latin": 374
+          },
+          "total": 28,
+          "codeUnchanged": true,
+          "sourceTextUnchanged": true,
+          "firstMs": 1854,
+          "elapsedMs": 1856,
+          "operatorResumes": 0,
+          "requests": 2,
+          "requestMetrics": [
+            {
+              "sequence": 3,
+              "startedAt": 1792683973969,
+              "textCount": 1,
+              "charCount": 269,
+              "maxTextChars": 269,
+              "status": 200,
+              "endedAt": 1792683974902,
+              "networkTiming": {
+                "dnsMs": 0,
+                "connectMs": 0,
+                "tlsMs": 0,
+                "waitMs": 925.9,
+                "downloadMs": 2.1,
+                "totalMs": 929,
+                "protocol": "h2"
+              }
+            },
+            {
+              "sequence": 4,
+              "startedAt": 1792683974070,
+              "textCount": 24,
+              "charCount": 725,
+              "maxTextChars": 128,
+              "status": 200,
+              "endedAt": 1792683975023,
+              "networkTiming": {
+                "dnsMs": 0,
+                "connectMs": 0,
+                "tlsMs": 0,
+                "waitMs": 929.6,
+                "downloadMs": 11.3,
+                "totalMs": 941.8,
+                "protocol": "h2"
+              }
+            }
+          ],
+          "cache": "new document, no extension translation cache",
+          "passed": true
+        },
+        {
+          "sourceLanguage": "en",
+          "targetLanguage": "zh-Hans",
+          "label": "英语（美国、英国等）",
+          "url": "https://developer.mozilla.org/en-US/docs/Glossary/HTML",
+          "script": "\\p{Script=Latin}",
+          "tabId": 800038064,
+          "actualUrl": "https://developer.mozilla.org/en-US/docs/Glossary/HTML",
+          "documentLanguage": "en-US",
+          "title": "HTML - Glossary | MDN",
+          "paragraphs": 8,
+          "articleChars": 1585,
+          "sourceSample": "HTML (HyperText Markup Language) is a descriptive language that specifies webpage structure.",
+          "reading": {
+            "chars": 1656,
+            "direction": "ltr",
+            "language": "en-US",
+            "paragraphs": 6,
+            "sourceScriptPresent": true,
+            "bodyRequests": 0
+          },
+          "completed": 23,
+          "emptyOutputs": 0,
+          "failed": 0,
+          "notice": "翻译完成 · 23 / 23",
+          "outputCount": 23,
+          "outputDirections": [
+            "ltr"
+          ],
+          "outputLanguages": [
+            "zh-Hans"
+          ],
+          "pending": 0,
+          "sample": "1990年，作为其万维网愿景的一部分，蒂姆·伯纳斯-李提出了超文本的概念，并于次年通过一种主要基于SGML的标记语言将其正式化。IETF于1993年开始正式制定HTML规范，经过多次草案修订后，于1995年发布了2.0版。1994年，伯纳斯-李创立了W3C以推动万维网的发展。1996年，W3C接手了HTML相关工作，并于一年后发布了HTML 3.2建议书。H",
+          "state": "done",
+          "targetScriptCounts": {
+            "Arabic": 0,
+            "Devanagari": 0,
+            "Han": 464,
+            "Kana": 0,
+            "Latin": 150
+          },
+          "total": 23,
+          "codeUnchanged": true,
+          "sourceTextUnchanged": true,
+          "firstMs": 1944,
+          "elapsedMs": 2952,
+          "operatorResumes": 0,
+          "requests": 2,
+          "requestMetrics": [
+            {
+              "sequence": 5,
+              "startedAt": 1792683976888,
+              "textCount": 2,
+              "charCount": 594,
+              "maxTextChars": 502,
+              "status": 200,
+              "endedAt": 1792683978747,
+              "networkTiming": {
+                "dnsMs": 0,
+                "connectMs": 0,
+                "tlsMs": 0,
+                "waitMs": 1857.7,
+                "downloadMs": 4,
+                "totalMs": 1862.5,
+                "protocol": "h2"
+              }
+            },
+            {
+              "sequence": 6,
+              "startedAt": 1792683976988,
+              "textCount": 18,
+              "charCount": 1251,
+              "maxTextChars": 389,
+              "status": 200,
+              "endedAt": 1792683978995,
+              "networkTiming": {
+                "dnsMs": 0,
+                "connectMs": 0,
+                "tlsMs": 0,
+                "waitMs": 2004.1,
+                "downloadMs": 0.7,
+                "totalMs": 2005.8,
+                "protocol": "h2"
+              }
+            }
+          ],
+          "cache": "new document, no extension translation cache",
+          "passed": true
+        },
+        {
+          "sourceLanguage": "ja",
+          "targetLanguage": "zh-Hans",
+          "label": "日语（日本等）",
+          "url": "https://developer.mozilla.org/ja/docs/Glossary/HTML",
+          "script": "(?:\\p{Script=Hiragana}|\\p{Script=Katakana}|\\p{Script=Han})",
+          "tabId": 800038065,
+          "actualUrl": "https://developer.mozilla.org/ja/docs/Glossary/HTML",
+          "documentLanguage": "ja",
+          "title": "HTML - 用語集 | MDN",
+          "paragraphs": 12,
+          "articleChars": 1111,
+          "sourceSample": "このページはコミュニティーの尽力で英語から翻訳されました。MDN\n          Web Docs\n          コミュニティーについてもっと知り、仲間になるにはこちらから。",
+          "reading": {
+            "chars": 1023,
+            "direction": "ltr",
+            "language": "ja",
+            "paragraphs": 6,
+            "sourceScriptPresent": true,
+            "bodyRequests": 0
+          },
+          "completed": 25,
+          "emptyOutputs": 0,
+          "failed": 0,
+          "notice": "翻译完成 · 25 / 25",
+          "outputCount": 25,
+          "outputDirections": [
+            "ltr"
+          ],
+          "outputLanguages": [
+            "zh-Hans"
+          ],
+          "pending": 0,
+          "sample": "本页面由社区成员从英语翻译而来。如需进一步了解 MDN Web Docs 社区并加入其中，请点击此处。",
+          "state": "done",
+          "targetScriptCounts": {
+            "Arabic": 0,
+            "Devanagari": 0,
+            "Han": 501,
+            "Kana": 0,
+            "Latin": 178
+          },
+          "total": 25,
+          "codeUnchanged": true,
+          "sourceTextUnchanged": true,
+          "firstMs": 1938,
+          "elapsedMs": 2941,
+          "operatorResumes": 0,
+          "requests": 2,
+          "requestMetrics": [
+            {
+              "sequence": 7,
+              "startedAt": 1792683980890,
+              "textCount": 1,
+              "charCount": 245,
+              "maxTextChars": 245,
+              "status": 200,
+              "endedAt": 1792683982765,
+              "networkTiming": {
+                "dnsMs": 0,
+                "connectMs": 0,
+                "tlsMs": 0,
+                "waitMs": 1872.8,
+                "downloadMs": 0.8,
+                "totalMs": 1874.5,
+                "protocol": "h2"
+              }
+            },
+            {
+              "sequence": 8,
+              "startedAt": 1792683980991,
+              "textCount": 21,
+              "charCount": 960,
+              "maxTextChars": 329,
+              "status": 200,
+              "endedAt": 1792683983079,
+              "networkTiming": {
+                "dnsMs": 0,
+                "connectMs": 0,
+                "tlsMs": 0,
+                "waitMs": 2084.7,
+                "downloadMs": 3,
+                "totalMs": 2088.7,
+                "protocol": "h2"
+              }
+            }
+          ],
+          "cache": "new document, no extension translation cache",
+          "passed": true
+        },
+        {
+          "sourceLanguage": "ko",
+          "targetLanguage": "zh-Hans",
+          "label": "韩语（韩国等）",
+          "url": "https://developer.mozilla.org/ko/docs/Glossary/HTML",
+          "script": "\\p{Script=Hangul}",
+          "tabId": 800038066,
+          "actualUrl": "https://developer.mozilla.org/ko/docs/Glossary/HTML",
+          "documentLanguage": "ko",
+          "title": "HTML - MDN Web Docs 용어 사전: 웹 용어 정의 | MDN",
+          "paragraphs": 12,
+          "articleChars": 1048,
+          "sourceSample": "HTML(Hypertext Markup Language)은 웹페이지의 구조를 지정하는 기술적인 언어입니다.",
+          "reading": {
+            "chars": 906,
+            "direction": "ltr",
+            "language": "ko",
+            "paragraphs": 6,
+            "sourceScriptPresent": true,
+            "bodyRequests": 0
+          },
+          "completed": 25,
+          "emptyOutputs": 0,
+          "failed": 0,
+          "notice": "翻译完成 · 25 / 25",
+          "outputCount": 25,
+          "outputDirections": [
+            "ltr"
+          ],
+          "outputLanguages": [
+            "zh-Hans"
+          ],
+          "pending": 0,
+          "sample": "本页面由社区从英语翻译而来。了解更多信息并加入 MDN Web Docs 社区。",
+          "state": "done",
+          "targetScriptCounts": {
+            "Arabic": 0,
+            "Devanagari": 0,
+            "Han": 470,
+            "Kana": 0,
+            "Latin": 171
+          },
+          "total": 25,
+          "codeUnchanged": true,
+          "sourceTextUnchanged": true,
+          "firstMs": 1944,
+          "elapsedMs": 2945,
+          "operatorResumes": 0,
+          "requests": 2,
+          "requestMetrics": [
+            {
+              "sequence": 9,
+              "startedAt": 1792683984887,
+              "textCount": 2,
+              "charCount": 385,
+              "maxTextChars": 282,
+              "status": 200,
+              "endedAt": 1792683986635,
+              "networkTiming": {
+                "dnsMs": 0,
+                "connectMs": 0,
+                "tlsMs": 0,
+                "waitMs": 1746.7,
+                "downloadMs": 1.6,
+                "totalMs": 1749.1,
+                "protocol": "h2"
+              }
+            },
+            {
+              "sequence": 10,
+              "startedAt": 1792683984987,
+              "textCount": 20,
+              "charCount": 820,
+              "maxTextChars": 216,
+              "status": 200,
+              "endedAt": 1792683987205,
+              "networkTiming": {
+                "dnsMs": 0,
+                "connectMs": 0,
+                "tlsMs": 0,
+                "waitMs": 2215.7,
+                "downloadMs": 0.7,
+                "totalMs": 2217.4,
+                "protocol": "h2"
+              }
+            }
+          ],
+          "cache": "new document, no extension translation cache",
+          "passed": true
+        },
+        {
+          "sourceLanguage": "de",
+          "targetLanguage": "zh-Hans",
+          "label": "德语（德国、奥地利、瑞士等）",
+          "url": "https://developer.mozilla.org/de/docs/Glossary/HTML",
+          "script": "\\p{Script=Latin}",
+          "tabId": 800038067,
+          "actualUrl": "https://developer.mozilla.org/de/docs/Glossary/HTML",
+          "documentLanguage": "de",
+          "title": "HTML - Glossary | MDN",
+          "paragraphs": 11,
+          "articleChars": 1981,
+          "sourceSample": "Dieser Inhalt wurde automatisch aus dem Englischen\n          übersetzt, und kann Fehler enthalten.\n          Erfahre mehr übe",
+          "reading": {
+            "chars": 1909,
+            "direction": "ltr",
+            "language": "de",
+            "paragraphs": 6,
+            "sourceScriptPresent": true,
+            "bodyRequests": 0
+          },
+          "completed": 24,
+          "emptyOutputs": 0,
+          "failed": 0,
+          "notice": "翻译完成 · 24 / 24",
+          "outputCount": 24,
+          "outputDirections": [
+            "ltr"
+          ],
+          "outputLanguages": [
+            "zh-Hans"
+          ],
+          "pending": 0,
+          "sample": "此内容由系统自动从英语翻译而来，可能存在错误。了解更多关于此实验的信息。",
+          "state": "done",
+          "targetScriptCounts": {
+            "Arabic": 0,
+            "Devanagari": 0,
+            "Han": 504,
+            "Kana": 0,
+            "Latin": 151
+          },
+          "total": 24,
+          "codeUnchanged": true,
+          "sourceTextUnchanged": true,
+          "firstMs": 1958,
+          "elapsedMs": 2940,
+          "operatorResumes": 0,
+          "requests": 3,
+          "requestMetrics": [
+            {
+              "sequence": 11,
+              "startedAt": 1792683988890,
+              "textCount": 2,
+              "charCount": 234,
+              "maxTextChars": 125,
+              "status": 200,
+              "endedAt": 1792683990136,
+              "networkTiming": {
+                "dnsMs": 0,
+                "connectMs": 0,
+                "tlsMs": 0,
+                "waitMs": 1243.5,
+                "downloadMs": 0.8,
+                "totalMs": 1245.2,
+                "protocol": "h2"
+              }
+            },
+            {
+              "sequence": 12,
+              "startedAt": 1792683988991,
+              "textCount": 12,
+              "charCount": 1500,
+              "maxTextChars": 591,
+              "status": 200,
+              "endedAt": 1792683990907,
+              "networkTiming": {
+                "dnsMs": 0,
+                "connectMs": 0,
+                "tlsMs": 0,
+                "waitMs": 1914.2,
+                "downloadMs": 0.7,
+                "totalMs": 1915.9,
+                "protocol": "h2"
+              }
+            },
+            {
+              "sequence": 13,
+              "startedAt": 1792683989093,
+              "textCount": 7,
+              "charCount": 568,
+              "maxTextChars": 166,
+              "status": 200,
+              "endedAt": 1792683990379,
+              "networkTiming": {
+                "dnsMs": 0,
+                "connectMs": 0,
+                "tlsMs": 0,
+                "waitMs": 1283.6,
+                "downloadMs": 1,
+                "totalMs": 1285.9,
+                "protocol": "h2"
+              }
+            }
+          ],
+          "cache": "new document, no extension translation cache",
+          "passed": true
+        },
+        {
+          "sourceLanguage": "fr",
+          "targetLanguage": "zh-Hans",
+          "label": "法语（法国、加拿大等）",
+          "url": "https://developer.mozilla.org/fr/docs/Glossary/HTML",
+          "script": "\\p{Script=Latin}",
+          "tabId": 800038068,
+          "actualUrl": "https://developer.mozilla.org/fr/docs/Glossary/HTML",
+          "documentLanguage": "fr",
+          "title": "HTML - Glossaire | MDN",
+          "paragraphs": 12,
+          "articleChars": 2043,
+          "sourceSample": "Cette page a été traduite à partir de l'anglais par la\n          communauté.\n          Vous pouvez contribuer en rejoignant l",
+          "reading": {
+            "chars": 1886,
+            "direction": "ltr",
+            "language": "fr",
+            "paragraphs": 6,
+            "sourceScriptPresent": true,
+            "bodyRequests": 0
+          },
+          "completed": 25,
+          "emptyOutputs": 0,
+          "failed": 0,
+          "notice": "翻译完成 · 25 / 25",
+          "outputCount": 25,
+          "outputDirections": [
+            "ltr"
+          ],
+          "outputLanguages": [
+            "zh-Hans"
+          ],
+          "pending": 0,
+          "sample": "本页面由社区从英语翻译而来。您可以加入 MDN Web Docs 的法语社区，为翻译工作贡献力量。",
+          "state": "done",
+          "targetScriptCounts": {
+            "Arabic": 0,
+            "Devanagari": 0,
+            "Han": 512,
+            "Kana": 0,
+            "Latin": 160
+          },
+          "total": 25,
+          "codeUnchanged": true,
+          "sourceTextUnchanged": true,
+          "firstMs": 1941,
+          "elapsedMs": 1943,
+          "operatorResumes": 0,
+          "requests": 3,
+          "requestMetrics": [
+            {
+              "sequence": 14,
+              "startedAt": 1792683992887,
+              "textCount": 2,
+              "charCount": 615,
+              "maxTextChars": 516,
+              "status": 200,
+              "endedAt": 1792683994766,
+              "networkTiming": {
+                "dnsMs": 0,
+                "connectMs": 0,
+                "tlsMs": 0,
+                "waitMs": 1877.1,
+                "downloadMs": 0.6,
+                "totalMs": 1878.5,
+                "protocol": "h2"
+              }
+            },
+            {
+              "sequence": 15,
+              "startedAt": 1792683992989,
+              "textCount": 16,
+              "charCount": 1491,
+              "maxTextChars": 433,
+              "status": 200,
+              "endedAt": 1792683994626,
+              "networkTiming": {
+                "dnsMs": 0,
+                "connectMs": 0,
+                "tlsMs": 0,
+                "waitMs": 1635,
+                "downloadMs": 2,
+                "totalMs": 1638.1,
+                "protocol": "h2"
+              }
+            },
+            {
+              "sequence": 16,
+              "startedAt": 1792683993090,
+              "textCount": 4,
+              "charCount": 183,
+              "maxTextChars": 75,
+              "status": 200,
+              "endedAt": 1792683994519,
+              "networkTiming": {
+                "dnsMs": 0,
+                "connectMs": 0,
+                "tlsMs": 0,
+                "waitMs": 1426.6,
+                "downloadMs": 0.7,
+                "totalMs": 1428.2,
+                "protocol": "h2"
+              }
+            }
+          ],
+          "cache": "new document, no extension translation cache",
+          "passed": true
+        },
+        {
+          "sourceLanguage": "es",
+          "targetLanguage": "zh-Hans",
+          "label": "西班牙语（西班牙、墨西哥等）",
+          "url": "https://developer.mozilla.org/es/docs/Glossary/HTML",
+          "script": "\\p{Script=Latin}",
+          "tabId": 800038069,
+          "actualUrl": "https://developer.mozilla.org/es/docs/Glossary/HTML",
+          "documentLanguage": "es",
+          "title": "HTML - Glosario de MDN Web Docs | MDN",
+          "paragraphs": 12,
+          "articleChars": 2286,
+          "sourceSample": "Esta página ha sido traducida del inglés por la comunidad.\n          Aprende más y únete a la comunidad de MDN Web Docs.",
+          "reading": {
+            "chars": 2221,
+            "direction": "ltr",
+            "language": "es",
+            "paragraphs": 6,
+            "sourceScriptPresent": true,
+            "bodyRequests": 0
+          },
+          "completed": 28,
+          "emptyOutputs": 0,
+          "failed": 0,
+          "notice": "翻译完成 · 28 / 28",
+          "outputCount": 28,
+          "outputDirections": [
+            "ltr"
+          ],
+          "outputLanguages": [
+            "zh-Hans"
+          ],
+          "pending": 0,
+          "sample": "本页面由社区从英语翻译而来。了解更多信息并加入 MDN Web Docs 社区。",
+          "state": "done",
+          "targetScriptCounts": {
+            "Arabic": 0,
+            "Devanagari": 0,
+            "Han": 592,
+            "Kana": 0,
+            "Latin": 209
+          },
+          "total": 28,
+          "codeUnchanged": true,
+          "sourceTextUnchanged": true,
+          "firstMs": 1927,
+          "elapsedMs": 2929,
+          "operatorResumes": 0,
+          "requests": 3,
+          "requestMetrics": [
+            {
+              "sequence": 17,
+              "startedAt": 1792683995897,
+              "textCount": 2,
+              "charCount": 279,
+              "maxTextChars": 169,
+              "status": 200,
+              "endedAt": 1792683997018,
+              "networkTiming": {
+                "dnsMs": 0,
+                "connectMs": 0,
+                "tlsMs": 0,
+                "waitMs": 1118.4,
+                "downloadMs": 1.9,
+                "totalMs": 1121.2,
+                "protocol": "h2"
+              }
+            },
+            {
+              "sequence": 18,
+              "startedAt": 1792683995998,
+              "textCount": 9,
+              "charCount": 1497,
+              "maxTextChars": 642,
+              "status": 200,
+              "endedAt": 1792683998194,
+              "networkTiming": {
+                "dnsMs": 0,
+                "connectMs": 0,
+                "tlsMs": 0,
+                "waitMs": 2193.9,
+                "downloadMs": 0.8,
+                "totalMs": 2195.8,
+                "protocol": "h2"
+              }
+            },
+            {
+              "sequence": 19,
+              "startedAt": 1792683996098,
+              "textCount": 14,
+              "charCount": 847,
+              "maxTextChars": 236,
+              "status": 200,
+              "endedAt": 1792683997669,
+              "networkTiming": {
+                "dnsMs": 0,
+                "connectMs": 0,
+                "tlsMs": 0,
+                "waitMs": 1568.4,
+                "downloadMs": 0.7,
+                "totalMs": 1570.1,
+                "protocol": "h2"
+              }
+            }
+          ],
+          "cache": "new document, no extension translation cache",
+          "passed": true
+        },
+        {
+          "sourceLanguage": "ru",
+          "targetLanguage": "zh-Hans",
+          "label": "俄语（俄罗斯等）",
+          "url": "https://developer.mozilla.org/ru/docs/Glossary/HTML",
+          "script": "\\p{Script=Cyrillic}",
+          "tabId": 800038070,
+          "actualUrl": "https://developer.mozilla.org/ru/docs/Glossary/HTML",
+          "documentLanguage": "ru",
+          "title": "HTML - Глоссарий MDN Web Docs | MDN",
+          "paragraphs": 12,
+          "articleChars": 1671,
+          "sourceSample": "HTML (от англ. HyperText Markup Language — «язык гипертекстовой разметки») — язык разметки, определяющий структуру веб-страни",
+          "reading": {
+            "chars": 1566,
+            "direction": "ltr",
+            "language": "ru",
+            "paragraphs": 6,
+            "sourceScriptPresent": true,
+            "bodyRequests": 0
+          },
+          "completed": 26,
+          "emptyOutputs": 0,
+          "failed": 0,
+          "notice": "翻译完成 · 26 / 26",
+          "outputCount": 26,
+          "outputDirections": [
+            "ltr"
+          ],
+          "outputLanguages": [
+            "zh-Hans"
+          ],
+          "pending": 0,
+          "sample": "本页面由社区从英语翻译而来。了解更多信息并加入 MDN Web Docs 社区。",
+          "state": "done",
+          "targetScriptCounts": {
+            "Arabic": 0,
+            "Devanagari": 0,
+            "Han": 491,
+            "Kana": 0,
+            "Latin": 165
+          },
+          "total": 26,
+          "codeUnchanged": true,
+          "sourceTextUnchanged": true,
+          "firstMs": 1928,
+          "elapsedMs": 1930,
+          "operatorResumes": 0,
+          "requests": 2,
+          "requestMetrics": [
+            {
+              "sequence": 20,
+              "startedAt": 1792683999899,
+              "textCount": 2,
+              "charCount": 587,
+              "maxTextChars": 484,
+              "status": 200,
+              "endedAt": 1792684001788,
+              "networkTiming": {
+                "dnsMs": 0,
+                "connectMs": 0,
+                "tlsMs": 0,
+                "waitMs": 1886.8,
+                "downloadMs": 0.9,
+                "totalMs": 1888.6,
+                "protocol": "h2"
+              }
+            },
+            {
+              "sequence": 21,
+              "startedAt": 1792684000000,
+              "textCount": 21,
+              "charCount": 1323,
+              "maxTextChars": 270,
+              "status": 200,
+              "endedAt": 1792684001766,
+              "networkTiming": {
+                "dnsMs": 0,
+                "connectMs": 0,
+                "tlsMs": 0,
+                "waitMs": 1763.7,
+                "downloadMs": 21.2,
+                "totalMs": 1785.9,
+                "protocol": "h2"
+              }
+            }
+          ],
+          "cache": "new document, no extension translation cache",
+          "passed": true
+        },
+        {
+          "sourceLanguage": "pt",
+          "targetLanguage": "zh-Hans",
+          "label": "葡萄牙语（巴西、葡萄牙等）",
+          "url": "https://developer.mozilla.org/pt-BR/docs/Glossary/HTML",
+          "script": "\\p{Script=Latin}",
+          "tabId": 800038071,
+          "actualUrl": "https://developer.mozilla.org/pt-BR/docs/Glossary/HTML",
+          "documentLanguage": "pt-BR",
+          "title": "HTML - Glossário do MDN Web Docs | MDN",
+          "paragraphs": 12,
+          "articleChars": 1731,
+          "sourceSample": "Esta página foi traduzida do inglês pela comunidade.\n          Saiba mais e junte-se à comunidade MDN Web Docs.",
+          "reading": {
+            "chars": 1708,
+            "direction": "ltr",
+            "language": "pt-BR",
+            "paragraphs": 6,
+            "sourceScriptPresent": true,
+            "bodyRequests": 0
+          },
+          "completed": 28,
+          "emptyOutputs": 0,
+          "failed": 0,
+          "notice": "翻译完成 · 28 / 28",
+          "outputCount": 28,
+          "outputDirections": [
+            "ltr"
+          ],
+          "outputLanguages": [
+            "zh-Hans"
+          ],
+          "pending": 0,
+          "sample": "本页面由社区从英语翻译而来。了解更多信息并加入 MDN Web Docs 社区。",
+          "state": "done",
+          "targetScriptCounts": {
+            "Arabic": 0,
+            "Devanagari": 0,
+            "Han": 482,
+            "Kana": 0,
+            "Latin": 152
+          },
+          "total": 28,
+          "codeUnchanged": true,
+          "sourceTextUnchanged": true,
+          "firstMs": 14920,
+          "elapsedMs": 15923,
+          "operatorResumes": 0,
+          "requests": 3,
+          "requestMetrics": [
+            {
+              "sequence": 22,
+              "startedAt": 1792684002906,
+              "textCount": 2,
+              "charCount": 206,
+              "maxTextChars": 105,
+              "status": 200,
+              "endedAt": 1792684017450,
+              "networkTiming": {
+                "dnsMs": 0,
+                "connectMs": 921.4,
+                "tlsMs": 919.8,
+                "waitMs": 968.9,
+                "downloadMs": 0.7,
+                "totalMs": 14542.8,
+                "protocol": "h2"
+              }
+            },
+            {
+              "sequence": 23,
+              "startedAt": 1792684003009,
+              "textCount": 12,
+              "charCount": 1486,
+              "maxTextChars": 509,
+              "status": 200,
+              "endedAt": 1792684017959,
+              "networkTiming": {
+                "dnsMs": 0,
+                "connectMs": 0,
+                "tlsMs": 0,
+                "waitMs": 1477.8,
+                "downloadMs": 0.8,
+                "totalMs": 14949.6,
+                "protocol": "h2"
+              }
+            },
+            {
+              "sequence": 24,
+              "startedAt": 1792684003109,
+              "textCount": 11,
+              "charCount": 324,
+              "maxTextChars": 70,
+              "status": 200,
+              "endedAt": 1792684017561,
+              "networkTiming": {
+                "dnsMs": 0,
+                "connectMs": 0,
+                "tlsMs": 0,
+                "waitMs": 1080.6,
+                "downloadMs": 0.6,
+                "totalMs": 14451.6,
+                "protocol": "h2"
+              }
+            }
+          ],
+          "cache": "new document, no extension translation cache",
+          "passed": true
+        },
+        {
+          "sourceLanguage": "it",
+          "targetLanguage": "zh-Hans",
+          "label": "意大利语（意大利、瑞士等）",
+          "url": "https://support.mozilla.org/it/kb/Gestione%20dei%20cookie",
+          "script": "\\p{Script=Latin}",
+          "tabId": 800038072,
+          "actualUrl": "https://support.mozilla.org/it/kb/Gestione%20dei%20cookie",
+          "documentLanguage": "it",
+          "title": "Gestione dei cookie | Supporto a Firefox",
+          "paragraphs": 13,
+          "articleChars": 2567,
+          "sourceSample": "Questo articolo spiega cosa sono i \"cookie\", come vengono utilizzati dai siti web e come sia possibile gestirli in Firefox.",
+          "reading": {
+            "chars": 3387,
+            "direction": "ltr",
+            "language": "it",
+            "paragraphs": 10,
+            "sourceScriptPresent": true,
+            "bodyRequests": 0
+          },
+          "completed": 27,
+          "emptyOutputs": 0,
+          "failed": 0,
+          "notice": "翻译完成 · 27 / 27",
+          "outputCount": 27,
+          "outputDirections": [
+            "ltr"
+          ],
+          "outputLanguages": [
+            "zh-Hans"
+          ],
+          "pending": 0,
+          "sample": "本文介绍了什么是“Cookie”、网站如何使用它们，以及如何在Firefox中管理它们。",
+          "state": "done",
+          "targetScriptCounts": {
+            "Arabic": 0,
+            "Devanagari": 0,
+            "Han": 589,
+            "Kana": 0,
+            "Latin": 246
+          },
+          "total": 27,
+          "codeUnchanged": true,
+          "sourceTextUnchanged": true,
+          "firstMs": 1952,
+          "elapsedMs": 1955,
+          "operatorResumes": 0,
+          "requests": 3,
+          "requestMetrics": [
+            {
+              "sequence": 25,
+              "startedAt": 1792684019871,
+              "textCount": 2,
+              "charCount": 383,
+              "maxTextChars": 260,
+              "status": 200,
+              "endedAt": 1792684021263,
+              "networkTiming": {
+                "dnsMs": 0,
+                "connectMs": 0,
+                "tlsMs": 0,
+                "waitMs": 1389.9,
+                "downloadMs": 0.8,
+                "totalMs": 1391.6,
+                "protocol": "h2"
+              }
+            },
+            {
+              "sequence": 26,
+              "startedAt": 1792684019972,
+              "textCount": 12,
+              "charCount": 1500,
+              "maxTextChars": 611,
+              "status": 200,
+              "endedAt": 1792684021590,
+              "networkTiming": {
+                "dnsMs": 0,
+                "connectMs": 0,
+                "tlsMs": 0,
+                "waitMs": 1615.2,
+                "downloadMs": 3.2,
+                "totalMs": 1619.3,
+                "protocol": "h2"
+              }
+            },
+            {
+              "sequence": 27,
+              "startedAt": 1792684020072,
+              "textCount": 10,
+              "charCount": 1073,
+              "maxTextChars": 324,
+              "status": 200,
+              "endedAt": 1792684021362,
+              "networkTiming": {
+                "dnsMs": 0,
+                "connectMs": 0,
+                "tlsMs": 0,
+                "waitMs": 1286.8,
+                "downloadMs": 0.8,
+                "totalMs": 1288.6,
+                "protocol": "h2"
+              }
+            }
+          ],
+          "cache": "new document, no extension translation cache",
+          "passed": true
+        },
+        {
+          "sourceLanguage": "ar",
+          "targetLanguage": "zh-Hans",
+          "label": "阿拉伯语（沙特阿拉伯、埃及等）",
+          "url": "https://support.mozilla.org/ar/kb/cookies-information-websites-store-on-your-computer",
+          "script": "\\p{Script=Arabic}",
+          "tabId": 800038073,
+          "actualUrl": "https://support.mozilla.org/ar/kb/cookies-information-websites-store-on-your-computer",
+          "documentLanguage": "ar",
+          "title": "الكعكات | مساعدة Firefox",
+          "paragraphs": 13,
+          "articleChars": 1546,
+          "sourceSample": "تشرح هذه المقالة ماهيّة \"الكعكات\"، وكيفيّة استخدامها وإدارتها في فايرفوكس.",
+          "reading": {
+            "chars": 2409,
+            "direction": "rtl",
+            "language": "ar",
+            "paragraphs": 10,
+            "sourceScriptPresent": true,
+            "bodyRequests": 0
+          },
+          "completed": 28,
+          "emptyOutputs": 0,
+          "failed": 0,
+          "notice": "翻译完成 · 28 / 28",
+          "outputCount": 28,
+          "outputDirections": [
+            "ltr"
+          ],
+          "outputLanguages": [
+            "zh-Hans"
+          ],
+          "pending": 0,
+          "sample": "本文将介绍什么是“Cookie”，以及如何在Firefox中使用和管理它们。",
+          "state": "done",
+          "targetScriptCounts": {
+            "Arabic": 0,
+            "Devanagari": 0,
+            "Han": 607,
+            "Kana": 0,
+            "Latin": 241
+          },
+          "total": 28,
+          "codeUnchanged": true,
+          "sourceTextUnchanged": true,
+          "firstMs": 1584,
+          "elapsedMs": 1586,
+          "operatorResumes": 0,
+          "requests": 2,
+          "requestMetrics": [
+            {
+              "sequence": 28,
+              "startedAt": 1792684022251,
+              "textCount": 18,
+              "charCount": 1480,
+              "maxTextChars": 314,
+              "status": 200,
+              "endedAt": 1792684023754,
+              "networkTiming": {
+                "dnsMs": 0,
+                "connectMs": 0,
+                "tlsMs": 0,
+                "waitMs": 1500.1,
+                "downloadMs": 0.9,
+                "totalMs": 1501.9,
+                "protocol": "h2"
+              }
+            },
+            {
+              "sequence": 29,
+              "startedAt": 1792684022352,
+              "textCount": 7,
+              "charCount": 603,
+              "maxTextChars": 143,
+              "status": 200,
+              "endedAt": 1792684023451,
+              "networkTiming": {
+                "dnsMs": 0,
+                "connectMs": 0,
+                "tlsMs": 0,
+                "waitMs": 1096.8,
+                "downloadMs": 0.7,
+                "totalMs": 1098.5,
+                "protocol": "h2"
+              }
+            }
+          ],
+          "cache": "new document, no extension translation cache",
+          "passed": true
+        },
+        {
+          "sourceLanguage": "hi",
+          "targetLanguage": "zh-Hans",
+          "label": "印地语（印度等）",
+          "url": "https://support.mozilla.org/hi-IN/kb/cookies-information-websites-store-on-your-computer",
+          "script": "\\p{Script=Devanagari}",
+          "tabId": 800038074,
+          "actualUrl": "https://support.mozilla.org/hi-IN/kb/cookies-information-websites-store-on-your-computer",
+          "documentLanguage": "hi-IN",
+          "title": "कूकीज़ - जानकारियाँ जिन्हें वेबसाइटों द्वारा आपके कंप्यूटर पर सहेजा जाता है | Firefox सहायता",
+          "paragraphs": 15,
+          "articleChars": 2184,
+          "sourceSample": "ये लेख बतलाता है कि \"कूकीज़\" क्या हैं, उनका इस्तेमाल कैसे होता है, और Firefox में उन्हें कैसे नियंत्रित करें.",
+          "reading": {
+            "chars": 3496,
+            "direction": "ltr",
+            "language": "hi-IN",
+            "paragraphs": 14,
+            "sourceScriptPresent": true,
+            "bodyRequests": 0
+          },
+          "completed": 28,
+          "emptyOutputs": 0,
+          "failed": 0,
+          "notice": "翻译完成 · 28 / 28",
+          "outputCount": 28,
+          "outputDirections": [
+            "ltr"
+          ],
+          "outputLanguages": [
+            "zh-Hans"
+          ],
+          "pending": 0,
+          "sample": "本文介绍了什么是“Cookie”、它们是如何被使用的，以及如何在 Firefox 中管理它们。",
+          "state": "done",
+          "targetScriptCounts": {
+            "Arabic": 0,
+            "Devanagari": 0,
+            "Han": 585,
+            "Kana": 0,
+            "Latin": 278
+          },
+          "total": 28,
+          "codeUnchanged": true,
+          "sourceTextUnchanged": true,
+          "firstMs": 1956,
+          "elapsedMs": 2957,
+          "operatorResumes": 0,
+          "requests": 2,
+          "requestMetrics": [
+            {
+              "sequence": 30,
+              "startedAt": 1792684024879,
+              "textCount": 14,
+              "charCount": 1487,
+              "maxTextChars": 372,
+              "status": 200,
+              "endedAt": 1792684027073,
+              "networkTiming": {
+                "dnsMs": 0,
+                "connectMs": 0,
+                "tlsMs": 0,
+                "waitMs": 2192.4,
+                "downloadMs": 6,
+                "totalMs": 2199.4,
+                "protocol": "h2"
+              }
+            },
+            {
+              "sequence": 31,
+              "startedAt": 1792684024980,
+              "textCount": 11,
+              "charCount": 1018,
+              "maxTextChars": 157,
+              "status": 200,
+              "endedAt": 1792684026536,
+              "networkTiming": {
+                "dnsMs": 0,
+                "connectMs": 0,
+                "tlsMs": 0,
+                "waitMs": 1553.5,
+                "downloadMs": 0.7,
+                "totalMs": 1555.3,
+                "protocol": "h2"
+              }
+            }
+          ],
+          "cache": "new document, no extension translation cache",
+          "passed": true
+        },
+        {
+          "sourceLanguage": "id",
+          "targetLanguage": "zh-Hans",
+          "label": "印尼语（印度尼西亚等）",
+          "url": "https://support.mozilla.org/id/kb/Tentang%20Cookie",
+          "script": "\\p{Script=Latin}",
+          "tabId": 800038075,
+          "actualUrl": "https://support.mozilla.org/id/kb/Tentang%20Cookie",
+          "documentLanguage": "id",
+          "title": "Tentang Cookie | Bantuan Firefox",
+          "paragraphs": 13,
+          "articleChars": 2141,
+          "sourceSample": "Artikel ini menjelaskan apa itu \"cookie\", bagaimana situs web menggunakannya, dan bagaimana Anda dapat mengelola cookie yang ",
+          "reading": {
+            "chars": 3193,
+            "direction": "ltr",
+            "language": "id",
+            "paragraphs": 10,
+            "sourceScriptPresent": true,
+            "bodyRequests": 0
+          },
+          "completed": 28,
+          "emptyOutputs": 0,
+          "failed": 0,
+          "notice": "翻译完成 · 28 / 28",
+          "outputCount": 28,
+          "outputDirections": [
+            "ltr"
+          ],
+          "outputLanguages": [
+            "zh-Hans"
+          ],
+          "pending": 0,
+          "sample": "本文介绍了什么是“Cookie”、网站如何使用Cookie，以及您如何管理Firefox中存储的Cookie。",
+          "state": "done",
+          "targetScriptCounts": {
+            "Arabic": 0,
+            "Devanagari": 0,
+            "Han": 589,
+            "Kana": 0,
+            "Latin": 258
+          },
+          "total": 28,
+          "codeUnchanged": true,
+          "sourceTextUnchanged": true,
+          "firstMs": 1952,
+          "elapsedMs": 1954,
+          "operatorResumes": 0,
+          "requests": 3,
+          "requestMetrics": [
+            {
+              "sequence": 32,
+              "startedAt": 1792684028870,
+              "textCount": 2,
+              "charCount": 328,
+              "maxTextChars": 186,
+              "status": 200,
+              "endedAt": 1792684030143,
+              "networkTiming": {
+                "dnsMs": 0,
+                "connectMs": 0,
+                "tlsMs": 0,
+                "waitMs": 1270.1,
+                "downloadMs": 0.7,
+                "totalMs": 1271.8,
+                "protocol": "h2"
+              }
+            },
+            {
+              "sequence": 33,
+              "startedAt": 1792684028971,
+              "textCount": 11,
+              "charCount": 1499,
+              "maxTextChars": 442,
+              "status": 200,
+              "endedAt": 1792684030544,
+              "networkTiming": {
+                "dnsMs": 0,
+                "connectMs": 0,
+                "tlsMs": 0,
+                "waitMs": 1570.5,
+                "downloadMs": 0.8,
+                "totalMs": 1572.2,
+                "protocol": "h2"
+              }
+            },
+            {
+              "sequence": 34,
+              "startedAt": 1792684029072,
+              "textCount": 12,
+              "charCount": 899,
+              "maxTextChars": 140,
+              "status": 200,
+              "endedAt": 1792684030406,
+              "networkTiming": {
+                "dnsMs": 0,
+                "connectMs": 0,
+                "tlsMs": 0,
+                "waitMs": 1331.7,
+                "downloadMs": 1.1,
+                "totalMs": 1333.8,
+                "protocol": "h2"
+              }
+            }
+          ],
+          "cache": "new document, no extension translation cache",
+          "passed": true
+        },
+        {
+          "sourceLanguage": "tr",
+          "targetLanguage": "zh-Hans",
+          "label": "土耳其语（土耳其、塞浦路斯等）",
+          "url": "https://support.mozilla.org/tr/kb/cerezler-web-sitelerinin-bilgisayarinizda-depoladi",
+          "script": "\\p{Script=Latin}",
+          "tabId": 800038076,
+          "actualUrl": "https://support.mozilla.org/tr/kb/cerezler-web-sitelerinin-bilgisayarinizda-depoladi",
+          "documentLanguage": "tr",
+          "title": "Çerezler - Web sitelerinin bilgisayarınızda depoladığı bilgiler | Firefox Yardımı",
+          "paragraphs": 13,
+          "articleChars": 1968,
+          "sourceSample": "Bu makale \"çerezlerin\" ne olduğu, web sitelerinin bunları nasıl kullandığını ve Firefox'un depoladığı çerezleri nasıl yöneteb",
+          "reading": {
+            "chars": 3575,
+            "direction": "ltr",
+            "language": "tr",
+            "paragraphs": 13,
+            "sourceScriptPresent": true,
+            "bodyRequests": 0
+          },
+          "completed": 27,
+          "emptyOutputs": 0,
+          "failed": 0,
+          "notice": "翻译完成 · 27 / 27",
+          "outputCount": 27,
+          "outputDirections": [
+            "ltr"
+          ],
+          "outputLanguages": [
+            "zh-Hans"
+          ],
+          "pending": 0,
+          "sample": "本文介绍了什么是“Cookie”、网站如何使用它们，以及如何管理 Firefox 存储的 Cookie。",
+          "state": "done",
+          "targetScriptCounts": {
+            "Arabic": 0,
+            "Devanagari": 0,
+            "Han": 588,
+            "Kana": 0,
+            "Latin": 258
+          },
+          "total": 27,
+          "codeUnchanged": true,
+          "sourceTextUnchanged": true,
+          "firstMs": 1950,
+          "elapsedMs": 1952,
+          "operatorResumes": 0,
+          "requests": 3,
+          "requestMetrics": [
+            {
+              "sequence": 35,
+              "startedAt": 1792684031871,
+              "textCount": 2,
+              "charCount": 393,
+              "maxTextChars": 246,
+              "status": 200,
+              "endedAt": 1792684033438,
+              "networkTiming": {
+                "dnsMs": 0,
+                "connectMs": 0,
+                "tlsMs": 0,
+                "waitMs": 1564.7,
+                "downloadMs": 0.9,
+                "totalMs": 1566.5,
+                "protocol": "h2"
+              }
+            },
+            {
+              "sequence": 36,
+              "startedAt": 1792684031973,
+              "textCount": 15,
+              "charCount": 1479,
+              "maxTextChars": 339,
+              "status": 200,
+              "endedAt": 1792684033511,
+              "networkTiming": {
+                "dnsMs": 0,
+                "connectMs": 0,
+                "tlsMs": 0,
+                "waitMs": 1536.4,
+                "downloadMs": 4.8,
+                "totalMs": 1542.2,
+                "protocol": "h2"
+              }
+            },
+            {
+              "sequence": 37,
+              "startedAt": 1792684032073,
+              "textCount": 7,
+              "charCount": 599,
+              "maxTextChars": 218,
+              "status": 200,
+              "endedAt": 1792684033598,
+              "networkTiming": {
+                "dnsMs": 0,
+                "connectMs": 0,
+                "tlsMs": 0,
+                "waitMs": 1523.1,
+                "downloadMs": 0.8,
+                "totalMs": 1524.9,
+                "protocol": "h2"
+              }
+            }
+          ],
+          "cache": "new document, no extension translation cache",
+          "passed": true
+        },
+        {
+          "sourceLanguage": "vi",
+          "targetLanguage": "zh-Hans",
+          "label": "越南语（越南等）",
+          "url": "https://support.mozilla.org/vi/kb/cookie-thong-tin-ma-cac-trang-web-luu-tru-tren-may-tinh-cua-ban",
+          "script": "\\p{Script=Latin}",
+          "tabId": 800038077,
+          "actualUrl": "https://support.mozilla.org/vi/kb/cookie-thong-tin-ma-cac-trang-web-luu-tru-tren-may-tinh-cua-ban",
+          "documentLanguage": "vi",
+          "title": "Cookie - Thông tin mà các trang web lưu trữ trên máy tính của bạn | Trợ giúp về Firefox",
+          "paragraphs": 13,
+          "articleChars": 1929,
+          "sourceSample": "Bài viết này mô tả \"cookie\" là gì, cách các trang web sử dụng chúng và cách bạn có thể quản lý các cookie mà Firefox lưu trữ.",
+          "reading": {
+            "chars": 3630,
+            "direction": "ltr",
+            "language": "vi",
+            "paragraphs": 13,
+            "sourceScriptPresent": true,
+            "bodyRequests": 0
+          },
+          "completed": 28,
+          "emptyOutputs": 0,
+          "failed": 0,
+          "notice": "翻译完成 · 28 / 28",
+          "outputCount": 28,
+          "outputDirections": [
+            "ltr"
+          ],
+          "outputLanguages": [
+            "zh-Hans"
+          ],
+          "pending": 0,
+          "sample": "本文介绍了什么是“Cookie”、网站如何使用它们，以及您如何管理 Firefox 存储的 Cookie。",
+          "state": "done",
+          "targetScriptCounts": {
+            "Arabic": 0,
+            "Devanagari": 0,
+            "Han": 597,
+            "Kana": 0,
+            "Latin": 266
+          },
+          "total": 28,
+          "codeUnchanged": true,
+          "sourceTextUnchanged": true,
+          "firstMs": 1946,
+          "elapsedMs": 1949,
+          "operatorResumes": 0,
+          "requests": 3,
+          "requestMetrics": [
+            {
+              "sequence": 38,
+              "startedAt": 1792684034872,
+              "textCount": 2,
+              "charCount": 310,
+              "maxTextChars": 185,
+              "status": 200,
+              "endedAt": 1792684036066,
+              "networkTiming": {
+                "dnsMs": 0,
+                "connectMs": 0,
+                "tlsMs": 0,
+                "waitMs": 1192,
+                "downloadMs": 1,
+                "totalMs": 1193.9,
+                "protocol": "h2"
+              }
+            },
+            {
+              "sequence": 39,
+              "startedAt": 1792684034973,
+              "textCount": 13,
+              "charCount": 1477,
+              "maxTextChars": 341,
+              "status": 200,
+              "endedAt": 1792684036692,
+              "networkTiming": {
+                "dnsMs": 0,
+                "connectMs": 0,
+                "tlsMs": 0,
+                "waitMs": 1716.5,
+                "downloadMs": 3.9,
+                "totalMs": 1721.4,
+                "protocol": "h2"
+              }
+            },
+            {
+              "sequence": 40,
+              "startedAt": 1792684035074,
+              "textCount": 10,
+              "charCount": 694,
+              "maxTextChars": 137,
+              "status": 200,
+              "endedAt": 1792684036170,
+              "networkTiming": {
+                "dnsMs": 0,
+                "connectMs": 0,
+                "tlsMs": 0,
+                "waitMs": 1094.2,
+                "downloadMs": 24.1,
+                "totalMs": 1119.3,
+                "protocol": "h2"
+              }
+            }
+          ],
+          "cache": "new document, no extension translation cache",
+          "passed": true
+        },
+        {
+          "sourceLanguage": "en",
+          "targetLanguage": "ja",
+          "label": "英语→日语（目标语言验证）",
+          "url": "https://developer.mozilla.org/en-US/docs/Glossary/HTML",
+          "script": "\\p{Script=Latin}",
+          "tabId": 800038078,
+          "actualUrl": "https://developer.mozilla.org/en-US/docs/Glossary/HTML",
+          "documentLanguage": "en-US",
+          "title": "HTML - Glossary | MDN",
+          "paragraphs": 8,
+          "articleChars": 1585,
+          "sourceSample": "HTML (HyperText Markup Language) is a descriptive language that specifies webpage structure.",
+          "reading": {
+            "chars": 1656,
+            "direction": "ltr",
+            "language": "en-US",
+            "paragraphs": 6,
+            "sourceScriptPresent": true,
+            "bodyRequests": 0
+          },
+          "completed": 23,
+          "emptyOutputs": 0,
+          "failed": 0,
+          "notice": "翻译完成 · 23 / 23",
+          "outputCount": 23,
+          "outputDirections": [
+            "ltr"
+          ],
+          "outputLanguages": [
+            "ja"
+          ],
+          "pending": 0,
+          "sample": "HTML（HyperText Markup Language）は、ウェブページの構造を定義する記述言語です。",
+          "state": "done",
+          "targetScriptCounts": {
+            "Arabic": 0,
+            "Devanagari": 0,
+            "Han": 235,
+            "Kana": 452,
+            "Latin": 173
+          },
+          "total": 23,
+          "codeUnchanged": true,
+          "sourceTextUnchanged": true,
+          "firstMs": 1943,
+          "elapsedMs": 2945,
+          "operatorResumes": 0,
+          "requests": 2,
+          "requestMetrics": [
+            {
+              "sequence": 41,
+              "startedAt": 1792684037887,
+              "textCount": 2,
+              "charCount": 594,
+              "maxTextChars": 502,
+              "status": 200,
+              "endedAt": 1792684039658,
+              "networkTiming": {
+                "dnsMs": 0,
+                "connectMs": 0,
+                "tlsMs": 0,
+                "waitMs": 1767.8,
+                "downloadMs": 1,
+                "totalMs": 1769.6,
+                "protocol": "h2"
+              }
+            },
+            {
+              "sequence": 42,
+              "startedAt": 1792684037989,
+              "textCount": 18,
+              "charCount": 1251,
+              "maxTextChars": 389,
+              "status": 200,
+              "endedAt": 1792684040054,
+              "networkTiming": {
+                "dnsMs": 0,
+                "connectMs": 0,
+                "tlsMs": 0,
+                "waitMs": 2062.5,
+                "downloadMs": 0.8,
+                "totalMs": 2064.3,
+                "protocol": "h2"
+              }
+            }
+          ],
+          "cache": "new document, no extension translation cache",
+          "passed": true
+        },
+        {
+          "sourceLanguage": "en",
+          "targetLanguage": "ar",
+          "label": "英语→阿拉伯语（目标语言验证）",
+          "url": "https://developer.mozilla.org/en-US/docs/Glossary/HTML",
+          "script": "\\p{Script=Latin}",
+          "tabId": 800038079,
+          "actualUrl": "https://developer.mozilla.org/en-US/docs/Glossary/HTML",
+          "documentLanguage": "en-US",
+          "title": "HTML - Glossary | MDN",
+          "paragraphs": 8,
+          "articleChars": 1585,
+          "sourceSample": "HTML (HyperText Markup Language) is a descriptive language that specifies webpage structure.",
+          "reading": {
+            "chars": 1656,
+            "direction": "ltr",
+            "language": "en-US",
+            "paragraphs": 6,
+            "sourceScriptPresent": true,
+            "bodyRequests": 0
+          },
+          "completed": 23,
+          "emptyOutputs": 0,
+          "failed": 0,
+          "notice": "翻译完成 · 23 / 23",
+          "outputCount": 23,
+          "outputDirections": [
+            "rtl"
+          ],
+          "outputLanguages": [
+            "ar"
+          ],
+          "pending": 0,
+          "sample": "لغة HTML (لغة ترميز النص التشعبي) هي لغة وصفية تحدد بنية صفحة الويب.",
+          "state": "done",
+          "targetScriptCounts": {
+            "Arabic": 1182,
+            "Devanagari": 0,
+            "Han": 0,
+            "Kana": 0,
+            "Latin": 144
+          },
+          "total": 23,
+          "codeUnchanged": true,
+          "sourceTextUnchanged": true,
+          "firstMs": 2943,
+          "elapsedMs": 2945,
+          "operatorResumes": 0,
+          "requests": 2,
+          "requestMetrics": [
+            {
+              "sequence": 43,
+              "startedAt": 1792684041888,
+              "textCount": 2,
+              "charCount": 594,
+              "maxTextChars": 502,
+              "status": 200,
+              "endedAt": 1792684044215,
+              "networkTiming": {
+                "dnsMs": 0,
+                "connectMs": 0,
+                "tlsMs": 0,
+                "waitMs": 2325.4,
+                "downloadMs": 2.1,
+                "totalMs": 2328.4,
+                "protocol": "h2"
+              }
+            },
+            {
+              "sequence": 44,
+              "startedAt": 1792684041988,
+              "textCount": 18,
+              "charCount": 1251,
+              "maxTextChars": 389,
+              "status": 200,
+              "endedAt": 1792684044357,
+              "networkTiming": {
+                "dnsMs": 0,
+                "connectMs": 0,
+                "tlsMs": 0,
+                "waitMs": 2365.8,
+                "downloadMs": 10,
+                "totalMs": 2376.8,
+                "protocol": "h2"
+              }
+            }
+          ],
+          "cache": "new document, no extension translation cache",
+          "passed": true
+        },
+        {
+          "sourceLanguage": "en",
+          "targetLanguage": "hi",
+          "label": "英语→印地语（目标语言验证）",
+          "url": "https://developer.mozilla.org/en-US/docs/Glossary/HTML",
+          "script": "\\p{Script=Latin}",
+          "tabId": 800038080,
+          "actualUrl": "https://developer.mozilla.org/en-US/docs/Glossary/HTML",
+          "documentLanguage": "en-US",
+          "title": "HTML - Glossary | MDN",
+          "paragraphs": 8,
+          "articleChars": 1585,
+          "sourceSample": "HTML (HyperText Markup Language) is a descriptive language that specifies webpage structure.",
+          "reading": {
+            "chars": 1656,
+            "direction": "ltr",
+            "language": "en-US",
+            "paragraphs": 6,
+            "sourceScriptPresent": true,
+            "bodyRequests": 0
+          },
+          "completed": 23,
+          "emptyOutputs": 0,
+          "failed": 0,
+          "notice": "翻译完成 · 23 / 23",
+          "outputCount": 23,
+          "outputDirections": [
+            "ltr"
+          ],
+          "outputLanguages": [
+            "hi"
+          ],
+          "pending": 0,
+          "sample": "HTML (हाइपरटेक्स्ट मार्कअप भाषा) एक वर्णनात्मक भाषा है जो वेबपेज की संरचना निर्दिष्ट करती है।",
+          "state": "done",
+          "targetScriptCounts": {
+            "Arabic": 0,
+            "Devanagari": 1378,
+            "Han": 0,
+            "Kana": 0,
+            "Latin": 136
+          },
+          "total": 23,
+          "codeUnchanged": true,
+          "sourceTextUnchanged": true,
+          "firstMs": 2946,
+          "elapsedMs": 2948,
+          "operatorResumes": 0,
+          "requests": 2,
+          "requestMetrics": [
+            {
+              "sequence": 45,
+              "startedAt": 1792684045887,
+              "textCount": 2,
+              "charCount": 594,
+              "maxTextChars": 502,
+              "status": 200,
+              "endedAt": 1792684047901,
+              "networkTiming": {
+                "dnsMs": 0,
+                "connectMs": 0,
+                "tlsMs": 0,
+                "waitMs": 2011.7,
+                "downloadMs": 0.8,
+                "totalMs": 2013.4,
+                "protocol": "h2"
+              }
+            },
+            {
+              "sequence": 46,
+              "startedAt": 1792684045987,
+              "textCount": 18,
+              "charCount": 1251,
+              "maxTextChars": 389,
+              "status": 200,
+              "endedAt": 1792684047911,
+              "networkTiming": {
+                "dnsMs": 0,
+                "connectMs": 0,
+                "tlsMs": 0,
+                "waitMs": 1921.5,
+                "downloadMs": 14.9,
+                "totalMs": 1937.2,
+                "protocol": "h2"
+              }
+            }
+          ],
+          "cache": "new document, no extension translation cache",
+          "passed": true
+        },
+        {
+          "sourceLanguage": "auto",
+          "targetLanguage": "zh-Hans",
+          "label": "日语（自动识别验证）",
+          "url": "https://developer.mozilla.org/ja/docs/Glossary/HTML",
+          "script": "(?:\\p{Script=Hiragana}|\\p{Script=Katakana}|\\p{Script=Han})",
+          "tabId": 800038081,
+          "actualUrl": "https://developer.mozilla.org/ja/docs/Glossary/HTML",
+          "documentLanguage": "ja",
+          "title": "HTML - 用語集 | MDN",
+          "paragraphs": 12,
+          "articleChars": 1111,
+          "sourceSample": "このページはコミュニティーの尽力で英語から翻訳されました。MDN\n          Web Docs\n          コミュニティーについてもっと知り、仲間になるにはこちらから。",
+          "reading": {
+            "chars": 1023,
+            "direction": "ltr",
+            "language": "ja",
+            "paragraphs": 6,
+            "sourceScriptPresent": true,
+            "bodyRequests": 0
+          },
+          "completed": 25,
+          "emptyOutputs": 0,
+          "failed": 0,
+          "notice": "翻译完成 · 25 / 25",
+          "outputCount": 25,
+          "outputDirections": [
+            "ltr"
+          ],
+          "outputLanguages": [
+            "zh-Hans"
+          ],
+          "pending": 0,
+          "sample": "本页面由社区成员从英语翻译而来。如需进一步了解 MDN Web Docs 社区并加入其中，请点击此处。",
+          "state": "done",
+          "targetScriptCounts": {
+            "Arabic": 0,
+            "Devanagari": 0,
+            "Han": 501,
+            "Kana": 0,
+            "Latin": 178
+          },
+          "total": 25,
+          "codeUnchanged": true,
+          "sourceTextUnchanged": true,
+          "firstMs": 1933,
+          "elapsedMs": 2934,
+          "operatorResumes": 0,
+          "requests": 2,
+          "requestMetrics": [
+            {
+              "sequence": 47,
+              "startedAt": 1792684049895,
+              "textCount": 1,
+              "charCount": 245,
+              "maxTextChars": 245,
+              "status": 200,
+              "endedAt": 1792684051758,
+              "networkTiming": {
+                "dnsMs": 0,
+                "connectMs": 0,
+                "tlsMs": 0,
+                "waitMs": 1860.9,
+                "downloadMs": 0.7,
+                "totalMs": 1862.5,
+                "protocol": "h2"
+              }
+            },
+            {
+              "sequence": 48,
+              "startedAt": 1792684049998,
+              "textCount": 21,
+              "charCount": 960,
+              "maxTextChars": 329,
+              "status": 200,
+              "endedAt": 1792684051847,
+              "networkTiming": {
+                "dnsMs": 0,
+                "connectMs": 0,
+                "tlsMs": 0,
+                "waitMs": 1847.1,
+                "downloadMs": 5.9,
+                "totalMs": 1854,
+                "protocol": "h2"
+              }
+            }
+          ],
+          "cache": "new document, no extension translation cache",
+          "passed": true
+        },
+        {
+          "sourceLanguage": "auto",
+          "targetLanguage": "zh-Hans",
+          "label": "阿拉伯语（自动识别验证）",
+          "url": "https://support.mozilla.org/ar/kb/cookies-information-websites-store-on-your-computer",
+          "script": "\\p{Script=Arabic}",
+          "tabId": 800038082,
+          "actualUrl": "https://support.mozilla.org/ar/kb/cookies-information-websites-store-on-your-computer",
+          "documentLanguage": "ar",
+          "title": "الكعكات | مساعدة Firefox",
+          "paragraphs": 13,
+          "articleChars": 1546,
+          "sourceSample": "تشرح هذه المقالة ماهيّة \"الكعكات\"، وكيفيّة استخدامها وإدارتها في فايرفوكس.",
+          "reading": {
+            "chars": 2409,
+            "direction": "rtl",
+            "language": "ar",
+            "paragraphs": 10,
+            "sourceScriptPresent": true,
+            "bodyRequests": 0
+          },
+          "completed": 28,
+          "emptyOutputs": 0,
+          "failed": 0,
+          "notice": "翻译完成 · 28 / 28",
+          "outputCount": 28,
+          "outputDirections": [
+            "ltr"
+          ],
+          "outputLanguages": [
+            "zh-Hans"
+          ],
+          "pending": 0,
+          "sample": "本文将介绍什么是“Cookie”，以及如何在Firefox中使用和管理它们。",
+          "state": "done",
+          "targetScriptCounts": {
+            "Arabic": 0,
+            "Devanagari": 0,
+            "Han": 607,
+            "Kana": 0,
+            "Latin": 241
+          },
+          "total": 28,
+          "codeUnchanged": true,
+          "sourceTextUnchanged": true,
+          "firstMs": 1953,
+          "elapsedMs": 1955,
+          "operatorResumes": 0,
+          "requests": 2,
+          "requestMetrics": [
+            {
+              "sequence": 49,
+              "startedAt": 1792684053883,
+              "textCount": 18,
+              "charCount": 1480,
+              "maxTextChars": 314,
+              "status": 200,
+              "endedAt": 1792684055426,
+              "networkTiming": {
+                "dnsMs": 0,
+                "connectMs": 0,
+                "tlsMs": 0,
+                "waitMs": 1540.3,
+                "downloadMs": 8.1,
+                "totalMs": 1549.4,
+                "protocol": "h2"
+              }
+            },
+            {
+              "sequence": 50,
+              "startedAt": 1792684053983,
+              "textCount": 7,
+              "charCount": 603,
+              "maxTextChars": 143,
+              "status": 200,
+              "endedAt": 1792684055269,
+              "networkTiming": {
+                "dnsMs": 0,
+                "connectMs": 0,
+                "tlsMs": 0,
+                "waitMs": 1283.5,
+                "downloadMs": 9.9,
+                "totalMs": 1294.2,
+                "protocol": "h2"
+              }
+            }
+          ],
+          "cache": "new document, no extension translation cache",
+          "passed": true
+        },
+        {
+          "sourceLanguage": "auto",
+          "targetLanguage": "zh-Hans",
+          "label": "印地语（自动识别验证）",
+          "url": "https://support.mozilla.org/hi-IN/kb/cookies-information-websites-store-on-your-computer",
+          "script": "\\p{Script=Devanagari}",
+          "tabId": 800038083,
+          "actualUrl": "https://support.mozilla.org/hi-IN/kb/cookies-information-websites-store-on-your-computer",
+          "documentLanguage": "hi-IN",
+          "title": "कूकीज़ - जानकारियाँ जिन्हें वेबसाइटों द्वारा आपके कंप्यूटर पर सहेजा जाता है | Firefox सहायता",
+          "paragraphs": 15,
+          "articleChars": 2184,
+          "sourceSample": "ये लेख बतलाता है कि \"कूकीज़\" क्या हैं, उनका इस्तेमाल कैसे होता है, और Firefox में उन्हें कैसे नियंत्रित करें.",
+          "reading": {
+            "chars": 3496,
+            "direction": "ltr",
+            "language": "hi-IN",
+            "paragraphs": 14,
+            "sourceScriptPresent": true,
+            "bodyRequests": 0
+          },
+          "completed": 28,
+          "emptyOutputs": 0,
+          "failed": 0,
+          "notice": "翻译完成 · 28 / 28",
+          "outputCount": 28,
+          "outputDirections": [
+            "ltr"
+          ],
+          "outputLanguages": [
+            "zh-Hans"
+          ],
+          "pending": 0,
+          "sample": "本文介绍了什么是“Cookie”、它们是如何被使用的，以及如何在 Firefox 中管理它们。",
+          "state": "done",
+          "targetScriptCounts": {
+            "Arabic": 0,
+            "Devanagari": 0,
+            "Han": 582,
+            "Kana": 0,
+            "Latin": 272
+          },
+          "total": 28,
+          "codeUnchanged": true,
+          "sourceTextUnchanged": true,
+          "firstMs": 1949,
+          "elapsedMs": 2950,
+          "operatorResumes": 0,
+          "requests": 2,
+          "requestMetrics": [
+            {
+              "sequence": 51,
+              "startedAt": 1792684056886,
+              "textCount": 14,
+              "charCount": 1487,
+              "maxTextChars": 372,
+              "status": 200,
+              "endedAt": 1792684058967,
+              "networkTiming": {
+                "dnsMs": 0,
+                "connectMs": 0,
+                "tlsMs": 0,
+                "waitMs": 2078.7,
+                "downloadMs": 0.7,
+                "totalMs": 2080.4,
+                "protocol": "h2"
+              }
+            },
+            {
+              "sequence": 52,
+              "startedAt": 1792684056986,
+              "textCount": 11,
+              "charCount": 1018,
+              "maxTextChars": 157,
+              "status": 200,
+              "endedAt": 1792684058400,
+              "networkTiming": {
+                "dnsMs": 0,
+                "connectMs": 0,
+                "tlsMs": 0,
+                "waitMs": 1411.9,
+                "downloadMs": 0.7,
+                "totalMs": 1413.5,
+                "protocol": "h2"
+              }
+            }
+          ],
+          "cache": "new document, no extension translation cache",
+          "passed": true
+        }
+      ]
+    }
+  ]
+}

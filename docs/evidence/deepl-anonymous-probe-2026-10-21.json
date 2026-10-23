@@ -1,0 +1,20 @@
+{
+  "generatedAt": "2026-10-21T12:28:00.212Z",
+  "sourceText": "The library is open from nine to five.",
+  "endpoint": "https://www2.deepl.com/jsonrpc",
+  "attemptLimit": 1,
+  "userCookiesOrKeysUsed": false,
+  "identityHeadersSpoofed": false,
+  "originalOJBetterRequestReproduced": false,
+  "qualification": "minimal-native-MV3-request; not an exact OJBetter client emulation",
+  "observation": {
+    "status": 429,
+    "milliseconds": 7608,
+    "translated": false,
+    "translation": null,
+    "errorCode": 1042911,
+    "errorMessage": "Too many requests",
+    "retryAfter": null,
+    "browser": "155.0.4283.62"
+  }
+}

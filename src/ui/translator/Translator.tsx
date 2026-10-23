@@ -1,11 +1,13 @@
 import { useLayoutEffect, useRef, useState } from 'react';
-import type { TranslationError, TranslationResult, WordResult } from '../../shared/contracts';
+import type { TranslationError, TranslationResult, WordPreview, WordResult } from '../../shared/contracts';
 import { placeOverlay, type Point } from '../../selection/helpers';
 import type { SelectionSnapshot } from '../../selection/snapshot';
 import { formatTranslationForCopy, groupWordSenses, MISSING_CONTEXT_NOTE } from './word-result';
 import { SentenceAnalysisPanel, sentenceAnalysisStyles, type SentenceAnalysisView } from './SentenceAnalysis';
 import { AnnotatedSentence, annotatedSentenceStyles } from './AnnotatedSentence';
 import { mapSentenceHighlights } from './sentence-highlights';
+import { languageLabel, readLanguagePair, supportsSentenceAnalysis, supportsWordDetails } from '../../shared/languages';
+import { RecoveryAction, useTranslationRecovery } from '../translation/RecoveryAction';
 
 export type TranslatorView =
   | { mode: 'hidden' }
@@ -13,6 +15,7 @@ export type TranslatorView =
   | {
       mode: 'card'; selection: SelectionSnapshot; status: 'loading' | 'done' | 'error';
       streamed: string; result?: TranslationResult; error?: TranslationError;
+      responding?: boolean; wordPreview?: WordPreview;
       analysis?: SentenceAnalysisView;
     };
 
@@ -72,30 +75,30 @@ function viewportSize(): { width: number; height: number } {
   return { width: window.innerWidth, height: window.innerHeight };
 }
 
-function WordTranslation({ result, context }: { result: WordResult; context?: string }) {
+function WordTranslation({ result, context }: { result: WordResult | WordPreview; context?: string }) {
   const reference = context?.trim();
   const heading = reference ? '本句含义' : '参考释义';
-  const groups = groupWordSenses(result.senses);
+  const groups = 'senses' in result ? groupWordSenses(result.senses) : [];
   return <div>
     <section className="nt-current-sense" aria-label={heading}>
       <h2 className="nt-section-title">{heading}</h2>
       {!reference && <p className="nt-context-note">{MISSING_CONTEXT_NOTE}</p>}
-      <p className="nt-word">{result.translation}</p>
-      <span className="nt-pos">{result.partOfSpeech}</span>
-      <p className="nt-explanation">{result.explanation}</p>
+      {result.translation && <p className="nt-word">{result.translation}</p>}
+      {result.partOfSpeech && <span className="nt-pos">{result.partOfSpeech}</span>}
+      {result.explanation && <p className="nt-explanation">{result.explanation}</p>}
       {reference && <details className="nt-context">
         <summary>参考原句</summary>
         <p className="nt-context-text">{reference}</p>
       </details>}
     </section>
-    <section className="nt-senses" aria-label="常见义项">
+    {groups.length > 0 && <section className="nt-senses" aria-label="常见义项">
       <h2 className="nt-section-title">常见义项</h2>
       {groups.map((group) => <div className="nt-sense-group" key={group.partOfSpeech}>
         <h3 className="nt-sense-pos">{group.partOfSpeech}</h3>
         <ol className="nt-sense-list">{group.meanings.map((meaning, index) =>
           <li className="nt-sense-meaning" key={index}>{meaning}</li>)}</ol>
       </div>)}
-    </section>
+    </section>}
   </div>;
 }
 
@@ -113,7 +116,9 @@ export function Translator({ view, source, onTranslate, onClose, onRetry, onSett
   const [copyStatus, setCopyStatus] = useState<'idle' | 'copied' | 'failed'>('idle');
   const [activeChunk, setActiveChunk] = useState<number>();
   const selection = view.mode === 'hidden' ? undefined : view.selection;
-  const analysis = view.mode === 'card' && view.selection.input.kind === 'text' && view.analysis?.status === 'done'
+  const recovery = useTranslationRecovery(view.mode === 'card' && view.status === 'error' ? view.error : undefined);
+  const analysisSupported = Boolean(selection && supportsSentenceAnalysis(selection.input));
+  const analysis = view.mode === 'card' && analysisSupported && view.selection.input.kind === 'text' && view.analysis?.status === 'done'
     ? view.analysis.result : undefined;
   const highlights = selection && analysis ? mapSentenceHighlights(selection.input.text, analysis) : undefined;
 
@@ -189,28 +194,33 @@ export function Translator({ view, source, onTranslate, onClose, onRetry, onSett
     }
   };
   return <div ref={floating} className="nt-floating" style={{ left: position.x, top: position.y }}>
-    {view.mode === 'button' ? <button className="nt-trigger" aria-label="翻译选中的英文" title="翻译选中的英文"
+    {view.mode === 'button' ? <button className="nt-trigger" aria-label="翻译选中文字" title="翻译选中文字"
       onPointerDown={(event) => event.preventDefault()} onClick={onTranslate}>译</button> :
-      <section className={`nt-card${view.selection.input.kind === 'word' ? ' nt-card-word' : ''}`} role="dialog" aria-label="英文翻译结果">
+      <section className={`nt-card${view.selection.input.kind === 'word' ? ' nt-card-word' : ''}`} role="dialog" aria-label="翻译结果">
         <header className="nt-header">
-          <span className="nt-brand"><span className="nt-mark">译</span>近译<span className="nt-meta">{source === 'pdf' ? 'PDF' : '网页'} · 简体中文</span></span>
+          <span className="nt-brand"><span className="nt-mark">译</span>近译<span className="nt-meta">{source === 'pdf' ? 'PDF' : '网页'} · {languageLabel(readLanguagePair(view.selection.input).targetLanguage)}</span></span>
           <button className="nt-close" aria-label="关闭翻译" title="关闭 · Esc" onClick={onClose}>×</button>
         </header>
         <div className="nt-body">
           <AnnotatedSentence source={view.selection.input.text} highlights={highlights} activeChunk={activeChunk}
             onSelectChunk={index => selectChunk(index, 'chunk')} />
-          {view.status === 'loading' && <p className="nt-loading" role="status"><span className="nt-dot" />{view.streamed ? '正在翻译…' : '正在连接翻译服务…'}</p>}
-          {view.status === 'error' && <p className="nt-error" role="alert">{view.error?.message ?? '翻译失败，请重试。'}</p>}
-          {view.result?.kind === 'word' && <WordTranslation result={view.result} context={view.selection.input.context} />}
-          {(view.result?.kind === 'text' || view.streamed) && <p className="nt-text">{view.result?.kind === 'text' ? view.result.translation : view.streamed}</p>}
-          {view.selection.input.kind === 'text' && view.analysis && <SentenceAnalysisPanel view={view.analysis} onRetry={onRetryAnalysis}
+          {view.status === 'loading' && <p className="nt-loading" role="status"><span className="nt-dot" />{view.responding || view.streamed
+            ? view.selection.input.kind === 'word' ? '正在生成释义…' : '正在翻译…' : '正在连接翻译服务…'}</p>}
+          {view.status === 'error' && <p className="nt-error" role="alert">{recovery.message ?? '翻译失败，请重试。'}</p>}
+          {view.result?.kind === 'word' && (supportsWordDetails(view.selection.input)
+            ? <WordTranslation result={view.result} context={view.selection.input.context} /> : <p className="nt-text" dir="auto">{view.result.translation}</p>)}
+          {!view.result && view.wordPreview && (supportsWordDetails(view.selection.input)
+            ? <WordTranslation result={view.wordPreview} context={view.selection.input.context} />
+            : view.wordPreview.translation && <p className="nt-text" dir="auto">{view.wordPreview.translation}</p>)}
+          {(view.result?.kind === 'text' || view.streamed) && <p className="nt-text" dir="auto">{view.result?.kind === 'text' ? view.result.translation : view.streamed}</p>}
+          {analysisSupported && view.selection.input.kind === 'text' && view.analysis && <SentenceAnalysisPanel view={view.analysis} onRetry={onRetryAnalysis}
             highlights={highlights} activeChunk={activeChunk} onSelectChunk={index => selectChunk(index, 'source')} />}
         </div>
         <footer className="nt-footer">
           <span className="nt-hint" role="status">{copyStatus === 'copied' ? '已复制译文' : copyStatus === 'failed' ? '复制失败，请手动选中译文' : '近译 · Esc 关闭'}</span>
           <div className="nt-actions">
-            {view.status === 'error' && view.error?.code === 'CONFIG' && <button className="nt-action" onClick={onSettings}>打开设置</button>}
-            {view.status === 'error' && view.error?.retryable && <button className="nt-action nt-primary" onClick={onRetry}>重试</button>}
+            {view.status === 'error' && <RecoveryAction recovery={recovery} className="nt-action nt-primary" onSettings={onSettings}
+              onRetry={recovery.action === 'retry' ? onRetry : undefined}/>}
             {view.status === 'done' && <button className="nt-action" onClick={() => void copy()}>复制</button>}
           </div>
         </footer>

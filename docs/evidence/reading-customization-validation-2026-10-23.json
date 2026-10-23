@@ -1,0 +1,45 @@
+{
+  "date": "2026-10-23",
+  "timezone": "Asia/Singapore",
+  "version": "0.10.0",
+  "typecheck": "passed",
+  "boundaries": "passed",
+  "builds": {
+    "chrome": "passed",
+    "edge": "passed"
+  },
+  "unitTests": {
+    "files": 51,
+    "passed": 1214,
+    "failed": 0
+  },
+  "browserTests": {
+    "edge": {
+      "passed": 17,
+      "failed": 0,
+      "skipped": 0,
+      "flaky": 0,
+      "durationMs": 36085.324,
+      "scope": "17 reading scenarios"
+    },
+    "chrome": {
+      "passed": 44,
+      "failed": 0,
+      "skipped": 0,
+      "flaky": 0,
+      "durationMs": 98975.861,
+      "scope": "17 reading and 27 selection/PDF scenarios"
+    }
+  },
+  "installedRuntime": {
+    "version": "0.10.0",
+    "checksPassed": 23,
+    "checksFailed": 0
+  },
+  "networkScope": "Browser regression used isolated mocked model streams; the installed-runtime check used only a fixed local article and made no translation actions.",
+  "limitations": [
+    "Competitive first-use browser checks did not log into competitors or install their extensions.",
+    "No multi-user comparative usability study was performed.",
+    "Position preservation uses source-passage identity and a relative point within the passage."
+  ]
+}

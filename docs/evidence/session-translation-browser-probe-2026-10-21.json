@@ -1,0 +1,130 @@
+{
+  "generatedAt": "2026-10-21T12:03:15.660Z",
+  "scope": "isolated-native-browser-and-loopback-fixture-only",
+  "realUserProfileAccessed": false,
+  "realProviderTranslationTested": false,
+  "rawCookieValuesInReport": false,
+  "temporaryProfileRemoved": true,
+  "passed": 16,
+  "total": 16,
+  "checks": [
+    {
+      "name": "native-browser-fetch-not-mocked",
+      "passed": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "no-session-before-fixture-login",
+      "passed": true,
+      "actual": 401,
+      "expected": 401
+    },
+    {
+      "name": "httponly-cookie-hidden-from-document-cookie",
+      "passed": true,
+      "actual": false,
+      "expected": false
+    },
+    {
+      "name": "cookie-api-unavailable-without-cookie-permission",
+      "passed": true,
+      "actual": "undefined",
+      "expected": "undefined"
+    },
+    {
+      "name": "credentials-omit-does-not-send-session",
+      "passed": true,
+      "actual": 401,
+      "expected": 401
+    },
+    {
+      "name": "credentials-include-reuses-fixture-session-without-reading-cookie",
+      "passed": true,
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "cookie-api-can-read-httponly-with-scoped-permission",
+      "passed": true,
+      "actual": {
+        "exists": true,
+        "httpOnly": true,
+        "sameSite": "strict"
+      },
+      "expected": {
+        "exists": true,
+        "httpOnly": true,
+        "sameSite": "strict"
+      }
+    },
+    {
+      "name": "cookie-read-needs-host-permission-too",
+      "passed": true,
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "cookie-auth-does-not-satisfy-separate-fixture-bearer",
+      "passed": true,
+      "actual": {
+        "status": 401,
+        "cookiePresent": true
+      },
+      "expected": {
+        "status": 401,
+        "cookiePresent": true
+      }
+    },
+    {
+      "name": "session-alone-does-not-satisfy-fixture-csrf",
+      "passed": true,
+      "actual": 403,
+      "expected": 403
+    },
+    {
+      "name": "fixture-session-and-explicit-csrf-together-work",
+      "passed": true,
+      "actual": 200,
+      "expected": 200
+    },
+    {
+      "name": "service-worker-has-no-localStorage",
+      "passed": true,
+      "actual": "undefined",
+      "expected": "undefined"
+    },
+    {
+      "name": "native-fetch-cancellation",
+      "passed": true,
+      "actual": "AbortError",
+      "expected": "AbortError"
+    },
+    {
+      "name": "different-profile-does-not-share-login",
+      "passed": true,
+      "actual": 401,
+      "expected": 401
+    },
+    {
+      "name": "logout-removes-session-for-subsequent-fetch",
+      "passed": true,
+      "actual": 401,
+      "expected": 401
+    },
+    {
+      "name": "production-manifest-source-unchanged",
+      "passed": true,
+      "actual": true,
+      "expected": true
+    }
+  ],
+  "observations": {
+    "browser": "155.0.4283.62",
+    "builtinTranslator": {
+      "exposed": true,
+      "availability": "unavailable",
+      "translated": false
+    }
+  }
+}

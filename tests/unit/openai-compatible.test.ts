@@ -23,6 +23,17 @@ async function collect(settings = configuration, fetcher: typeof fetch = transpo
 afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); });
 
 describe('OpenAI-compatible translation transport', () => {
+  it('sends a request-local multilingual prompt without changing credentials or protocol', async () => {
+    const fetcher = transport(complete('A translated English passage.'));
+    await collect(configuration, fetcher, { text: '日本語の文章です。', kind: 'text', sourceLanguage: 'ja', targetLanguage: 'en' });
+    const body = JSON.parse(String(fetcher.mock.calls[0]![1]?.body));
+    expect(body.messages[0].content).toContain('source language is Japanese');
+    expect(body.messages[0].content).toContain('Return only the English translation');
+    expect(body.messages[0].content).not.toContain('Simplified Chinese');
+    expect(JSON.parse(body.messages[1].content)).toEqual({ selectedText: '日本語の文章です。' });
+    expect(fetcher.mock.calls[0]![1]).toMatchObject({ credentials: 'omit', redirect: 'error' });
+  });
+
   it('uses the configured gateway and model with portable request fields and no cookies or redirects', async () => {
     const fetcher = transport();
     expect((await collect(configuration, fetcher)).at(-1)).toEqual({ type: 'result', result: { kind: 'text', translation: '这是译文。' } });
@@ -71,7 +82,11 @@ describe('OpenAI-compatible translation transport', () => {
     const dictionary = { translation: '银行', partOfSpeech: '名词', explanation: '金融机构。', senses: [{ partOfSpeech: '名词', meaning: '银行' }] };
     const fetcher = transport(complete(JSON.stringify(dictionary)));
     const events = await collect({ ...configuration, jsonMode }, fetcher, { text: 'bank', kind: 'word' });
-    expect(events).toEqual([{ type: 'result', result: { kind: 'word', ...dictionary } }]);
+    expect(events).toEqual([
+      { type: 'progress' },
+      { type: 'word-preview', preview: { translation: dictionary.translation, partOfSpeech: dictionary.partOfSpeech, explanation: dictionary.explanation } },
+      { type: 'result', result: { kind: 'word', ...dictionary } },
+    ]);
     const body = JSON.parse(String(fetcher.mock.calls[0]?.[1]?.body));
     expect(body.response_format).toEqual(jsonMode ? { type: 'json_object' } : undefined);
     await expect(collect({ ...configuration, jsonMode }, transport(complete('not JSON')), { text: 'bank', kind: 'word' }))

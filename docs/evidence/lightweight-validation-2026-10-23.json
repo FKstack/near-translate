@@ -1,0 +1,61 @@
+{
+  "version": "0.11.0",
+  "unit": {
+    "files": 52,
+    "passed": 1257,
+    "failed": 0
+  },
+  "typecheck": "passed",
+  "boundaries": "passed",
+  "diffCheck": "passed",
+  "builds": {
+    "chrome": "passed",
+    "edge": "passed",
+    "bytes": 15271984
+  },
+  "browserTests": {
+    "chromeCore": {
+      "passed": 84,
+      "failed": 0,
+      "report": ".output/lightweight/e2e-chrome/summary.json"
+    },
+    "chromeFinalSelection": {
+      "passed": 27,
+      "failed": 0,
+      "report": ".output/lightweight/e2e-chrome-final/summary.json"
+    },
+    "edgeFinal": {
+      "passed": 51,
+      "failed": 0,
+      "report": ".output/lightweight/e2e-edge-final/summary.json"
+    },
+    "edgeConversion": {
+      "passed": 25,
+      "failed": 0,
+      "report": ".output/lightweight/conversion-summary.json"
+    }
+  },
+  "memory": {
+    "runs": 3,
+    "evidence": "extension-memory-comparison-2026-10-23.json",
+    "checks": {
+      "sameBrowser": true,
+      "sameFixture": true,
+      "completeThreeRunComparisons": true,
+      "finalBuildBytes": true,
+      "finalLifecycleBuildHashMatches": true
+    }
+  },
+  "installed": {
+    "version": "0.11.0",
+    "checks": 26,
+    "programFiles": 333,
+    "allHashesMatch": true,
+    "preferencesUnchanged": true,
+    "translationActions": false,
+    "keyAccess": false,
+    "evidence": "installed-reading-v0.11.0.json"
+  },
+  "skillRemoved": "H:/.codex/skills/architect-code-changes",
+  "githubPublished": false
+}

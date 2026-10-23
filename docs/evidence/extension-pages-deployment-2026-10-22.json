@@ -1,0 +1,109 @@
+{
+  "at": "2026-10-22T12:18:47.469Z",
+  "installed": "D:\\浏览器翻译扩展\\artifacts\\installed\\near-translate-edge-v0.1.0",
+  "source": "D:\\浏览器翻译扩展\\.output\\edge-mv3",
+  "backup": "D:\\浏览器翻译扩展\\.output\\brand-design\\installed-pages-backup-1792671527469",
+  "extensionId": "dbdooijmbinjmnbmgglajigaoiinolnc",
+  "files": [
+    {
+      "file": "assets/app-qvvE5IzN.css",
+      "beforeHash": null,
+      "afterHash": "23b953f5c3ed7217efb659d8a8ff86f9b60fc3138d2fbadb7204e5ce26bd3610"
+    },
+    {
+      "file": "chunks/options-DbS8kFVC.js",
+      "beforeHash": null,
+      "afterHash": "6eabb1450035be6d706406e6b86d70b2a6f98cca2ffcc5028229902f123d5397"
+    },
+    {
+      "file": "chunks/popup-CW1gXrXi.js",
+      "beforeHash": null,
+      "afterHash": "66ad89df2318af046d9207c3a73396c4d2da0fa40c73b43b636195861475649d"
+    },
+    {
+      "file": "options.html",
+      "beforeHash": "8b030be5e5729d3ad8cca6ab6b005666d25882bcf1470ac63ff1959b12e01d54",
+      "afterHash": "815a2a21a68544238f2990b796212f63e68049a95ec11db4df98af7b1e99169f"
+    },
+    {
+      "file": "popup.html",
+      "beforeHash": "72c42c12c7f263c23f72371173feecc474d4572a28e83ae1868d03a43c60d3f5",
+      "afterHash": "347250611c66f5bc4bfc5374734f40ca665acb8349c2ff9fb336ce7b166ee792"
+    }
+  ],
+  "events": [
+    {
+      "phase": "before",
+      "extensionId": "dbdooijmbinjmnbmgglajigaoiinolnc",
+      "version": "0.7.0",
+      "name": "近译 · 整页与划词翻译",
+      "icons": {
+        "16": "icon/16.png",
+        "32": "icon/32.png",
+        "48": "icon/48.png",
+        "128": "icon/128.png"
+      },
+      "settings": {
+        "enabled": true,
+        "webAccess": true,
+        "apiAccess": true,
+        "translationEngine": "model"
+      },
+      "helperTabId": 800037903
+    },
+    {
+      "phase": "reload-requested",
+      "helperTabId": 800037907
+    },
+    {
+      "phase": "after",
+      "extensionId": "dbdooijmbinjmnbmgglajigaoiinolnc",
+      "version": "0.7.0",
+      "name": "近译 · 整页与划词翻译",
+      "icons": {
+        "16": "icon/16.png",
+        "32": "icon/32.png",
+        "48": "icon/48.png",
+        "128": "icon/128.png"
+      },
+      "settings": {
+        "enabled": true,
+        "webAccess": true,
+        "apiAccess": true,
+        "translationEngine": "model"
+      },
+      "optionsTabId": 800037915,
+      "popupOpened": true,
+      "appearance": {
+        "options": {
+          "heading": "翻译设置",
+          "brandLoaded": true,
+          "canvas": "rgb(242, 245, 237)",
+          "panel": "rgb(252, 253, 249)",
+          "primary": "rgb(8, 127, 131)",
+          "layout": "grid",
+          "sidePanels": 2,
+          "preferences": true,
+          "keyInputEmpty": true
+        },
+        "popup": {
+          "brandLoaded": true,
+          "paper": "rgb(252, 253, 249)",
+          "width": "360px",
+          "primary": "rgb(8, 127, 131)",
+          "buttons": [
+            "用阅读器打开当前 PDF",
+            "选择本地 PDF / 输入 PDF 链接",
+            "翻译设置"
+          ],
+          "statusReady": "true"
+        }
+      },
+      "helperTabId": 800037912
+    }
+  ],
+  "browserStorageWritten": false,
+  "apiKeysRead": false,
+  "completed": true,
+  "settingsUnchanged": true
+}

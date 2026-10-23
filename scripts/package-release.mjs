@@ -88,8 +88,8 @@ for (const browser of ['chrome', 'edge']) {
   await mkdir(path.join(destination, 'screenshots'), { recursive: true });
   for (const [folder, file] of screenshots) await copyFile(path.join(evidence, 'test-results', folder, file), path.join(destination, 'screenshots', `${browser}-${file}`));
 }
-await copyFile(path.join(root, 'docs', 'INSTALL.md'), path.join(destination, '安装说明.md'));
-await copyFile(path.join(root, 'docs', 'VALIDATION.md'), path.join(destination, '验证记录.md'));
+await copyFile(path.join(root, 'docs', 'guides', 'INSTALL.md'), path.join(destination, '安装说明.md'));
+await copyFile(path.join(root, 'docs', 'development', 'VALIDATION.md'), path.join(destination, '验证记录.md'));
 await writeFile(path.join(destination, 'SHA256SUMS.txt'), artifacts.map(item => `${item.sha256}  ${item.filename}`).join('\n') + '\n');
 let realApiVerified = false;
 try {
@@ -118,7 +118,7 @@ try {
       url: pageProof.sourceUrl, realApi: true, model: result.model, localTranslationCache: false,
       baseline: metric(baseline), optimized: [metric(optimized), metric(pageProof)],
     }, null, 2) + '\n');
-    await copyFile(path.join(root, 'docs', 'PERFORMANCE.md'), path.join(destination, '性能实测.md'));
+    await copyFile(path.join(root, 'docs', 'reports', 'PERFORMANCE.md'), path.join(destination, '性能实测.md'));
   }
 } catch (error) { if (error?.code !== 'ENOENT') throw error; }
 try {

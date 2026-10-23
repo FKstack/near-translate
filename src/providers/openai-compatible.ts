@@ -9,6 +9,7 @@ import { httpFailure, TranslationFailure } from '../core/errors';
 import { normalizeTranslationInput } from '../core/input';
 import { buildTranslationMessages } from '../core/prompts';
 import { PageBatchDecoder } from '../core/page-batch';
+import { WordPreviewDecoder } from '../core/word-preview';
 import { parseSentenceAnalysis } from '../core/sentence-analysis';
 import { SseDecoder } from './sse';
 import { completionEndpoint } from '../shared/api-config';
@@ -186,6 +187,8 @@ export class OpenAICompatibleProvider implements TranslationProvider {
 
       let content = '';
       const batch = input.pageSegments ? new PageBatchDecoder(input.pageSegments.length) : undefined;
+      const word = input.kind === 'word' && input.task !== 'sentence-analysis' ? new WordPreviewDecoder() : undefined;
+      let responding = false;
       let completed = false;
       let finishReason: string | undefined;
       for await (const data of streamEvents(response.body, controller)) {
@@ -207,11 +210,21 @@ export class OpenAICompatibleProvider implements TranslationProvider {
         if (delta !== undefined && delta !== null && typeof delta !== 'string') {
           throw new TranslationFailure('INVALID_RESPONSE', '翻译服务响应格式不正确，请重试。', true);
         }
+        // A real model event, including the initial role-only chunk, ends connection waiting.
+        // Keep raw dictionary JSON private; only closed fields may be previewed below.
+        if (word && !responding) {
+          responding = true;
+          yield { type: 'progress' };
+          throwIfAborted(controller.signal);
+        }
         if (typeof delta === 'string' && delta) {
           if (finishReason) throw new TranslationFailure('INVALID_RESPONSE', '翻译服务响应结束标记异常，请重试。', true);
           content += delta;
           if (content.length > MAX_OUTPUT_LENGTH) throw new TranslationFailure('INVALID_RESPONSE', '译文过长，请缩短选区后重试。', true);
-          if (batch) {
+          if (word) {
+            const preview = word.push(delta);
+            if (preview) yield { type: 'word-preview', preview };
+          } else if (batch) {
             for (const entry of batch.push(delta)) yield { type: 'segment', ...entry };
           } else if (input.kind === 'text' && input.task !== 'sentence-analysis') yield { type: 'delta', text: delta };
         }

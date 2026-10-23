@@ -1,6 +1,6 @@
 {
   "name": "near-translate",
-  "version": "0.7.0",
+  "version": "0.11.0",
   "private": true,
   "description": "Browser page, selection and PDF translation with configurable model APIs",
   "license": "MIT",
@@ -18,22 +18,35 @@
     "test": "vitest run",
     "pretest:e2e": "node scripts/prepare-e2e.mjs",
     "test:e2e": "playwright test",
+    "test:conversion:e2e": "npm run build:edge && playwright test -c playwright.conversion.config.ts",
     "check:boundaries": "node scripts/check-boundaries.mjs",
-    "benchmark:installed": "node scripts/benchmark-installed-page.mjs",
-    "postinstall": "wxt prepare"
+    "benchmark:installed": "node scripts/benchmarks/benchmark-installed-page.mjs",
+    "postinstall": "wxt prepare",
+    "analyze:size": "node scripts/analyze-extension-size.mjs",
+    "benchmark:memory": "node scripts/benchmarks/benchmark-extension-memory.mjs",
+    "check:repo": "node scripts/check-repository.mjs",
+    "check:docs": "node scripts/check-doc-links.mjs"
   },
   "dependencies": {
+    "@mozilla/readability": "0.6.0",
+    "@pdf-lib/fontkit": "1.1.1",
+    "marked": "18.1.1",
+    "opencc-js": "1.4.2",
+    "pdf-lib": "1.17.1",
     "pdfjs-dist": "6.4.299",
     "react": "19.3.0",
     "react-dom": "19.3.0"
   },
   "devDependencies": {
     "@playwright/test": "1.64.0",
+    "@types/jsdom": "30.0.0",
     "@types/node": "^24.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@wxt-dev/module-react": "1.2.2",
+    "jsdom": "30.1.3",
     "typescript": "^5.9.0",
+    "vite": "8.3.4",
     "vitest": "5.0.4",
     "wxt": "0.21.4"
   }

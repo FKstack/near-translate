@@ -1,0 +1,31 @@
+{
+  "at": "2026-10-22T13:23:38.185Z",
+  "extensionId": "dbdooijmbinjmnbmgglajigaoiinolnc",
+  "source": "D:\\浏览器翻译扩展\\.output\\edge-mv3",
+  "installed": "D:\\浏览器翻译扩展\\artifacts\\installed\\near-translate-edge-v0.1.0",
+  "backup": "D:\\浏览器翻译扩展\\.output\\reading-mode\\installed-program-backup-1792675416319",
+  "beforeVersion": "0.8.0",
+  "afterVersion": "0.8.0",
+  "permissionChanges": false,
+  "browserStorageAccessed": false,
+  "filesVerified": 313,
+  "buildFileSetSha256": "3c74960b9488f247988a948dc80c62f92528f11dcbf99afd026528855ae318f5",
+  "programFilesVerified": {
+    "manifest.json": "b379b240f86f8e9618f08395d8e8768c9050aec44b29d428f4cbd0b49671e931",
+    "background.js": "7e5a5b9162464d6cbe896bd71407f0935c124e0770614c5e0f3412f14dca5f99",
+    "content-scripts/selection.js": "c2c401d891189c226f324fb129354b6e3d2f614fadc7c27d42fdd303a3fc5607",
+    "content-scripts/network-prepare.js": "29fd927169bfd26ae6e597eb7ea89d18e030453ebec6d8e6e57c308d762121df",
+    "popup.html": "16f86b000c7bb4219bdb60a56f1c474a267844eedbbbd55ccc736ae02d5386d0",
+    "options.html": "2b53ab20078f77b2644996ef5f09bd361201be1720422b72d3b8422e87e6dfd2",
+    "reader.html": "7ea4b247e8af9b5ee95a7176f1d33a02046e29ee092529cf9b106f94dc4ed0d1"
+  },
+  "codeValidation": {
+    "unitPassed": 818,
+    "edgeBrowserPassed": 68,
+    "typecheck": true,
+    "boundaries": true,
+    "chromeBuild": true,
+    "edgeBuild": true
+  },
+  "actualReadingValidation": "complete: three fresh foreground Go tabs; 0 body translation requests; original/code hashes unchanged"
+}

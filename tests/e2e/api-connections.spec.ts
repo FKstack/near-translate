@@ -29,7 +29,7 @@ async function readConnection(): Promise<ConnectionSettings> {
 async function seedConnection(settings: Partial<EditableSettings>, surface = options): Promise<void> {
   const result = await surface.evaluate(settings => (globalThis as unknown as { chrome: ExtensionApi }).chrome.runtime.sendMessage({
     type: 'save-settings', keepExistingKey: true,
-    settings: { enabled: true, includeContext: true, sentenceAnalysisEnabled: false, ...settings },
+    settings: { translationEngine: 'model', enabled: true, includeContext: true, sentenceAnalysisEnabled: false, ...settings },
   }), settings) as { ok: boolean };
   expect(result.ok).toBe(true);
 }

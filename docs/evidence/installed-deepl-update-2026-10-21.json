@@ -1,0 +1,92 @@
+{
+  "generatedAt": "2026-10-21T14:31:33.131Z",
+  "extensionId": "dbdooijmbinjmnbmgglajigaoiinolnc",
+  "installedDirectory": "D:\\浏览器翻译扩展\\artifacts\\installed\\near-translate-edge-v0.1.0",
+  "rootCause": {
+    "initialVersion": "0.6.0",
+    "latestBuildVersion": "0.7.0",
+    "issue": "Build output was updated but the original loaded installed directory was not synchronized."
+  },
+  "repair": {
+    "inPlace": true,
+    "extensionIdPreserved": true,
+    "originalModelConfigurationPreserved": true,
+    "broadcastWaitBoundedMs": 1500,
+    "installedBackgroundSha256": "ffaafb2d858d73cdfb10fc4cc2b31cca9a9d439b1688fd92ae464c5091eff434",
+    "edgeBuildBackgroundSha256": "ffaafb2d858d73cdfb10fc4cc2b31cca9a9d439b1688fd92ae464c5091eff434"
+  },
+  "observationSource": "Final installed-extension callbacks captured in exec session 7098; a prior waiting controller later overwrote its JSON, so the successful callbacks are consolidated here. Prior waiting record preserved separately.",
+  "events": [
+    {
+      "at": "2026-10-21T14:29:15.459Z",
+      "phase": "before-reload",
+      "version": "0.7.0"
+    },
+    {
+      "at": "2026-10-21T14:29:17.379Z",
+      "phase": "after-reload",
+      "version": "0.7.0",
+      "translationEngine": "deepl-web",
+      "enabled": true,
+      "hasApiKey": true,
+      "webAccess": true,
+      "apiAccess": true,
+      "requiresApiKey": false,
+      "dnrPermission": true,
+      "deepLChoicePresent": true
+    },
+    {
+      "at": "2026-10-21T14:29:17.677Z",
+      "phase": "mode-selected",
+      "version": "0.7.0",
+      "translationEngine": "deepl-web",
+      "enabled": true,
+      "hasApiKey": true,
+      "webAccess": true,
+      "apiAccess": true,
+      "requiresApiKey": false,
+      "dnrPermission": true,
+      "saveOk": true,
+      "saveError": "",
+      "optionsRefreshed": 0
+    },
+    {
+      "at": "2026-10-21T14:29:17.683Z",
+      "phase": "configured",
+      "version": "0.7.0",
+      "translationEngine": "deepl-web",
+      "enabled": true,
+      "hasApiKey": true,
+      "webAccess": true,
+      "apiAccess": true,
+      "requiresApiKey": false,
+      "dnrPermission": true
+    },
+    {
+      "at": "2026-10-21T14:29:24.370Z",
+      "phase": "complete",
+      "version": "0.7.0",
+      "translationEngine": "deepl-web",
+      "enabled": true,
+      "hasApiKey": true,
+      "webAccess": true,
+      "apiAccess": true,
+      "requiresApiKey": false,
+      "dnrPermission": true,
+      "translation": "图书馆早上九点开门。",
+      "optionsRefreshed": 0
+    }
+  ],
+  "test": {
+    "source": "The library opens at nine in the morning.",
+    "translation": "图书馆早上九点开门。",
+    "realInstalledExtension": true,
+    "passed": true
+  },
+  "validation": {
+    "unitPassed": 442,
+    "typecheck": true,
+    "moduleBoundaries": true,
+    "edgeBuild": true
+  }
+}

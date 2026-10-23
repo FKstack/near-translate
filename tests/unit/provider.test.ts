@@ -96,10 +96,83 @@ describe('DeepSeek provider', () => {
     const json = JSON.stringify(dictionary);
     const fetcher = transport(delta(json.slice(0, 9)) + delta(json.slice(9)) + delta(null, 'stop') + 'data: [DONE]\n\n');
     const events = await collect(new DeepSeekProvider({ apiKey: 'test-key', model: 'my-model' }, fetcher), wordInput);
-    expect(events).toEqual([{ type: 'result', result: { kind: 'word', ...JSON.parse(json) } }]);
+    expect(events).toEqual([
+      { type: 'progress' },
+      { type: 'word-preview', preview: { translation: dictionary.translation, partOfSpeech: dictionary.partOfSpeech, explanation: dictionary.explanation } },
+      { type: 'result', result: { kind: 'word', ...JSON.parse(json) } },
+    ]);
     const body = JSON.parse(String(fetcher.mock.calls[0]?.[1]?.body));
     expect(body).toMatchObject({ model: 'my-model', response_format: { type: 'json_object' }, max_tokens: 2048 });
     expect(JSON.parse(body.messages[1].content)).toEqual({ selectedText: 'bank', context: wordInput.context });
+  });
+
+  it('shows response progress and contextual meaning while dictionary senses are still pending', async () => {
+    let sink!: ReadableStreamDefaultController<Uint8Array>;
+    const body = new ReadableStream<Uint8Array>({ start(controller) { sink = controller; } });
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(new Response(body));
+    const iterator = new DeepSeekProvider({ apiKey: 'test-key' }, fetcher)
+      .translate(wordInput, new AbortController().signal)[Symbol.asyncIterator]();
+    let firstSettled = false;
+    const first = iterator.next().then(value => { firstSettled = true; return value; });
+    sink.enqueue(encoder.encode(': keep-alive\n\ndata: {"choices":[]}\n\n'));
+    for (let turn = 0; turn < 20; turn++) await Promise.resolve();
+    expect(firstSettled).toBe(false); // An open connection/heartbeat is not model output.
+    sink.enqueue(encoder.encode('data: {"choices":[{"delta":{"role":"assistant"}}]}\n\n'));
+    expect((await first).value).toEqual({ type: 'progress' });
+
+    const meaning = iterator.next();
+    sink.enqueue(encoder.encode(delta('{"translation":"银行",')));
+    expect((await meaning).value).toEqual({ type: 'word-preview', preview: { translation: '银行' } });
+    const explanation = iterator.next();
+    sink.enqueue(encoder.encode(delta('"partOfSpeech":"名词","explanation":"金融机构。",')));
+    expect((await explanation).value).toEqual({ type: 'word-preview', preview: {
+      translation: '银行', partOfSpeech: '名词', explanation: '金融机构。',
+    } });
+    // No completed result or raw JSON has been exposed while this tail is withheld.
+    sink.enqueue(encoder.encode(delta('"senses":[{"partOfSpeech":"名词","meaning":"银行"}]}')
+      + delta(null, 'stop') + 'data: [DONE]\n\n'));
+    sink.close();
+    expect((await iterator.next()).value).toEqual({ type: 'result', result: {
+      kind: 'word', translation: '银行', partOfSpeech: '名词', explanation: '金融机构。',
+      senses: [{ partOfSpeech: '名词', meaning: '银行' }],
+    } });
+    expect((await iterator.next()).done).toBe(true);
+    expect(body.locked).toBe(false);
+    expect(fetcher).toHaveBeenCalledOnce();
+  });
+
+  it.each([
+    delta('"senses":[]}') + delta(null, 'stop') + 'data: [DONE]\n\n',
+    delta('"senses":[{"partOfSpeech":"名词","meaning":"银行"}]}') + delta(null, 'stop'),
+    delta('"senses":[') + delta(null, 'length') + 'data: [DONE]\n\n',
+  ])('never promotes a preview to a completed dictionary after invalid or truncated output', async tail => {
+    const events: TranslationEvent[] = [];
+    const fetcher = transport(delta('{"translation":"银行","partOfSpeech":"名词","explanation":"金融机构。",') + tail);
+    await expect((async () => {
+      for await (const event of new DeepSeekProvider({ apiKey: 'test-key' }, fetcher)
+        .translate(wordInput, new AbortController().signal)) events.push(event);
+    })()).rejects.toMatchObject({ code: 'INVALID_RESPONSE' });
+    expect(events).toEqual([
+      { type: 'progress' },
+      { type: 'word-preview', preview: { translation: '银行', partOfSpeech: '名词', explanation: '金融机构。' } },
+    ]);
+  });
+
+  it('cancels a dictionary after its contextual preview and releases the stream', async () => {
+    const cancel = vi.fn();
+    const body = new ReadableStream<Uint8Array>({
+      start(controller) { controller.enqueue(encoder.encode(delta('{"translation":"银行",'))); }, cancel,
+    });
+    const abort = new AbortController();
+    const iterator = new DeepSeekProvider({ apiKey: 'test-key' }, vi.fn<typeof fetch>().mockResolvedValue(new Response(body)))
+      .translate(wordInput, abort.signal)[Symbol.asyncIterator]();
+    expect((await iterator.next()).value).toEqual({ type: 'progress' });
+    expect((await iterator.next()).value).toEqual({ type: 'word-preview', preview: { translation: '银行' } });
+    const pending = iterator.next();
+    abort.abort();
+    await expect(pending).rejects.toMatchObject({ name: 'AbortError' });
+    expect(cancel).toHaveBeenCalledOnce();
+    expect(body.locked).toBe(false);
   });
 
   it('retains common noun, adjective, and verb senses even when context selects an adjective', async () => {
@@ -114,7 +187,7 @@ describe('DeepSeek provider', () => {
     };
     const fetcher = transport(delta(JSON.stringify(dictionary)) + delta(null, 'stop') + 'data: [DONE]\n\n');
     const events = await collect(new DeepSeekProvider({ apiKey: 'test-key' }, fetcher), { text: 'light', context: 'This suitcase is light.', kind: 'word' });
-    expect(events).toEqual([{ type: 'result', result: { kind: 'word', ...dictionary } }]);
+    expect(events.at(-1)).toEqual({ type: 'result', result: { kind: 'word', ...dictionary } });
   });
 
   it('requests and retains explicit uncertainty when no context was supplied', async () => {
@@ -124,7 +197,7 @@ describe('DeepSeek provider', () => {
     };
     const fetcher = transport(delta(JSON.stringify(dictionary)) + delta(null, 'stop') + 'data: [DONE]\n\n');
     const events = await collect(new DeepSeekProvider({ apiKey: 'test-key' }, fetcher), { text: 'light', kind: 'word' });
-    expect(events).toEqual([{ type: 'result', result: { kind: 'word', ...dictionary } }]);
+    expect(events.at(-1)).toEqual({ type: 'result', result: { kind: 'word', ...dictionary } });
     const body = JSON.parse(String(fetcher.mock.calls[0]?.[1]?.body));
     expect(body.messages[0].content).toContain('No context is supplied');
     expect(JSON.parse(body.messages[1].content)).toEqual({ selectedText: 'light' });
@@ -137,7 +210,7 @@ describe('DeepSeek provider', () => {
     };
     const fetcher = transport(delta(JSON.stringify(dictionary)) + delta(null, 'stop') + 'data: [DONE]\n\n');
     const events = await collect(new DeepSeekProvider({ apiKey: 'test-key' }, fetcher), { text: 'helium', context: 'Helium is an inert gas.', kind: 'word' });
-    expect(events).toEqual([{ type: 'result', result: { kind: 'word', ...dictionary } }]);
+    expect(events.at(-1)).toEqual({ type: 'result', result: { kind: 'word', ...dictionary } });
   });
 
   it('preserves collocation restrictions inside a dictionary meaning', async () => {
@@ -147,7 +220,7 @@ describe('DeepSeek provider', () => {
     };
     const fetcher = transport(delta(JSON.stringify(dictionary)) + delta(null, 'stop') + 'data: [DONE]\n\n');
     const events = await collect(new DeepSeekProvider({ apiKey: 'test-key' }, fetcher), { text: 'description', context: 'Read the description of this system.', kind: 'word' });
-    expect(events).toEqual([{ type: 'result', result: { kind: 'word', ...dictionary } }]);
+    expect(events.at(-1)).toEqual({ type: 'result', result: { kind: 'word', ...dictionary } });
   });
 
   it('trims fields and deduplicates identical meanings within the same part of speech', async () => {
@@ -157,10 +230,10 @@ describe('DeepSeek provider', () => {
     };
     const fetcher = transport(delta(JSON.stringify(dictionary)) + delta(null, 'stop') + 'data: [DONE]\n\n');
     const events = await collect(new DeepSeekProvider({ apiKey: 'test-key' }, fetcher), wordInput);
-    expect(events).toEqual([{ type: 'result', result: {
+    expect(events.at(-1)).toEqual({ type: 'result', result: {
       kind: 'word', translation: '银行', partOfSpeech: '名词', explanation: '此处指金融机构。',
       senses: [{ partOfSpeech: '名词', meaning: '银行' }, { partOfSpeech: '名词', meaning: '河岸' }, { partOfSpeech: '动词', meaning: '把钱存入银行' }],
-    } }]);
+    } });
   });
 
   it.each([

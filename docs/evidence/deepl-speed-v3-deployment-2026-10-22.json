@@ -1,0 +1,19 @@
+{
+  "at": "2026-10-21T18:02:14.205Z",
+  "installed": "D:\\浏览器翻译扩展\\artifacts\\installed\\near-translate-edge-v0.1.0",
+  "source": "D:\\浏览器翻译扩展\\.output\\edge-mv3",
+  "backup": "D:\\浏览器翻译扩展\\.output\\deepl-speed-v3\\installed-program-backup-1792605732467",
+  "extensionId": "dbdooijmbinjmnbmgglajigaoiinolnc",
+  "beforeVersion": "0.7.0",
+  "afterVersion": "0.7.0",
+  "programFilesVerified": {
+    "manifest.json": "a017841aa0d1f64c66233068d9f5ff2bb6e15c7ece3fa933e1cf93438df775bd",
+    "background.js": "30a6cd6afef3ebca46924fec7087f4ea36a7b35b4f08f627f09cfc0d0812d27d",
+    "content-scripts/selection.js": "2c1b49920acbf34caccac8b231496659add489676d92c8c4b4e6888d28447de2"
+  },
+  "browserStorageAccessed": false,
+  "mode": "speed-v3-validated-window",
+  "validatedAt": "2026-10-21T18:15:43.492Z",
+  "validationEvidence": "docs/evidence/deepl-speed-v3-go-2026-10-22.json",
+  "targetUnder10SecondsReached": false
+}

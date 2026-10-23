@@ -1,0 +1,38 @@
+{
+  "version": "0.10.1",
+  "date": "2026-10-23",
+  "unit": {
+    "files": 51,
+    "passed": 1217,
+    "log": ".output/reading-toolbar-unit.log"
+  },
+  "typecheck": "passed",
+  "boundaries": "passed",
+  "builds": {
+    "chrome": "passed",
+    "edge": "passed"
+  },
+  "browserTests": {
+    "chrome": {
+      "passed": 24,
+      "failed": 0,
+      "report": ".output/reading-toolbar-e2e/chrome/summary.json"
+    },
+    "edge": {
+      "passed": 18,
+      "failed": 0,
+      "report": ".output/reading-toolbar-e2e/edge/summary.json"
+    },
+    "mockedTranslation": true,
+    "isolatedProfiles": true
+  },
+  "installed": {
+    "version": "0.10.1",
+    "passed": 26,
+    "filesVerified": 333,
+    "programEvidence": "reading-toolbar-install-2026-10-23.json",
+    "runtimeEvidence": "reading-toolbar-installed-check-2026-10-23.json",
+    "preferencesUnchanged": true,
+    "translationActions": false
+  }
+}

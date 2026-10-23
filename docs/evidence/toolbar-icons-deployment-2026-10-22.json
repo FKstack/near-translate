@@ -1,0 +1,90 @@
+{
+  "at": "2026-10-22T14:17:14.053Z",
+  "version": "0.8.0",
+  "extensionId": "dbdooijmbinjmnbmgglajigaoiinolnc",
+  "source": "D:\\浏览器翻译扩展\\.output\\edge-mv3",
+  "installed": "D:\\浏览器翻译扩展\\artifacts\\installed\\near-translate-edge-v0.1.0",
+  "backup": "D:\\浏览器翻译扩展\\.output\\icon-update\\installed-backup-1792678632019",
+  "filesVerified": 313,
+  "manifestUnchanged": true,
+  "permissionsChanged": false,
+  "programFiles": {
+    "manifest.json": "b379b240f86f8e9618f08395d8e8768c9050aec44b29d428f4cbd0b49671e931",
+    "content-scripts/selection.js": "dfedbac1e014caa3f193273067c529a10810257e4b4dd0290f71b162511c7b49"
+  },
+  "validation": {
+    "typecheck": true,
+    "boundaries": true,
+    "unitPassed": 2,
+    "targetedEdgePassed": 4,
+    "chromeBuild": true,
+    "edgeBuild": true
+  },
+  "scope": "SVG icons only, existing actions and labels unchanged",
+  "actualRuntime": {
+    "at": "2026-10-22T14:17:24.768Z",
+    "browser": "daily Edge Default profile",
+    "events": [
+      {
+        "phase": "reload"
+      },
+      {
+        "phase": "complete",
+        "version": "0.8.0",
+        "sourceUrl": "https://go.dev/talks/2012/splash.article?utm_source=chatgpt.com",
+        "focused": true,
+        "icons": [
+          {
+            "disabled": false,
+            "label": "阅读模式",
+            "paths": [
+              "M12 6C9.2 4.2 5.7 3.8 2.5 4.7v14c3.2-.9 6.7-.5 9.5 1.3 2.8-1.8 6.3-2.2 9.5-1.3v-14c-3.2-.9-6.7-.5-9.5 1.3ZM12 6v14M6 10h3m6 0h3"
+            ],
+            "strokeWidth": "1.8"
+          },
+          {
+            "disabled": true,
+            "label": "显示原文",
+            "paths": [
+              "M8 9V4a1 1 0 0 1 1-1h7l4 4v13a1 1 0 0 1-1 1H9M16 3v5h4M11 11h5",
+              "m6 11-4 4 4 4M2 15h9a3 3 0 0 0 3-3"
+            ],
+            "strokeWidth": "1.8"
+          }
+        ],
+        "visible": true,
+        "bodyTranslationRequests": 0,
+        "credentialsRead": false
+      }
+    ],
+    "result": {
+      "phase": "complete",
+      "version": "0.8.0",
+      "sourceUrl": "https://go.dev/talks/2012/splash.article?utm_source=chatgpt.com",
+      "focused": true,
+      "icons": [
+        {
+          "disabled": false,
+          "label": "阅读模式",
+          "paths": [
+            "M12 6C9.2 4.2 5.7 3.8 2.5 4.7v14c3.2-.9 6.7-.5 9.5 1.3 2.8-1.8 6.3-2.2 9.5-1.3v-14c-3.2-.9-6.7-.5-9.5 1.3ZM12 6v14M6 10h3m6 0h3"
+          ],
+          "strokeWidth": "1.8"
+        },
+        {
+          "disabled": true,
+          "label": "显示原文",
+          "paths": [
+            "M8 9V4a1 1 0 0 1 1-1h7l4 4v13a1 1 0 0 1-1 1H9M16 3v5h4M11 11h5",
+            "m6 11-4 4 4 4M2 15h9a3 3 0 0 0 3-3"
+          ],
+          "strokeWidth": "1.8"
+        }
+      ],
+      "visible": true,
+      "bodyTranslationRequests": 0,
+      "credentialsRead": false
+    },
+    "manifestSha256": "b379b240f86f8e9618f08395d8e8768c9050aec44b29d428f4cbd0b49671e931"
+  }
+}

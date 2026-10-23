@@ -29,9 +29,13 @@ try {
 await cp(source, target, { recursive: true });
 const testManifest = {
   ...production,
+  // Only this test copy pregrants optional permissions, including the DNR
+  // capability used to verify metadata preparation and migration cleanup.
+  permissions: [...new Set([...(production.permissions ?? []), ...(production.optional_permissions ?? [])])],
   host_permissions: [...new Set([...(production.host_permissions ?? []), ...origins])],
 };
 delete testManifest.optional_host_permissions;
+delete testManifest.optional_permissions;
 await writeFile(resolve(target, 'manifest.json'), JSON.stringify(testManifest, null, 2) + '\n');
 assert.equal(await readFile(productionPath, 'utf8'), productionText, 'Production manifest was modified.');
 console.log('Prepared isolated E2E extension copy; production website permissions remain optional.');

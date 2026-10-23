@@ -1,0 +1,480 @@
+{
+  "schemaVersion": 1,
+  "measurement": "Raw file bytes and sum of individually gzip-compressed files; gzip is an estimate, not a ZIP size or runtime memory measurement.",
+  "builds": [
+    {
+      "directory": ".output/chrome-mv3",
+      "version": "0.11.0",
+      "files": 333,
+      "bytes": 15271984,
+      "gzipBytes": 10366369,
+      "groups": [
+        {
+          "name": "fonts",
+          "files": 2,
+          "bytes": 6324243,
+          "gzipBytes": 6323565
+        },
+        {
+          "name": "chunks",
+          "files": 10,
+          "bytes": 2143693,
+          "gzipBytes": 816911
+        },
+        {
+          "name": "pdfjs/wasm",
+          "files": 13,
+          "bytes": 1543489,
+          "gzipBytes": 550491
+        },
+        {
+          "name": "pdfjs/pdf.worker.mjs",
+          "files": 1,
+          "bytes": 1264342,
+          "gzipBytes": 376488
+        },
+        {
+          "name": "pdfjs/cmaps",
+          "files": 169,
+          "bytes": 1167747,
+          "gzipBytes": 982956
+        },
+        {
+          "name": "background.js",
+          "files": 1,
+          "bytes": 1148632,
+          "gzipBytes": 488006
+        },
+        {
+          "name": "pdfjs/standard_fonts",
+          "files": 16,
+          "bytes": 798046,
+          "gzipBytes": 548958
+        },
+        {
+          "name": "content-scripts",
+          "files": 2,
+          "bytes": 426503,
+          "gzipBytes": 131580
+        },
+        {
+          "name": "assets",
+          "files": 4,
+          "bytes": 259180,
+          "gzipBytes": 50167
+        },
+        {
+          "name": "pdfjs/images",
+          "files": 82,
+          "bytes": 81616,
+          "gzipBytes": 41338
+        },
+        {
+          "name": "licenses",
+          "files": 19,
+          "bytes": 77422,
+          "gzipBytes": 31539
+        },
+        {
+          "name": "pdfjs/iccs",
+          "files": 2,
+          "bytes": 15017,
+          "gzipBytes": 10426
+        },
+        {
+          "name": "pdfjs/LICENSE",
+          "files": 1,
+          "bytes": 10174,
+          "gzipBytes": 3540
+        },
+        {
+          "name": "icon",
+          "files": 4,
+          "bytes": 7807,
+          "gzipBytes": 7896
+        },
+        {
+          "name": "manifest.json",
+          "files": 1,
+          "bytes": 800,
+          "gzipBytes": 543
+        },
+        {
+          "name": "options.html",
+          "files": 1,
+          "bytes": 774,
+          "gzipBytes": 422
+        },
+        {
+          "name": "reader.html",
+          "files": 1,
+          "bytes": 725,
+          "gzipBytes": 386
+        },
+        {
+          "name": "popup.html",
+          "files": 1,
+          "bytes": 635,
+          "gzipBytes": 367
+        },
+        {
+          "name": "convert.html",
+          "files": 1,
+          "bytes": 576,
+          "gzipBytes": 376
+        },
+        {
+          "name": "brand",
+          "files": 1,
+          "bytes": 541,
+          "gzipBytes": 372
+        },
+        {
+          "name": "pdfjs/version.json",
+          "files": 1,
+          "bytes": 22,
+          "gzipBytes": 42
+        }
+      ],
+      "largestFiles": [
+        {
+          "path": "fonts/NearDocumentSans.ttf.gz",
+          "bytes": 6319428,
+          "gzipBytes": 6321204
+        },
+        {
+          "path": "pdfjs/pdf.worker.mjs",
+          "bytes": 1264342,
+          "gzipBytes": 376488
+        },
+        {
+          "path": "chunks/convert-U-gDTcXd.js",
+          "bytes": 1239065,
+          "gzipBytes": 539729
+        },
+        {
+          "path": "background.js",
+          "bytes": 1148632,
+          "gzipBytes": 488006
+        },
+        {
+          "path": "pdfjs/wasm/quickjs-eval.wasm",
+          "bytes": 469105,
+          "gzipBytes": 218892
+        },
+        {
+          "path": "pdfjs/wasm/openjpeg_nowasm_fallback.js",
+          "bytes": 445781,
+          "gzipBytes": 115814
+        },
+        {
+          "path": "chunks/pdf-BeWTfCxw.js",
+          "bytes": 430537,
+          "gzipBytes": 128391
+        },
+        {
+          "path": "content-scripts/selection.js",
+          "bytes": 422572,
+          "gzipBytes": 130147
+        },
+        {
+          "path": "pdfjs/wasm/openjpeg.wasm",
+          "bytes": 251131,
+          "gzipBytes": 82312
+        },
+        {
+          "path": "assets/reader-BxD5vuka.css",
+          "bytes": 235708,
+          "gzipBytes": 42863
+        },
+        {
+          "path": "chunks/jsx-runtime-sPUq510E.js",
+          "bytes": 219959,
+          "gzipBytes": 68060
+        },
+        {
+          "path": "chunks/pdf_viewer-BDPNLW5u.js",
+          "bytes": 169098,
+          "gzipBytes": 51194
+        },
+        {
+          "path": "pdfjs/standard_fonts/LiberationSans-Italic.ttf",
+          "bytes": 162036,
+          "gzipBytes": 99009
+        },
+        {
+          "path": "pdfjs/wasm/jbig2_nowasm_fallback.js",
+          "bytes": 152009,
+          "gzipBytes": 45327
+        },
+        {
+          "path": "pdfjs/standard_fonts/LiberationSans-Regular.ttf",
+          "bytes": 139512,
+          "gzipBytes": 90438
+        },
+        {
+          "path": "pdfjs/standard_fonts/LiberationSans-Bold.ttf",
+          "bytes": 137052,
+          "gzipBytes": 85765
+        },
+        {
+          "path": "pdfjs/standard_fonts/LiberationSans-BoldItalic.ttf",
+          "bytes": 135124,
+          "gzipBytes": 83813
+        },
+        {
+          "path": "pdfjs/wasm/jbig2.wasm",
+          "bytes": 103671,
+          "gzipBytes": 41220
+        },
+        {
+          "path": "pdfjs/wasm/qcms_bg.wasm",
+          "bytes": 96589,
+          "gzipBytes": 35849
+        },
+        {
+          "path": "pdfjs/cmaps/UniCNS-UTF8-H.bcmap",
+          "bytes": 53629,
+          "gzipBytes": 46633
+        }
+      ]
+    },
+    {
+      "directory": ".output/edge-mv3",
+      "version": "0.11.0",
+      "files": 333,
+      "bytes": 15271984,
+      "gzipBytes": 10366369,
+      "groups": [
+        {
+          "name": "fonts",
+          "files": 2,
+          "bytes": 6324243,
+          "gzipBytes": 6323565
+        },
+        {
+          "name": "chunks",
+          "files": 10,
+          "bytes": 2143693,
+          "gzipBytes": 816911
+        },
+        {
+          "name": "pdfjs/wasm",
+          "files": 13,
+          "bytes": 1543489,
+          "gzipBytes": 550491
+        },
+        {
+          "name": "pdfjs/pdf.worker.mjs",
+          "files": 1,
+          "bytes": 1264342,
+          "gzipBytes": 376488
+        },
+        {
+          "name": "pdfjs/cmaps",
+          "files": 169,
+          "bytes": 1167747,
+          "gzipBytes": 982956
+        },
+        {
+          "name": "background.js",
+          "files": 1,
+          "bytes": 1148632,
+          "gzipBytes": 488006
+        },
+        {
+          "name": "pdfjs/standard_fonts",
+          "files": 16,
+          "bytes": 798046,
+          "gzipBytes": 548958
+        },
+        {
+          "name": "content-scripts",
+          "files": 2,
+          "bytes": 426503,
+          "gzipBytes": 131580
+        },
+        {
+          "name": "assets",
+          "files": 4,
+          "bytes": 259180,
+          "gzipBytes": 50167
+        },
+        {
+          "name": "pdfjs/images",
+          "files": 82,
+          "bytes": 81616,
+          "gzipBytes": 41338
+        },
+        {
+          "name": "licenses",
+          "files": 19,
+          "bytes": 77422,
+          "gzipBytes": 31539
+        },
+        {
+          "name": "pdfjs/iccs",
+          "files": 2,
+          "bytes": 15017,
+          "gzipBytes": 10426
+        },
+        {
+          "name": "pdfjs/LICENSE",
+          "files": 1,
+          "bytes": 10174,
+          "gzipBytes": 3540
+        },
+        {
+          "name": "icon",
+          "files": 4,
+          "bytes": 7807,
+          "gzipBytes": 7896
+        },
+        {
+          "name": "manifest.json",
+          "files": 1,
+          "bytes": 800,
+          "gzipBytes": 543
+        },
+        {
+          "name": "options.html",
+          "files": 1,
+          "bytes": 774,
+          "gzipBytes": 422
+        },
+        {
+          "name": "reader.html",
+          "files": 1,
+          "bytes": 725,
+          "gzipBytes": 386
+        },
+        {
+          "name": "popup.html",
+          "files": 1,
+          "bytes": 635,
+          "gzipBytes": 367
+        },
+        {
+          "name": "convert.html",
+          "files": 1,
+          "bytes": 576,
+          "gzipBytes": 376
+        },
+        {
+          "name": "brand",
+          "files": 1,
+          "bytes": 541,
+          "gzipBytes": 372
+        },
+        {
+          "name": "pdfjs/version.json",
+          "files": 1,
+          "bytes": 22,
+          "gzipBytes": 42
+        }
+      ],
+      "largestFiles": [
+        {
+          "path": "fonts/NearDocumentSans.ttf.gz",
+          "bytes": 6319428,
+          "gzipBytes": 6321204
+        },
+        {
+          "path": "pdfjs/pdf.worker.mjs",
+          "bytes": 1264342,
+          "gzipBytes": 376488
+        },
+        {
+          "path": "chunks/convert-U-gDTcXd.js",
+          "bytes": 1239065,
+          "gzipBytes": 539729
+        },
+        {
+          "path": "background.js",
+          "bytes": 1148632,
+          "gzipBytes": 488006
+        },
+        {
+          "path": "pdfjs/wasm/quickjs-eval.wasm",
+          "bytes": 469105,
+          "gzipBytes": 218892
+        },
+        {
+          "path": "pdfjs/wasm/openjpeg_nowasm_fallback.js",
+          "bytes": 445781,
+          "gzipBytes": 115814
+        },
+        {
+          "path": "chunks/pdf-BeWTfCxw.js",
+          "bytes": 430537,
+          "gzipBytes": 128391
+        },
+        {
+          "path": "content-scripts/selection.js",
+          "bytes": 422572,
+          "gzipBytes": 130147
+        },
+        {
+          "path": "pdfjs/wasm/openjpeg.wasm",
+          "bytes": 251131,
+          "gzipBytes": 82312
+        },
+        {
+          "path": "assets/reader-BxD5vuka.css",
+          "bytes": 235708,
+          "gzipBytes": 42863
+        },
+        {
+          "path": "chunks/jsx-runtime-sPUq510E.js",
+          "bytes": 219959,
+          "gzipBytes": 68060
+        },
+        {
+          "path": "chunks/pdf_viewer-BDPNLW5u.js",
+          "bytes": 169098,
+          "gzipBytes": 51194
+        },
+        {
+          "path": "pdfjs/standard_fonts/LiberationSans-Italic.ttf",
+          "bytes": 162036,
+          "gzipBytes": 99009
+        },
+        {
+          "path": "pdfjs/wasm/jbig2_nowasm_fallback.js",
+          "bytes": 152009,
+          "gzipBytes": 45327
+        },
+        {
+          "path": "pdfjs/standard_fonts/LiberationSans-Regular.ttf",
+          "bytes": 139512,
+          "gzipBytes": 90438
+        },
+        {
+          "path": "pdfjs/standard_fonts/LiberationSans-Bold.ttf",
+          "bytes": 137052,
+          "gzipBytes": 85765
+        },
+        {
+          "path": "pdfjs/standard_fonts/LiberationSans-BoldItalic.ttf",
+          "bytes": 135124,
+          "gzipBytes": 83813
+        },
+        {
+          "path": "pdfjs/wasm/jbig2.wasm",
+          "bytes": 103671,
+          "gzipBytes": 41220
+        },
+        {
+          "path": "pdfjs/wasm/qcms_bg.wasm",
+          "bytes": 96589,
+          "gzipBytes": 35849
+        },
+        {
+          "path": "pdfjs/cmaps/UniCNS-UTF8-H.bcmap",
+          "bytes": 53629,
+          "gzipBytes": 46633
+        }
+      ]
+    }
+  ]
+}

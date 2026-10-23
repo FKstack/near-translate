@@ -1,0 +1,619 @@
+{
+  "at": "2026-10-22T16:25:29.834Z",
+  "version": "0.9.0",
+  "checks": {
+    "typecheck": "passed",
+    "boundaries": "passed",
+    "chromeBuild": "passed",
+    "edgeBuild": "passed"
+  },
+  "unit": {
+    "files": 45,
+    "passed": 1123,
+    "conversionPassed": 72
+  },
+  "browser": {
+    "browser": "msedge 155.0.4283.62",
+    "stats": {
+      "startTime": "2026-10-22T16:19:42.046Z",
+      "duration": 252519.752,
+      "expected": 94,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "conversionTests": 20,
+    "tests": [
+      {
+        "title": "provider selection restores isolated profiles and never returns saved keys to the settings UI",
+        "file": "api-connections.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "an anonymous custom local endpoint translates through the background with its chosen model",
+        "file": "api-connections.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "changing a saved API destination cannot reuse its previous credential",
+        "file": "api-connections.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "changing the model terminates a streaming request and the next translation uses the new model",
+        "file": "api-connections.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "concurrent saves from two options pages preserve both provider profiles and leave translation usable",
+        "file": "api-connections.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "delete-key can be saved when requesting API permissions is denied",
+        "file": "api-connections.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "disable-translation can be saved when requesting API permissions is denied",
+        "file": "api-connections.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "Markdown renders actual headings, lists, GFM tables and literal fenced code in the print preview",
+        "file": "conversion-markdown.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "UTF-8 file import preserves Chinese content and selects the matching format: 中文导入.md",
+        "file": "conversion-markdown.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "UTF-8 file import preserves Chinese content and selects the matching format: 纯文本导入.txt",
+        "file": "conversion-markdown.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "a selected PNG attachment is decoded in preview and embedded as a portable data URL in downloaded HTML",
+        "file": "conversion-markdown.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "HTML preview and download remove scripts, events and remote images without making external requests",
+        "file": "conversion-markdown.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "real multi-page A4 printing preserves Chinese prose, every table row and code line through PDF to Markdown",
+        "file": "conversion-markdown.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "a 360px viewport keeps both conversion controls and long document content inside their horizontal bounds",
+        "file": "conversion-markdown.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "PDF to Markdown retains usable structure, link annotations and mixed blank-page warnings",
+        "file": "conversion-read.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "PDF to TXT respects selected page order and repeated pages in the saved file",
+        "file": "conversion-read.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "real Chinese Type0 CMap text extracts as Unicode prose without external requests",
+        "file": "conversion-read.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "image-only PDF gives OCR guidance without an empty download and allows retry with text PDF",
+        "file": "conversion-read.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "incorrect PDF password can be corrected without leaking an old failure or worker",
+        "file": "conversion-read.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "PDF to PNG ZIP preserves CropBox, rotation, UserUnit and distinct repeated-page filenames",
+        "file": "conversion-read.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "PDF to JPEG ZIP produces real JPEG bytes at the requested resolution",
+        "file": "conversion-read.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "out-of-range page selection does not generate a file and can be repaired",
+        "file": "conversion-read.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "cancelling a pending PDF read and switching tools prevents stale output and supports a new conversion",
+        "file": "conversion-read.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "merges two uploaded PDFs and preserves page text, vector streams and original directions",
+        "file": "conversion-write.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "applies custom page order, repeated pages, file reordering and relative rotation through the UI",
+        "file": "conversion-write.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "splits selected and repeated pages into a valid UTF-8 ZIP of independently readable PDFs",
+        "file": "conversion-write.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "combines real PNG, JPEG and WebP files in chosen order using original and A4 page sizes",
+        "file": "conversion-write.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "optional connection preparation sends metadata before the click, coalesces navigation, and leaves text for the click",
+        "file": "deepl-translation.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "DeepL saves without a key, hides model controls, and preserves the existing model profile",
+        "file": "deepl-translation.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "the whole-page button sends anonymous text arrays, deduplicates paragraphs, preserves order, and restores the original",
+        "file": "deepl-translation.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "a long article batches dozens of passages, prioritizes article content, and reuses the warm document cache",
+        "file": "deepl-translation.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "the page pipelines slow anonymous batches within the shared service budget and preserves document order",
+        "file": "deepl-translation.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "one service start window applies across sequential page batches without losing output",
+        "file": "deepl-translation.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "visible prose enters the first batch before an earlier offscreen table of contents without losing full coverage",
+        "file": "deepl-translation.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "stopping a slow request or switching engines aborts it without late page translations",
+        "file": "deepl-translation.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "429 stops queued paragraphs and cooldown retries send nothing; switching to the model keeps its own credentials",
+        "file": "deepl-translation.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "production keeps website permissions optional",
+        "file": "extension.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "ordinary HTTP pages translate selected words",
+        "file": "extension.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "double-click word translates with context, copy and close",
+        "file": "extension.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "paragraph streams and preserves paragraph breaks",
+        "file": "extension.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "context switch removes context from the request and settings show Flash",
+        "file": "extension.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "disable closes the current overlay and prevents selection buttons",
+        "file": "extension.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "website-access revocation broadcast closes existing web overlays while PDF translation remains available",
+        "file": "extension.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "authorized iframe selections translate in their own document",
+        "file": "extension.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "missing key offers settings and sends no request",
+        "file": "extension.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "new selection cancels old work and old output cannot replace new result",
+        "file": "extension.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "provider HTML output stays inert and temporary failure offers retry",
+        "file": "extension.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "editable selection and viewport-edge overlay remain usable",
+        "file": "extension.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "a larger dictionary keeps different parts of speech accessible in a small viewport",
+        "file": "extension.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "sentence analysis is saved and appears after the ordinary translation",
+        "file": "extension.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "disabling sentence analysis persists and word translations never request analysis",
+        "file": "extension.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "an analysis failure keeps the translation and retries only the analysis request",
+        "file": "extension.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "closing the card cancels sentence analysis and suppresses its late output",
+        "file": "extension.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "a new selection cancels sentence analysis without replacing the new word result",
+        "file": "extension.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "turning off sentence analysis cancels its request while keeping the completed translation",
+        "file": "extension.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "sentence analysis scrolls inside a small card and treats model markup as plain text",
+        "file": "extension.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "grammar colors match the original and chunks and disappear when sentence analysis is switched off",
+        "file": "extension.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "grammar marks and chunks synchronize mouse and keyboard focus without changing the source text",
+        "file": "extension.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "local PDF text layer translates, zooms, searches, and changes pages",
+        "file": "extension.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "reader reports damaged and image-only files and can recover with a valid local file",
+        "file": "extension.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "password PDF handles incorrect input, successful unlock, and cancellation",
+        "file": "extension.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "online PDF opens with granted host access and shows local fallback on download failure",
+        "file": "extension.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "fresh settings use free translation without a Key and only the explicit test sends its public sample",
+        "file": "first-use-language.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "denied setup leaves local reading and old model settings intact, then one click enables free translation",
+        "file": "first-use-language.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "Japanese, Korean, Russian, Arabic and Chinese passages translate to English with matching language attributes",
+        "file": "first-use-language.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "changing language and service clears old reader translations while preserving the reading position",
+        "file": "first-use-language.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "Arabic target output has Arabic language and right-to-left presentation without changing source markup",
+        "file": "first-use-language.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "a real simulated 429 shares a cooldown across pages and the UI deadline never auto-retries",
+        "file": "first-use-language.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "ordinary HTTP pages translate the whole page",
+        "file": "page-translation.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "whole page stays bilingual and skips code, images, hidden and editable content",
+        "file": "page-translation.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "dark pages retain their original presentation and model output is inert text",
+        "file": "page-translation.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "the main translate button restores the original page before starting another translation",
+        "file": "page-translation.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "the main button restores original text after stopping a partially translated page",
+        "file": "page-translation.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "stop cancels active requests and leaves no late translations",
+        "file": "page-translation.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "a failed paragraph can be retried without requesting successful paragraphs again",
+        "file": "page-translation.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "content appended after completion is translated once",
+        "file": "page-translation.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "changing the same text node and changing it back replaces stale translations using the cache",
+        "file": "page-translation.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "a removed translation node is rebuilt without another API request",
+        "file": "page-translation.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "disabling translation stops the page session and removes inserted translations",
+        "file": "page-translation.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "website permission revocation cancels in-flight page translation",
+        "file": "page-translation.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "a rate limit stops queued paragraphs instead of repeatedly calling the API",
+        "file": "page-translation.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "missing API key offers settings and sends no page content",
+        "file": "page-translation.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "flex text blocks place the Chinese below the original without changing its layout",
+        "file": "page-translation.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "a streamed passage is readable before the rest of its batch finishes",
+        "file": "page-translation.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "Go-sized prose batches hundreds of passages into bounded parallel requests",
+        "file": "page-translation.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "English and Chinese reading work locally without a Key and preserve article details",
+        "file": "reading-mode.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "mode changes make no requests and only completed text is hidden in translation mode",
+        "file": "reading-mode.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "completed reading translations survive closing and reopen without another provider request",
+        "file": "reading-mode.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "the already translated source page seeds the reader without sending the article twice",
+        "file": "reading-mode.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "display preferences persist across documents without including article text or credentials",
+        "file": "reading-mode.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "keyboard entry and Escape preserve source focus and discard slow late translation results",
+        "file": "reading-mode.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "outline and progress follow reading and a paragraph can return to its original page location",
+        "file": "reading-mode.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "selection translation stays inside the reader and closing cancels its request",
+        "file": "reading-mode.spec.ts",
+        "ok": true,
+        "status": "expected"
+      },
+      {
+        "title": "narrow screens use accessible drawers and contain long code and wide tables",
+        "file": "reading-mode.spec.ts",
+        "ok": true,
+        "status": "expected"
+      }
+    ]
+  },
+  "localOnly": {
+    "externalHttpRequestsBlockedInConversionTests": true,
+    "passwordPersisted": false,
+    "apiKeysRead": false
+  },
+  "printExample": {
+    "path": "docs/design/conversion-workbench/roundtrip-a4.pdf",
+    "bytes": 97515,
+    "pages": 5,
+    "checks": [
+      "Chinese text layer",
+      "40 table rows",
+      "60 code lines",
+      "8 complete paragraphs",
+      "first and last paragraph",
+      "24 repeated prose sentences"
+    ]
+  },
+  "deployment": {
+    "completed": true,
+    "changedFiles": 20,
+    "verifiedFiles": 328,
+    "settingsUnchanged": true,
+    "permissionsUnchanged": true,
+    "conversionTabId": 800038246
+  }
+}

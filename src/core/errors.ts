@@ -4,18 +4,21 @@ import type { ErrorCode, TranslationError } from '../shared/contracts';
 export class TranslationFailure extends Error {
   readonly code: ErrorCode;
   readonly retryable: boolean;
+  readonly retryAt?: number;
 
-  constructor(code: ErrorCode, message: string, retryable = false) {
+  constructor(code: ErrorCode, message: string, retryable = false, retryAt?: number) {
     super(message);
     this.name = 'TranslationFailure';
     this.code = code;
     this.retryable = retryable;
+    if (code === 'RATE_LIMIT' && retryable && Number.isSafeInteger(retryAt) && retryAt! >= 0) this.retryAt = retryAt;
   }
 }
 
 export function toTranslationError(error: unknown): TranslationError {
   if (error instanceof TranslationFailure) {
-    return { code: error.code, message: error.message, retryable: error.retryable };
+    return { code: error.code, message: error.message, retryable: error.retryable,
+      ...(error.retryAt !== undefined ? { retryAt: error.retryAt } : {}) };
   }
   if (error instanceof Error && error.name === 'AbortError') {
     return { code: 'DISCONNECTED', message: '翻译请求已取消。', retryable: true };

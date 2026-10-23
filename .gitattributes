@@ -1,0 +1,17 @@
+* text=auto eol=lf
+
+# Keep packaged fonts, screenshots, and document fixtures byte-for-byte.
+*.gz binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.ttf binary
+*.otf binary
+*.woff binary
+*.woff2 binary
+*.wasm binary

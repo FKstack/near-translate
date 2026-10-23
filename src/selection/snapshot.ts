@@ -1,5 +1,6 @@
 import type { TranslationInput } from '../shared/contracts';
-import { boundedContext, classifySelection, isEnglishSelection, type Point } from './helpers';
+import { boundedContext, classifySelection, isTranslatableSelection, type Point } from './helpers';
+import { resolveLanguagePair, languageFromTag, type LanguageOptions } from '../shared/languages';
 
 export interface SelectionSnapshot {
   input: TranslationInput;
@@ -40,7 +41,11 @@ export function takeSelectionSnapshot(options: {
   pointer?: Point;
   includeContext: boolean;
   root: HTMLElement | Document;
+  languages?: LanguageOptions;
+  /** False when the host document's lang describes UI rather than selected content, as in PDF.js. */
+  useDocumentLanguageHint?: boolean;
 }): SelectionSnapshot | undefined {
+  const languages = options.languages ? resolveLanguagePair(options.languages) : undefined;
   const path = options.path ?? [document.activeElement].filter((node): node is Element => !!node);
   const editable = editableInPath(path);
   if (editable) {
@@ -52,11 +57,14 @@ export function takeSelectionSnapshot(options: {
     if (start === null || end === null || start === end) return;
     const raw = editable.value.slice(start, end);
     const text = raw.trim();
-    if (!text || !isEnglishSelection(text)) return;
-    const kind = classifySelection(text);
+    const languageHint = options.useDocumentLanguageHint === false ? undefined
+      : editable.closest('[lang]')?.getAttribute('lang') ?? document.documentElement.lang;
+    if (!text || !isTranslatableSelection(text, languages, languageHint)) return;
+    const detailLanguages: LanguageOptions | undefined = languages?.sourceLanguage === 'auto' ? { ...languages, sourceLanguage: languageFromTag(languageHint) ?? 'auto' } : languages;
+    const kind = classifySelection(text, detailLanguages);
     const rect = editable.getBoundingClientRect();
     return {
-      input: { text, kind, context: options.includeContext ? boundedContext(editable.value, raw, kind, start) : undefined },
+      input: { text, kind, ...detailLanguages, context: options.includeContext ? boundedContext(editable.value, raw, kind, start) : undefined },
       signature: `input:${start}:${end}:${raw}`,
       anchor: options.pointer ?? { x: Math.min(rect.right, rect.left + 36), y: rect.bottom },
     };
@@ -67,8 +75,11 @@ export function takeSelectionSnapshot(options: {
   if (options.root instanceof HTMLElement && (!options.root.contains(range.startContainer) || !options.root.contains(range.endContainer))) return;
   const raw = selection.toString();
   const text = raw.trim();
-  if (!text || !isEnglishSelection(text)) return;
-  const kind = classifySelection(text);
+  const languageHint = options.useDocumentLanguageHint === false ? undefined
+    : elementFrom(range.startContainer)?.closest('[lang]')?.getAttribute('lang') ?? document.documentElement.lang;
+  if (!text || !isTranslatableSelection(text, languages, languageHint)) return;
+  const detailLanguages: LanguageOptions | undefined = languages?.sourceLanguage === 'auto' ? { ...languages, sourceLanguage: languageFromTag(languageHint) ?? 'auto' } : languages;
+  const kind = classifySelection(text, detailLanguages);
   let context: string | undefined;
   if (options.includeContext) {
     const startBlock = nearbyBlock(range.startContainer);
@@ -93,7 +104,7 @@ export function takeSelectionSnapshot(options: {
   const rects = Array.from(range.getClientRects());
   const rect = rects.at(-1) ?? range.getBoundingClientRect();
   return {
-    input: { text, kind, context },
+    input: { text, kind, ...detailLanguages, context },
     signature: `range:${range.startOffset}:${range.endOffset}:${raw}`,
     anchor: options.pointer ?? { x: rect.right, y: rect.bottom },
     range,

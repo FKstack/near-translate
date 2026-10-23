@@ -1,0 +1,107 @@
+{
+  "at": "2026-10-22T12:06:22.737Z",
+  "installed": "D:\\浏览器翻译扩展\\artifacts\\installed\\near-translate-edge-v0.1.0",
+  "source": "D:\\浏览器翻译扩展\\.output\\edge-mv3",
+  "backup": "D:\\浏览器翻译扩展\\.output\\brand-design\\installed-backup-1792670782737",
+  "extensionId": "dbdooijmbinjmnbmgglajigaoiinolnc",
+  "files": [
+    {
+      "file": "content-scripts/selection.js",
+      "beforeHash": "2626dbc8ee6f38d278f8d36aeb5b5d9e80765efc9c2d457e58c7327e3f7464c8",
+      "afterHash": "def3f74574128ede984702f5287fb1fdd0c2b27205a8f1c3ded70ec86b82faff"
+    },
+    {
+      "file": "brand/near-translate.svg",
+      "beforeHash": null,
+      "afterHash": "dc96e09eb78343672db887b7cca996822224b143c1b19d4843b78bc9b4cdec83"
+    },
+    {
+      "file": "icon/16.png",
+      "beforeHash": null,
+      "afterHash": "e135f4e5cd5a31aff1b86d33248d81ded3206f58446dbd5b7a9acafa8ec53bf3"
+    },
+    {
+      "file": "icon/32.png",
+      "beforeHash": null,
+      "afterHash": "f828baa44e6f2994a545151c2580b9160a7862f570a4b2176ba47e2e0739473d"
+    },
+    {
+      "file": "icon/48.png",
+      "beforeHash": null,
+      "afterHash": "a6847fca76b1855df538af8f5845223360c75722608ebc5fad8381d126841a08"
+    },
+    {
+      "file": "icon/128.png",
+      "beforeHash": null,
+      "afterHash": "8417b5ad99849af70a79db8a254040bd63c297ccbfa68dde6a08318e2c96b39f"
+    },
+    {
+      "file": "manifest.json",
+      "beforeHash": "a017841aa0d1f64c66233068d9f5ff2bb6e15c7ece3fa933e1cf93438df775bd",
+      "afterHash": "36a01789a6a701c4dbda1e7cf9706c6548841241d077ed2225329f1db4e08488"
+    }
+  ],
+  "events": [
+    {
+      "phase": "before",
+      "extensionId": "dbdooijmbinjmnbmgglajigaoiinolnc",
+      "version": "0.7.0",
+      "name": "近译 · 整页与划词翻译",
+      "icons": {},
+      "settings": {
+        "enabled": true,
+        "webAccess": true,
+        "apiAccess": true,
+        "translationEngine": "model"
+      },
+      "helperTabId": 800037884
+    },
+    {
+      "phase": "reload-requested",
+      "helperTabId": 800037888
+    },
+    {
+      "phase": "after",
+      "extensionId": "dbdooijmbinjmnbmgglajigaoiinolnc",
+      "version": "0.7.0",
+      "name": "近译 · 整页与划词翻译",
+      "icons": {
+        "16": "icon/16.png",
+        "32": "icon/32.png",
+        "48": "icon/48.png",
+        "128": "icon/128.png"
+      },
+      "settings": {
+        "enabled": true,
+        "webAccess": true,
+        "apiAccess": true,
+        "translationEngine": "model"
+      },
+      "iconDecoded": true,
+      "demoTabId": 800037896,
+      "demoUrl": "https://go.dev/talks/2012/splash.article?utm_source=chatgpt.com",
+      "appearance": {
+        "background": "rgb(252, 253, 249)",
+        "borderRadius": "18px 18px 14px 14px",
+        "buttonLabels": [
+          "翻译整个页面",
+          "显示原文",
+          "翻译设置"
+        ],
+        "leafFills": [
+          "#087F83",
+          "#66CC9E"
+        ],
+        "primaryLabel": "翻译整个页面",
+        "right": "16px",
+        "width": "54px",
+        "withinViewport": true
+      },
+      "helperTabId": 800037893
+    }
+  ],
+  "browserStorageWritten": false,
+  "apiKeysRead": false,
+  "completed": true,
+  "settingsUnchanged": true
+}

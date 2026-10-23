@@ -47,6 +47,8 @@ type FakeApiState = {
   failAnalysis: boolean;
   analysisDelayMs: number;
   unsafeAnalysis: boolean;
+  holdDictionary?: boolean;
+  releaseDictionary?: () => void;
 };
 let context: BrowserContext;
 let worker: Worker;
@@ -123,14 +125,18 @@ async function installFakeApi(background: Worker): Promise<void> {
       let timer: ReturnType<typeof setTimeout> | undefined;
       const body = new ReadableStream<Uint8Array>({
         start(sink) {
-          const boundary = word ? 7 : 9;
+          const heldDictionary = word && global.__nearTest.holdDictionary;
+          const boundary = heldDictionary ? translated.indexOf(',"senses"') + 1 : word ? 7 : 9;
           sink.enqueue(encoder.encode(event(translated.slice(0, boundary))));
-          timer = setTimeout(() => {
+          const finish = () => {
             if (done) return;
             done = true;
+            if (heldDictionary) global.__nearTest.releaseDictionary = undefined;
             sink.enqueue(encoder.encode(event(translated.slice(boundary)) + event(null, 'stop') + 'data: [DONE]\n\n'));
             sink.close();
-          }, analyzing ? global.__nearTest.analysisDelayMs : envelope.selectedText.startsWith('Slow selection') ? 1_500 : word ? 80 : 700);
+          };
+          if (heldDictionary) global.__nearTest.releaseDictionary = finish;
+          else timer = setTimeout(finish, analyzing ? global.__nearTest.analysisDelayMs : envelope.selectedText.startsWith('Slow selection') ? 1_500 : word ? 80 : 700);
           init?.signal?.addEventListener('abort', () => {
             if (done) return;
             done = true; clearTimeout(timer); global.__nearTest.cancellations++;
@@ -153,6 +159,7 @@ async function requests(): Promise<CapturedRequest[]> {
 async function saveSettings(values: { key?: string; enabled?: boolean; includeContext?: boolean; removeKey?: boolean; analysis?: boolean } = {}): Promise<void> {
   await options.goto(`chrome-extension://${extensionId}/options.html`);
   await expect(options.getByRole('button', { name: '保存设置', exact: true })).toBeEnabled();
+  await options.getByLabel('翻译方式', { exact: true }).selectOption('model');
   if (values.removeKey) await options.getByRole('button', { name: '删除已保存的 Key' }).click();
   if (values.key !== undefined) await options.getByLabel('DeepSeek API Key', { exact: true }).fill(values.key);
   if (values.enabled !== undefined) await options.getByLabel('启用翻译', { exact: true }).setChecked(values.enabled);
@@ -170,7 +177,7 @@ async function selectElement(surface: Page | Frame, selector: string): Promise<v
     const rect = element.getBoundingClientRect();
     element.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, composed: true, clientX: rect.right - 4, clientY: rect.bottom - 4 }));
   });
-  await expect(surface.getByRole('button', { name: '翻译选中的英文' })).toBeVisible();
+  await expect(surface.getByRole('button', { name: '翻译选中文字' })).toBeVisible();
 }
 
 async function addSentenceFixture(sentence = LONG_SENTENCE): Promise<void> {
@@ -188,7 +195,7 @@ async function addSentenceFixture(sentence = LONG_SENTENCE): Promise<void> {
 async function startSentenceTranslation(sentence = LONG_SENTENCE): Promise<void> {
   await addSentenceFixture(sentence);
   await selectElement(page, '#long-sentence');
-  await page.getByRole('button', { name: '翻译选中的英文' }).click();
+  await page.getByRole('button', { name: '翻译选中文字' }).click();
 }
 
 async function analysisRequests(): Promise<CapturedRequest[]> {
@@ -232,6 +239,7 @@ test.beforeEach(async () => {
     const state = (globalThis as unknown as { __nearTest: FakeApiState }).__nearTest;
     state.requests = []; state.cancellations = 0; state.analysisCancellations = 0;
     state.failNext = false; state.failAnalysis = false; state.analysisDelayMs = 900; state.unsafeAnalysis = false;
+    state.holdDictionary = false; state.releaseDictionary = undefined;
   });
   await saveSettings({ key: 'fake-test-key', enabled: true, includeContext: true });
   page = await context.newPage();
@@ -270,7 +278,7 @@ test('ordinary HTTP pages translate selected words', async ({}, info) => {
   expect(await page.evaluate(() => window.isSecureContext)).toBe(false);
   await expect(page.locator('near-translate')).toHaveCount(1);
   await page.locator('#http-bank').dblclick();
-  await page.getByRole('button', { name: '翻译选中的英文' }).click();
+  await page.getByRole('button', { name: '翻译选中文字' }).click();
   await expect.soft.poll(requests).toHaveLength(1);
   await expect.soft(page.locator('.nt-word')).toHaveText('银行');
   await info.attach('ordinary-http-selection.json', {
@@ -282,9 +290,27 @@ test('ordinary HTTP pages translate selected words', async ({}, info) => {
   expect(errors).toEqual([]);
 });
 
+test('word meaning is visible while dictionary senses are still generating', async ({}, testInfo) => {
+  await worker.evaluate(() => { (globalThis as unknown as { __nearTest: FakeApiState }).__nearTest.holdDictionary = true; });
+  await page.locator('#bank').dblclick();
+  await page.getByRole('button', { name: '翻译选中文字' }).click();
+  await expect(page.locator('.nt-word')).toHaveText('银行');
+  await expect(page.locator('.nt-pos')).toHaveText('名词');
+  await expect(page.locator('.nt-explanation')).toContainText('金融机构');
+  await expect(page.locator('.nt-loading')).toHaveText('正在生成释义…');
+  await expect(page.locator('.nt-senses')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: '复制', exact: true })).toHaveCount(0);
+  await page.screenshot({ path: testInfo.outputPath('word-preview.png') });
+  await worker.evaluate(() => { (globalThis as unknown as { __nearTest: FakeApiState }).__nearTest.releaseDictionary?.(); });
+  await expect(page.locator('.nt-sense-meaning')).toHaveText(['银行', '河岸', '把钱存入银行']);
+  await expect(page.locator('.nt-loading')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: '复制', exact: true })).toBeVisible();
+  expect(await requests()).toHaveLength(1);
+});
+
 test('double-click word translates with context, copy and close', async ({}, testInfo) => {
   await page.locator('#bank').dblclick();
-  const trigger = page.getByRole('button', { name: '翻译选中的英文' });
+  const trigger = page.getByRole('button', { name: '翻译选中文字' });
   await expect(trigger).toBeVisible();
   expect(await requests()).toEqual([]);
   await trigger.click();
@@ -310,12 +336,12 @@ test('double-click word translates with context, copy and close', async ({}, tes
   expect(copied).toContain('名词\n1. 银行\n2. 河岸');
   expect(copied).toContain('动词\n1. 把钱存入银行');
   await page.getByRole('button', { name: '关闭翻译' }).click();
-  await expect(page.getByRole('dialog', { name: '英文翻译结果' })).toHaveCount(0);
+  await expect(page.getByRole('dialog', { name: '翻译结果' })).toHaveCount(0);
 });
 
 test('paragraph streams and preserves paragraph breaks', async () => {
   await selectElement(page, '#paragraph');
-  await page.getByRole('button', { name: '翻译选中的英文' }).click();
+  await page.getByRole('button', { name: '翻译选中文字' }).click();
   await expect(page.locator('.nt-text')).toHaveText('并发并不意味着并行');
   await expect(page.getByRole('button', { name: '复制', exact: true })).toBeVisible();
   await expect(page.locator('.nt-text')).toHaveText('并发并不意味着并行。\n\n在 0.05 水平下，结果不具有统计学显著性。');
@@ -327,7 +353,7 @@ test('context switch removes context from the request and settings show Flash', 
   await expect(options.getByLabel('模型名')).toHaveValue('deepseek-flash');
   await options.screenshot({ path: testInfo.outputPath('options.png'), fullPage: true });
   await page.locator('#bank').dblclick();
-  await page.getByRole('button', { name: '翻译选中的英文' }).click();
+  await page.getByRole('button', { name: '翻译选中文字' }).click();
   await expect(page.locator('.nt-word')).toHaveText('银行');
   await expect(page.locator('.nt-current-sense')).toHaveAttribute('aria-label', '参考释义');
   await expect(page.getByText('本句含义', { exact: true })).toHaveCount(0);
@@ -339,17 +365,17 @@ test('context switch removes context from the request and settings show Flash', 
 
 test('disable closes the current overlay and prevents selection buttons', async () => {
   await page.locator('#bank').dblclick();
-  await expect(page.getByRole('button', { name: '翻译选中的英文' })).toBeVisible();
+  await expect(page.getByRole('button', { name: '翻译选中文字' })).toBeVisible();
   await saveSettings({ enabled: false });
-  await expect(page.getByRole('button', { name: '翻译选中的英文' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: '翻译选中文字' })).toHaveCount(0);
   await page.locator('#paragraph').dblclick();
-  await expect(page.getByRole('button', { name: '翻译选中的英文' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: '翻译选中文字' })).toHaveCount(0);
   expect(await requests()).toEqual([]);
 });
 
 test('website-access revocation broadcast closes existing web overlays while PDF translation remains available', async () => {
   await page.locator('#bank').dblclick();
-  await expect(page.getByRole('button', { name: '翻译选中的英文' })).toBeVisible();
+  await expect(page.getByRole('button', { name: '翻译选中文字' })).toBeVisible();
   const reader = await context.newPage();
   await reader.goto(`chrome-extension://${extensionId}/reader.html`);
   await expect(reader.getByRole('button', { name: '打开本地 PDF', exact: true })).toBeEnabled();
@@ -369,11 +395,11 @@ test('website-access revocation broadcast closes existing web overlays while PDF
       ...tabs.filter(tab => tab.id !== undefined).map(tab => extension.tabs.sendMessage(tab.id!, message)),
     ]);
   });
-  await expect(page.getByRole('button', { name: '翻译选中的英文' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: '翻译选中文字' })).toHaveCount(0);
   await page.locator('#bank').dblclick();
-  await expect(page.getByRole('button', { name: '翻译选中的英文' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: '翻译选中文字' })).toHaveCount(0);
   await selectElement(reader, '.textLayer span');
-  await reader.getByRole('button', { name: '翻译选中的英文' }).click();
+  await reader.getByRole('button', { name: '翻译选中文字' }).click();
   await expect(reader.getByRole('button', { name: '复制', exact: true })).toBeVisible();
   expect((await requests())[0]?.selectedText).toContain('The bank');
 });
@@ -381,8 +407,8 @@ test('website-access revocation broadcast closes existing web overlays while PDF
 test('authorized iframe selections translate in their own document', async () => {
   const frame = page.frameLocator('iframe');
   await frame.locator('#frame-word').dblclick();
-  await expect(frame.getByRole('button', { name: '翻译选中的英文' })).toBeVisible();
-  await frame.getByRole('button', { name: '翻译选中的英文' }).click();
+  await expect(frame.getByRole('button', { name: '翻译选中文字' })).toBeVisible();
+  await frame.getByRole('button', { name: '翻译选中文字' }).click();
   await expect(frame.locator('.nt-word')).toHaveText('调度器');
   await expect(frame.locator('.nt-sense-meaning')).toHaveText(['调度器']);
   await expect(frame.locator('.nt-sense-group')).toHaveCount(1);
@@ -392,7 +418,7 @@ test('authorized iframe selections translate in their own document', async () =>
 test('missing key offers settings and sends no request', async () => {
   await saveSettings({ removeKey: true });
   await page.locator('#bank').dblclick();
-  await page.getByRole('button', { name: '翻译选中的英文' }).click();
+  await page.getByRole('button', { name: '翻译选中文字' }).click();
   await expect(page.getByRole('alert')).toContainText('填写 API Key');
   await expect(page.getByRole('button', { name: '打开设置' })).toBeVisible();
   expect(await requests()).toEqual([]);
@@ -400,10 +426,10 @@ test('missing key offers settings and sends no request', async () => {
 
 test('new selection cancels old work and old output cannot replace new result', async () => {
   await selectElement(page, '#slow');
-  await page.getByRole('button', { name: '翻译选中的英文' }).click();
+  await page.getByRole('button', { name: '翻译选中文字' }).click();
   await expect(page.locator('.nt-text')).toContainText('旧请求部分');
   await page.locator('#bank').dblclick();
-  await page.getByRole('button', { name: '翻译选中的英文' }).click();
+  await page.getByRole('button', { name: '翻译选中文字' }).click();
   await expect(page.locator('.nt-word')).toHaveText('银行');
   await expect.poll(() => worker.evaluate(() => (globalThis as unknown as { __nearTest: { cancellations: number } }).__nearTest.cancellations)).toBeGreaterThanOrEqual(1);
   // Cancellation releases the delayed response timer; the completed new result stays visible.
@@ -413,7 +439,7 @@ test('new selection cancels old work and old output cannot replace new result', 
 
 test('provider HTML output stays inert and temporary failure offers retry', async () => {
   await selectElement(page, '#inert');
-  await page.getByRole('button', { name: '翻译选中的英文' }).click();
+  await page.getByRole('button', { name: '翻译选中文字' }).click();
   await expect(page.getByRole('button', { name: '复制', exact: true })).toBeVisible();
   await expect(page.locator('.nt-text')).toContainText('<img src=x');
   await expect(page.locator('.nt-card img')).toHaveCount(0);
@@ -421,7 +447,7 @@ test('provider HTML output stays inert and temporary failure offers retry', asyn
   await page.getByRole('button', { name: '关闭翻译' }).click();
   await worker.evaluate(() => { (globalThis as unknown as { __nearTest: { failNext: boolean } }).__nearTest.failNext = true; });
   await selectElement(page, '#retry');
-  await page.getByRole('button', { name: '翻译选中的英文' }).click();
+  await page.getByRole('button', { name: '翻译选中文字' }).click();
   await expect(page.getByRole('alert')).toContainText('HTTP 503');
   await page.getByRole('button', { name: '重试', exact: true }).click();
   await expect(page.getByRole('button', { name: '复制', exact: true })).toBeVisible();
@@ -432,13 +458,13 @@ test('editable selection and viewport-edge overlay remain usable', async () => {
     element.focus(); element.setSelectionRange(4, 13);
     element.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, clientX: 600, clientY: 660 }));
   });
-  await page.getByRole('button', { name: '翻译选中的英文' }).click();
+  await page.getByRole('button', { name: '翻译选中文字' }).click();
   await expect(page.locator('.nt-word')).toHaveText('调度器');
   await page.getByRole('button', { name: '关闭翻译' }).click();
   await page.locator('#edge-word').dblclick();
-  await page.getByRole('button', { name: '翻译选中的英文' }).click();
+  await page.getByRole('button', { name: '翻译选中文字' }).click();
   await expect(page.locator('.nt-word')).toHaveText('准确性');
-  const box = await page.getByRole('dialog', { name: '英文翻译结果' }).boundingBox();
+  const box = await page.getByRole('dialog', { name: '翻译结果' }).boundingBox();
   expect(box).not.toBeNull();
   expect(box!.x).toBeGreaterThanOrEqual(0); expect(box!.y).toBeGreaterThanOrEqual(0);
   expect(box!.x + box!.width).toBeLessThanOrEqual(1280); expect(box!.y + box!.height).toBeLessThanOrEqual(900);
@@ -447,12 +473,12 @@ test('editable selection and viewport-edge overlay remain usable', async () => {
 test('a larger dictionary keeps different parts of speech accessible in a small viewport', async ({}, testInfo) => {
   await page.setViewportSize({ width: 480, height: 360 });
   await page.locator('#record').dblclick();
-  await page.getByRole('button', { name: '翻译选中的英文' }).click();
+  await page.getByRole('button', { name: '翻译选中文字' }).click();
   await expect(page.locator('.nt-word')).toHaveText('记录');
   await expect(page.locator('.nt-pos')).toHaveText('动词');
   await expect(page.locator('.nt-sense-pos')).toHaveText(['名词', '动词']);
   await expect(page.locator('.nt-sense-meaning')).toHaveCount(6);
-  const box = await page.getByRole('dialog', { name: '英文翻译结果' }).boundingBox();
+  const box = await page.getByRole('dialog', { name: '翻译结果' }).boundingBox();
   expect(box).not.toBeNull();
   expect(box!.x).toBeGreaterThanOrEqual(0); expect(box!.y).toBeGreaterThanOrEqual(0);
   expect(box!.x + box!.width).toBeLessThanOrEqual(480); expect(box!.y + box!.height).toBeLessThanOrEqual(360);
@@ -496,7 +522,7 @@ test('sentence analysis is saved and appears after the ordinary translation', as
 test('disabling sentence analysis persists and word translations never request analysis', async () => {
   await saveSettings({ analysis: true });
   await page.locator('#bank').dblclick();
-  await page.getByRole('button', { name: '翻译选中的英文' }).click();
+  await page.getByRole('button', { name: '翻译选中文字' }).click();
   await expect(page.locator('.nt-word')).toHaveText('银行');
   expect(await analysisRequests()).toEqual([]);
   await expect(page.locator('.nt-analysis')).toHaveCount(0);
@@ -542,7 +568,7 @@ test('closing the card cancels sentence analysis and suppresses its late output'
   await page.getByRole('button', { name: '关闭翻译' }).click();
   await expect.poll(analysisCancellations).toBe(1);
   await page.waitForTimeout(1_600);
-  await expect(page.getByRole('dialog', { name: '英文翻译结果' })).toHaveCount(0);
+  await expect(page.getByRole('dialog', { name: '翻译结果' })).toHaveCount(0);
   await expect(page.locator('.nt-analysis')).toHaveCount(0);
 });
 
@@ -553,7 +579,7 @@ test('a new selection cancels sentence analysis without replacing the new word r
   await expect(page.locator('.nt-text')).toHaveText(LONG_TRANSLATION);
   await expect.poll(async () => (await analysisRequests()).length).toBe(1);
   await page.locator('#bank').dblclick();
-  await page.getByRole('button', { name: '翻译选中的英文' }).click();
+  await page.getByRole('button', { name: '翻译选中文字' }).click();
   await expect(page.locator('.nt-word')).toHaveText('银行');
   await expect.poll(analysisCancellations).toBe(1);
   await page.waitForTimeout(1_600);
@@ -588,7 +614,7 @@ test('sentence analysis scrolls inside a small card and treats model markup as p
   await expect(page.locator('.nt-analysis')).toContainText('<img src=x onerror="window.analysisExecuted=true">阅读顺序保持纯文本。');
   await expect(page.locator('.nt-card img')).toHaveCount(0);
   expect(await page.evaluate(() => (window as typeof window & { analysisExecuted?: boolean }).analysisExecuted)).toBeUndefined();
-  const box = await page.getByRole('dialog', { name: '英文翻译结果' }).boundingBox();
+  const box = await page.getByRole('dialog', { name: '翻译结果' }).boundingBox();
   expect(box).not.toBeNull();
   expect(box!.x).toBeGreaterThanOrEqual(0); expect(box!.y).toBeGreaterThanOrEqual(0);
   expect(box!.x + box!.width).toBeLessThanOrEqual(480); expect(box!.y + box!.height).toBeLessThanOrEqual(360);
@@ -674,7 +700,7 @@ test('grammar marks and chunks synchronize mouse and keyboard focus without chan
   await page.locator('#bank').dblclick();
   await expect(page.locator('.nt-source mark')).toHaveCount(0);
   await expect(page.locator('.nt-analysis-legend')).toHaveCount(0);
-  await page.getByRole('button', { name: '翻译选中的英文' }).click();
+  await page.getByRole('button', { name: '翻译选中文字' }).click();
   await expect(page.locator('.nt-word')).toHaveText('银行');
   await expect(page.locator('.nt-source mark')).toHaveCount(0);
   await expect(page.locator('.nt-analysis-legend')).toHaveCount(0);
@@ -700,7 +726,7 @@ test('local PDF text layer translates, zooms, searches, and changes pages', asyn
     const rect = range.getBoundingClientRect();
     element.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, clientX: rect.right - 4, clientY: rect.bottom - 4 }));
   });
-  await page.getByRole('button', { name: '翻译选中的英文' }).click();
+  await page.getByRole('button', { name: '翻译选中文字' }).click();
   await expect(page.getByRole('button', { name: '复制', exact: true })).toBeVisible();
   await expect(page.locator('.nt-meta')).toContainText('PDF');
   await expect(page.locator('.nt-word')).toHaveText('银行');
@@ -726,7 +752,7 @@ test('local PDF text layer translates, zooms, searches, and changes pages', asyn
     const rect = endElement.getBoundingClientRect();
     endElement.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, clientX: rect.right - 4, clientY: rect.bottom - 4 }));
   });
-  const crossPageTrigger = page.getByRole('button', { name: '翻译选中的英文' });
+  const crossPageTrigger = page.getByRole('button', { name: '翻译选中文字' });
   await expect(crossPageTrigger).toBeVisible();
   const buttonPosition = await crossPageTrigger.boundingBox();
   if (!buttonPosition) throw new Error('Cross-page PDF selection must show a translation button.');

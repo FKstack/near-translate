@@ -1,0 +1,943 @@
+{
+  "schemaVersion": 1,
+  "endpoint": "https://www2.deepl.com/jsonrpc",
+  "reference": {
+    "repository": "https://github.com/beijixiaohu/OJBetter",
+    "commit": "860106c63ef7bb7d4ec5dcd709f80a9f9a6f1a46",
+    "file": "script/release/atcoder-better.user.js",
+    "version": "1.25.1"
+  },
+  "qualification": "complete-OJBetter-request-format-over-native-MV3-with-own-extension-scoped-DNR",
+  "sourceTexts": [
+    "The library is open from nine to five.",
+    "The train arrives at the station at noon.",
+    "Please close the window before you leave."
+  ],
+  "attemptLimit": 3,
+  "retries": 0,
+  "minimumGapMs": 1000,
+  "isolatedProfile": true,
+  "userCookiesOrKeysUsed": false,
+  "fetchOptions": {
+    "credentials": "omit",
+    "redirect": "error",
+    "cache": "no-store"
+  },
+  "dnrModifiesOnly": [
+    "Origin",
+    "Referer"
+  ],
+  "hostAutomaticallyManaged": true,
+  "attempts": [
+    {
+      "index": 0,
+      "stage": "single-sentence",
+      "sourceText": "The library is open from nine to five.",
+      "request": {
+        "payload": {
+          "jsonrpc": "2.0",
+          "method": "LMT_handle_texts",
+          "id": 171599000,
+          "params": {
+            "splitting": "newlines",
+            "lang": {
+              "source_lang_user_selected": "auto",
+              "target_lang": "ZH"
+            },
+            "texts": [
+              {
+                "text": "The library is open from nine to five.",
+                "requestAlternatives": 3
+              }
+            ],
+            "timestamp": 1792588321905
+          }
+        },
+        "body": "{\"jsonrpc\":\"2.0\",\"method\": \"LMT_handle_texts\",\"id\":171599000,\"params\":{\"splitting\":\"newlines\",\"lang\":{\"source_lang_user_selected\":\"auto\",\"target_lang\":\"ZH\"},\"texts\":[{\"text\":\"The library is open from nine to five.\",\"requestAlternatives\":3}],\"timestamp\":1792588321905}}",
+        "iCount": 4,
+        "spacing": "space-after-colon"
+      },
+      "passed": true,
+      "observation": {
+        "startedAt": 1792588321904,
+        "finishedAt": 1792588323610,
+        "status": 200,
+        "responseText": "{\"jsonrpc\":\"2.0\",\"id\":171599000,\"result\":{\"texts\":[{\"alternatives\":[{\"text\":\"\\u56FE\\u4E66\\u9986\\u7684\\u5F00\\u653E\\u65F6\\u95F4\\u4E3A 9 \\u70B9\\u81F3 5 \\u70B9\\u3002\"},{\"text\":\"\\u56FE\\u4E66\\u9986\\u7684\\u5F00\\u653E\\u65F6\\u95F4\\u4E3A 9 \\u70B9\\u5230 5 \\u70B9\\u3002\"},{\"text\":\"\\u56FE\\u4E66\\u9986\\u7684\\u5F00\\u653E\\u65F6\\u95F4\\u4E3A\\u65E9\\u4E5D\\u70B9\\u81F3\\u665A\\u4E94\\u70B9\\u3002\"}],\"text\":\"\\u56FE\\u4E66\\u9986\\u5F00\\u653E\\u65F6\\u95F4\\u4E3A 9 \\u70B9\\u81F3 5 \\u70B9\\u3002\"}],\"lang\":\"EN\",\"lang_is_confident\":true,\"detectedLanguages\":{\"EN\":0.9999629999999999,\"unsupported\":0.000032999999999999999}}}\r\n",
+        "retryAfter": null
+      },
+      "gapAfterPreviousCompletionMs": null,
+      "networkRecord": {
+        "sessionId": "863685F09FA3FC454D6C4DB5AAD0E707",
+        "requestId": "45796.2",
+        "sequence": 1,
+        "target": {
+          "id": "BC4D4AE3B0B7D72ECBA57C510BD727FB",
+          "type": "service_worker",
+          "url": "chrome-extension://eehnbcjknchpidkacjiebkodmhdnlmmm/worker.js"
+        },
+        "request": {
+          "url": "https://www2.deepl.com/jsonrpc",
+          "method": "POST",
+          "headers": {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0",
+            "Content-Type": "application/json",
+            "Referer": ""
+          },
+          "postData": "{\"jsonrpc\":\"2.0\",\"method\": \"LMT_handle_texts\",\"id\":171599000,\"params\":{\"splitting\":\"newlines\",\"lang\":{\"source_lang_user_selected\":\"auto\",\"target_lang\":\"ZH\"},\"texts\":[{\"text\":\"The library is open from nine to five.\",\"requestAlternatives\":3}],\"timestamp\":1792588321905}}",
+          "resourceType": "Fetch",
+          "timestamp": 83505.895067,
+          "wallTime": 1792588321.905264,
+          "initiator": {
+            "type": "script",
+            "stack": {
+              "callFrames": [
+                {
+                  "functionName": "eval",
+                  "scriptId": "14",
+                  "url": "",
+                  "lineNumber": 5,
+                  "columnNumber": 42
+                },
+                {
+                  "functionName": "evaluate",
+                  "scriptId": "4",
+                  "url": "",
+                  "lineNumber": 371,
+                  "columnNumber": 15
+                },
+                {
+                  "functionName": "",
+                  "scriptId": "9",
+                  "url": "",
+                  "lineNumber": 0,
+                  "columnNumber": 43
+                }
+              ]
+            }
+          }
+        },
+        "wire": {
+          "headers": {
+            ":authority": "www2.deepl.com",
+            ":method": "POST",
+            ":path": "/jsonrpc",
+            ":scheme": "https",
+            "accept": "*/*",
+            "accept-encoding": "gzip, deflate, br, zstd",
+            "accept-language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+            "cache-control": "no-cache",
+            "content-length": "268",
+            "content-type": "application/json",
+            "origin": "https://www.deepl.com",
+            "pragma": "no-cache",
+            "priority": "u=1, i",
+            "referer": "https://www.deepl.com/",
+            "sec-fetch-dest": "empty",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-site": "none",
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0"
+          },
+          "credentialHeaderNames": [],
+          "associatedCookieCount": 0
+        },
+        "responseExtra": {
+          "statusCode": 200,
+          "headers": {
+            "access-control-allow-credentials": "true",
+            "access-control-allow-origin": "https://www.deepl.com",
+            "access-control-expose-headers": "Server-Timing, X-Trace-ID",
+            "content-encoding": "gzip",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Wed, 21 Oct 2026 13:12:03 GMT",
+            "server-timing": "l7_lb_tls;dur=670, l7_lb_idle;dur=6, l7_lb_receive;dur=1, l7_lb_total;dur=772",
+            "set-cookie": "[present; redacted]",
+            "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+            "vary": "Accept-Encoding",
+            "x-trace-id": "01dc731d560e4757ad90a2a71b21b661"
+          }
+        },
+        "response": {
+          "status": 200,
+          "url": "https://www2.deepl.com/jsonrpc",
+          "headers": {
+            "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+            "access-control-expose-headers": "Server-Timing, X-Trace-ID",
+            "content-encoding": "gzip",
+            "access-control-allow-credentials": "true",
+            "x-trace-id": "01dc731d560e4757ad90a2a71b21b661",
+            "access-control-allow-origin": "https://www.deepl.com",
+            "server-timing": "l7_lb_tls;dur=670, l7_lb_idle;dur=6, l7_lb_receive;dur=1, l7_lb_total;dur=772",
+            "date": "Wed, 21 Oct 2026 13:12:03 GMT",
+            "content-type": "application/json; charset=utf-8",
+            "vary": "Accept-Encoding"
+          },
+          "protocol": "h2",
+          "fromDiskCache": false,
+          "fromServiceWorker": false
+        },
+        "finished": {
+          "timestamp": 83507.598262,
+          "encodedDataLength": 906
+        },
+        "bodyPending": false,
+        "body": {
+          "text": "{\"jsonrpc\":\"2.0\",\"id\":171599000,\"result\":{\"texts\":[{\"alternatives\":[{\"text\":\"\\u56FE\\u4E66\\u9986\\u7684\\u5F00\\u653E\\u65F6\\u95F4\\u4E3A 9 \\u70B9\\u81F3 5 \\u70B9\\u3002\"},{\"text\":\"\\u56FE\\u4E66\\u9986\\u7684\\u5F00\\u653E\\u65F6\\u95F4\\u4E3A 9 \\u70B9\\u5230 5 \\u70B9\\u3002\"},{\"text\":\"\\u56FE\\u4E66\\u9986\\u7684\\u5F00\\u653E\\u65F6\\u95F4\\u4E3A\\u65E9\\u4E5D\\u70B9\\u81F3\\u665A\\u4E94\\u70B9\\u3002\"}],\"text\":\"\\u56FE\\u4E66\\u9986\\u5F00\\u653E\\u65F6\\u95F4\\u4E3A 9 \\u70B9\\u81F3 5 \\u70B9\\u3002\"}],\"lang\":\"EN\",\"lang_is_confident\":true,\"detectedLanguages\":{\"EN\":0.9999629999999999,\"unsupported\":0.000032999999999999999}}}\r\n",
+          "truncated": false
+        }
+      },
+      "translation": "图书馆开放时间为 9 点至 5 点。"
+    },
+    {
+      "index": 1,
+      "stage": "serial-sentence-1",
+      "sourceText": "The train arrives at the station at noon.",
+      "request": {
+        "payload": {
+          "jsonrpc": "2.0",
+          "method": "LMT_handle_texts",
+          "id": 189366000,
+          "params": {
+            "splitting": "newlines",
+            "lang": {
+              "source_lang_user_selected": "auto",
+              "target_lang": "ZH"
+            },
+            "texts": [
+              {
+                "text": "The train arrives at the station at noon.",
+                "requestAlternatives": 3
+              }
+            ],
+            "timestamp": 1792588324612
+          }
+        },
+        "body": "{\"jsonrpc\":\"2.0\",\"method\": \"LMT_handle_texts\",\"id\":189366000,\"params\":{\"splitting\":\"newlines\",\"lang\":{\"source_lang_user_selected\":\"auto\",\"target_lang\":\"ZH\"},\"texts\":[{\"text\":\"The train arrives at the station at noon.\",\"requestAlternatives\":3}],\"timestamp\":1792588324612}}",
+        "iCount": 3,
+        "spacing": "space-after-colon"
+      },
+      "passed": true,
+      "observation": {
+        "startedAt": 1792588324611,
+        "finishedAt": 1792588325332,
+        "status": 200,
+        "responseText": "{\"jsonrpc\":\"2.0\",\"id\":189366000,\"result\":{\"texts\":[{\"alternatives\":[{\"text\":\"\\u706B\\u8F66\\u4E2D\\u5348\\u62B5\\u8FBE\\u8F66\\u7AD9\\u3002\"},{\"text\":\"\\u5217\\u8F66\\u4E2D\\u5348\\u5230\\u8FBE\\u8F66\\u7AD9\\u3002\"},{\"text\":\"\\u706B\\u8F66\\u5728\\u4E2D\\u5348\\u5230\\u8FBE\\u8F66\\u7AD9\\u3002\"}],\"text\":\"\\u706B\\u8F66\\u4E2D\\u5348\\u5230\\u8FBE\\u8F66\\u7AD9\\u3002\"}],\"lang\":\"EN\",\"lang_is_confident\":true,\"detectedLanguages\":{\"EN\":0.9999239999999999,\"FR\":0.000021,\"unsupported\":0.000049999999999999999}}}\r\n",
+        "retryAfter": null
+      },
+      "gapAfterPreviousCompletionMs": 1001,
+      "networkRecord": {
+        "sessionId": "863685F09FA3FC454D6C4DB5AAD0E707",
+        "requestId": "45796.3",
+        "sequence": 2,
+        "target": {
+          "id": "BC4D4AE3B0B7D72ECBA57C510BD727FB",
+          "type": "service_worker",
+          "url": "chrome-extension://eehnbcjknchpidkacjiebkodmhdnlmmm/worker.js"
+        },
+        "request": {
+          "url": "https://www2.deepl.com/jsonrpc",
+          "method": "POST",
+          "headers": {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0",
+            "Content-Type": "application/json",
+            "Referer": ""
+          },
+          "postData": "{\"jsonrpc\":\"2.0\",\"method\": \"LMT_handle_texts\",\"id\":189366000,\"params\":{\"splitting\":\"newlines\",\"lang\":{\"source_lang_user_selected\":\"auto\",\"target_lang\":\"ZH\"},\"texts\":[{\"text\":\"The train arrives at the station at noon.\",\"requestAlternatives\":3}],\"timestamp\":1792588324612}}",
+          "resourceType": "Fetch",
+          "timestamp": 83508.601923,
+          "wallTime": 1792588324.612094,
+          "initiator": {
+            "type": "script",
+            "stack": {
+              "callFrames": [
+                {
+                  "functionName": "eval",
+                  "scriptId": "14",
+                  "url": "",
+                  "lineNumber": 5,
+                  "columnNumber": 42
+                },
+                {
+                  "functionName": "evaluate",
+                  "scriptId": "4",
+                  "url": "",
+                  "lineNumber": 371,
+                  "columnNumber": 15
+                },
+                {
+                  "functionName": "",
+                  "scriptId": "9",
+                  "url": "",
+                  "lineNumber": 0,
+                  "columnNumber": 43
+                }
+              ]
+            }
+          }
+        },
+        "wire": {
+          "headers": {
+            ":authority": "www2.deepl.com",
+            ":method": "POST",
+            ":path": "/jsonrpc",
+            ":scheme": "https",
+            "accept": "*/*",
+            "accept-encoding": "gzip, deflate, br, zstd",
+            "accept-language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+            "cache-control": "no-cache",
+            "content-length": "271",
+            "content-type": "application/json",
+            "origin": "https://www.deepl.com",
+            "pragma": "no-cache",
+            "priority": "u=1, i",
+            "referer": "https://www.deepl.com/",
+            "sec-fetch-dest": "empty",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-site": "none",
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0"
+          },
+          "credentialHeaderNames": [],
+          "associatedCookieCount": 0
+        },
+        "responseExtra": {
+          "statusCode": 200,
+          "headers": {
+            "access-control-allow-credentials": "true",
+            "access-control-allow-origin": "https://www.deepl.com",
+            "access-control-expose-headers": "Server-Timing, X-Trace-ID",
+            "content-encoding": "gzip",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Wed, 21 Oct 2026 13:12:05 GMT",
+            "server-timing": "l7_lb_tls;dur=0, l7_lb_idle;dur=1773, l7_lb_receive;dur=22, l7_lb_total;dur=58",
+            "set-cookie": "[present; redacted]",
+            "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+            "vary": "Accept-Encoding",
+            "x-trace-id": "07bf75a52694456fad9aea6e0cdbdff2"
+          }
+        },
+        "response": {
+          "status": 200,
+          "url": "https://www2.deepl.com/jsonrpc",
+          "headers": {
+            "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+            "access-control-expose-headers": "Server-Timing, X-Trace-ID",
+            "content-encoding": "gzip",
+            "access-control-allow-credentials": "true",
+            "x-trace-id": "07bf75a52694456fad9aea6e0cdbdff2",
+            "access-control-allow-origin": "https://www.deepl.com",
+            "server-timing": "l7_lb_tls;dur=0, l7_lb_idle;dur=1773, l7_lb_receive;dur=22, l7_lb_total;dur=58",
+            "date": "Wed, 21 Oct 2026 13:12:05 GMT",
+            "content-type": "application/json; charset=utf-8",
+            "vary": "Accept-Encoding"
+          },
+          "protocol": "h2",
+          "fromDiskCache": false,
+          "fromServiceWorker": false
+        },
+        "finished": {
+          "timestamp": 83509.321638,
+          "encodedDataLength": 884
+        },
+        "bodyPending": false,
+        "body": {
+          "text": "{\"jsonrpc\":\"2.0\",\"id\":189366000,\"result\":{\"texts\":[{\"alternatives\":[{\"text\":\"\\u706B\\u8F66\\u4E2D\\u5348\\u62B5\\u8FBE\\u8F66\\u7AD9\\u3002\"},{\"text\":\"\\u5217\\u8F66\\u4E2D\\u5348\\u5230\\u8FBE\\u8F66\\u7AD9\\u3002\"},{\"text\":\"\\u706B\\u8F66\\u5728\\u4E2D\\u5348\\u5230\\u8FBE\\u8F66\\u7AD9\\u3002\"}],\"text\":\"\\u706B\\u8F66\\u4E2D\\u5348\\u5230\\u8FBE\\u8F66\\u7AD9\\u3002\"}],\"lang\":\"EN\",\"lang_is_confident\":true,\"detectedLanguages\":{\"EN\":0.9999239999999999,\"FR\":0.000021,\"unsupported\":0.000049999999999999999}}}\r\n",
+          "truncated": false
+        }
+      },
+      "translation": "火车中午到达车站。"
+    },
+    {
+      "index": 2,
+      "stage": "serial-sentence-2",
+      "sourceText": "Please close the window before you leave.",
+      "request": {
+        "payload": {
+          "jsonrpc": "2.0",
+          "method": "LMT_handle_texts",
+          "id": 151338000,
+          "params": {
+            "splitting": "newlines",
+            "lang": {
+              "source_lang_user_selected": "auto",
+              "target_lang": "ZH"
+            },
+            "texts": [
+              {
+                "text": "Please close the window before you leave.",
+                "requestAlternatives": 3
+              }
+            ],
+            "timestamp": 1792588326334
+          }
+        },
+        "body": "{\"jsonrpc\":\"2.0\",\"method\": \"LMT_handle_texts\",\"id\":151338000,\"params\":{\"splitting\":\"newlines\",\"lang\":{\"source_lang_user_selected\":\"auto\",\"target_lang\":\"ZH\"},\"texts\":[{\"text\":\"Please close the window before you leave.\",\"requestAlternatives\":3}],\"timestamp\":1792588326334}}",
+        "iCount": 1,
+        "spacing": "space-after-colon"
+      },
+      "passed": true,
+      "observation": {
+        "startedAt": 1792588326334,
+        "finishedAt": 1792588327045,
+        "status": 200,
+        "responseText": "{\"jsonrpc\":\"2.0\",\"id\":151338000,\"result\":{\"texts\":[{\"alternatives\":[{\"text\":\"\\u79BB\\u5F00\\u524D\\u8BF7\\u5173\\u95ED\\u7A97\\u53E3\\u3002\"},{\"text\":\"\\u8BF7\\u5728\\u79BB\\u5F00\\u4E4B\\u524D\\u5173\\u95ED\\u7A97\\u53E3\\u3002\"},{\"text\":\"\\u8BF7\\u5728\\u79BB\\u5F00\\u524D\\u5173\\u95ED\\u7A97\\u6237\\u3002\"}],\"text\":\"\\u8BF7\\u5728\\u79BB\\u5F00\\u524D\\u5173\\u95ED\\u7A97\\u53E3\\u3002\"}],\"lang\":\"EN\",\"lang_is_confident\":true,\"detectedLanguages\":{\"EN\":0.9999969999999999}}}\r\n",
+        "retryAfter": null
+      },
+      "gapAfterPreviousCompletionMs": 1002,
+      "networkRecord": {
+        "sessionId": "863685F09FA3FC454D6C4DB5AAD0E707",
+        "requestId": "45796.4",
+        "sequence": 3,
+        "target": {
+          "id": "BC4D4AE3B0B7D72ECBA57C510BD727FB",
+          "type": "service_worker",
+          "url": "chrome-extension://eehnbcjknchpidkacjiebkodmhdnlmmm/worker.js"
+        },
+        "request": {
+          "url": "https://www2.deepl.com/jsonrpc",
+          "method": "POST",
+          "headers": {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0",
+            "Content-Type": "application/json",
+            "Referer": ""
+          },
+          "postData": "{\"jsonrpc\":\"2.0\",\"method\": \"LMT_handle_texts\",\"id\":151338000,\"params\":{\"splitting\":\"newlines\",\"lang\":{\"source_lang_user_selected\":\"auto\",\"target_lang\":\"ZH\"},\"texts\":[{\"text\":\"Please close the window before you leave.\",\"requestAlternatives\":3}],\"timestamp\":1792588326334}}",
+          "resourceType": "Fetch",
+          "timestamp": 83510.325028,
+          "wallTime": 1792588326.335183,
+          "initiator": {
+            "type": "script",
+            "stack": {
+              "callFrames": [
+                {
+                  "functionName": "eval",
+                  "scriptId": "14",
+                  "url": "",
+                  "lineNumber": 5,
+                  "columnNumber": 42
+                },
+                {
+                  "functionName": "evaluate",
+                  "scriptId": "4",
+                  "url": "",
+                  "lineNumber": 371,
+                  "columnNumber": 15
+                },
+                {
+                  "functionName": "",
+                  "scriptId": "9",
+                  "url": "",
+                  "lineNumber": 0,
+                  "columnNumber": 43
+                }
+              ]
+            }
+          }
+        },
+        "wire": {
+          "headers": {
+            ":authority": "www2.deepl.com",
+            ":method": "POST",
+            ":path": "/jsonrpc",
+            ":scheme": "https",
+            "accept": "*/*",
+            "accept-encoding": "gzip, deflate, br, zstd",
+            "accept-language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+            "cache-control": "no-cache",
+            "content-length": "271",
+            "content-type": "application/json",
+            "origin": "https://www.deepl.com",
+            "pragma": "no-cache",
+            "priority": "u=1, i",
+            "referer": "https://www.deepl.com/",
+            "sec-fetch-dest": "empty",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-site": "none",
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0"
+          },
+          "credentialHeaderNames": [],
+          "associatedCookieCount": 0
+        },
+        "responseExtra": {
+          "statusCode": 200,
+          "headers": {
+            "access-control-allow-credentials": "true",
+            "access-control-allow-origin": "https://www.deepl.com",
+            "access-control-expose-headers": "Server-Timing, X-Trace-ID",
+            "content-encoding": "gzip",
+            "content-type": "application/json; charset=utf-8",
+            "date": "Wed, 21 Oct 2026 13:12:06 GMT",
+            "server-timing": "l7_lb_tls;dur=0, l7_lb_idle;dur=1726, l7_lb_receive;dur=0, l7_lb_total;dur=42",
+            "set-cookie": "[present; redacted]",
+            "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+            "vary": "Accept-Encoding",
+            "x-trace-id": "b8ace2021a9a435abf9ea35b3e500709"
+          }
+        },
+        "response": {
+          "status": 200,
+          "url": "https://www2.deepl.com/jsonrpc",
+          "headers": {
+            "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+            "access-control-expose-headers": "Server-Timing, X-Trace-ID",
+            "content-encoding": "gzip",
+            "access-control-allow-credentials": "true",
+            "x-trace-id": "b8ace2021a9a435abf9ea35b3e500709",
+            "access-control-allow-origin": "https://www.deepl.com",
+            "server-timing": "l7_lb_tls;dur=0, l7_lb_idle;dur=1726, l7_lb_receive;dur=0, l7_lb_total;dur=42",
+            "date": "Wed, 21 Oct 2026 13:12:06 GMT",
+            "content-type": "application/json; charset=utf-8",
+            "vary": "Accept-Encoding"
+          },
+          "protocol": "h2",
+          "fromDiskCache": false,
+          "fromServiceWorker": false
+        },
+        "finished": {
+          "timestamp": 83511.034356,
+          "encodedDataLength": 853
+        },
+        "bodyPending": false,
+        "body": {
+          "text": "{\"jsonrpc\":\"2.0\",\"id\":151338000,\"result\":{\"texts\":[{\"alternatives\":[{\"text\":\"\\u79BB\\u5F00\\u524D\\u8BF7\\u5173\\u95ED\\u7A97\\u53E3\\u3002\"},{\"text\":\"\\u8BF7\\u5728\\u79BB\\u5F00\\u4E4B\\u524D\\u5173\\u95ED\\u7A97\\u53E3\\u3002\"},{\"text\":\"\\u8BF7\\u5728\\u79BB\\u5F00\\u524D\\u5173\\u95ED\\u7A97\\u6237\\u3002\"}],\"text\":\"\\u8BF7\\u5728\\u79BB\\u5F00\\u524D\\u5173\\u95ED\\u7A97\\u53E3\\u3002\"}],\"lang\":\"EN\",\"lang_is_confident\":true,\"detectedLanguages\":{\"EN\":0.9999969999999999}}}\r\n",
+          "truncated": false
+        }
+      },
+      "translation": "请在离开前关闭窗口。"
+    }
+  ],
+  "qualified": true,
+  "stage": "complete",
+  "browser": {
+    "channel": "msedge",
+    "version": "155.0.4283.62",
+    "protocol": {
+      "protocolVersion": "1.3",
+      "product": "Edg/155.0.4283.62",
+      "revision": "@aa3a7406ba8c53a83536df539f07124d73c899bd",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0",
+      "jsVersion": "15.5.9.7"
+    }
+  },
+  "extensionId": "eehnbcjknchpidkacjiebkodmhdnlmmm",
+  "runtime": {
+    "granted": true,
+    "manifest": {
+      "background": {
+        "service_worker": "worker.js"
+      },
+      "host_permissions": [
+        "https://www2.deepl.com/*"
+      ],
+      "manifest_version": 3,
+      "name": "Near Translate MV3 transport equivalence qualification",
+      "permissions": [
+        "declarativeNetRequestWithHostAccess"
+      ],
+      "version": "0.0.1"
+    },
+    "sessionRules": [
+      {
+        "action": {
+          "requestHeaders": [
+            {
+              "header": "Origin",
+              "operation": "set",
+              "value": "https://www.deepl.com"
+            },
+            {
+              "header": "Referer",
+              "operation": "set",
+              "value": "https://www.deepl.com/"
+            }
+          ],
+          "type": "modifyHeaders"
+        },
+        "condition": {
+          "initiatorDomains": [
+            "eehnbcjknchpidkacjiebkodmhdnlmmm"
+          ],
+          "isUrlFilterCaseSensitive": true,
+          "regexFilter": "^https://www2\\.deepl\\.com/jsonrpc$",
+          "requestMethods": [
+            "post"
+          ],
+          "resourceTypes": [
+            "xmlhttprequest"
+          ]
+        },
+        "id": 1,
+        "priority": 1
+      }
+    ],
+    "nativeFetch": true
+  },
+  "translationsInSourceOrder": [
+    "图书馆开放时间为 9 点至 5 点。",
+    "火车中午到达车站。",
+    "请在离开前关闭窗口。"
+  ],
+  "wireRecords": [
+    {
+      "sessionId": "863685F09FA3FC454D6C4DB5AAD0E707",
+      "requestId": "45796.2",
+      "sequence": 1,
+      "target": {
+        "id": "BC4D4AE3B0B7D72ECBA57C510BD727FB",
+        "type": "service_worker",
+        "url": "chrome-extension://eehnbcjknchpidkacjiebkodmhdnlmmm/worker.js"
+      },
+      "request": {
+        "url": "https://www2.deepl.com/jsonrpc",
+        "method": "POST",
+        "headers": {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0",
+          "Content-Type": "application/json",
+          "Referer": ""
+        },
+        "postData": "{\"jsonrpc\":\"2.0\",\"method\": \"LMT_handle_texts\",\"id\":171599000,\"params\":{\"splitting\":\"newlines\",\"lang\":{\"source_lang_user_selected\":\"auto\",\"target_lang\":\"ZH\"},\"texts\":[{\"text\":\"The library is open from nine to five.\",\"requestAlternatives\":3}],\"timestamp\":1792588321905}}",
+        "resourceType": "Fetch",
+        "timestamp": 83505.895067,
+        "wallTime": 1792588321.905264,
+        "initiator": {
+          "type": "script",
+          "stack": {
+            "callFrames": [
+              {
+                "functionName": "eval",
+                "scriptId": "14",
+                "url": "",
+                "lineNumber": 5,
+                "columnNumber": 42
+              },
+              {
+                "functionName": "evaluate",
+                "scriptId": "4",
+                "url": "",
+                "lineNumber": 371,
+                "columnNumber": 15
+              },
+              {
+                "functionName": "",
+                "scriptId": "9",
+                "url": "",
+                "lineNumber": 0,
+                "columnNumber": 43
+              }
+            ]
+          }
+        }
+      },
+      "wire": {
+        "headers": {
+          ":authority": "www2.deepl.com",
+          ":method": "POST",
+          ":path": "/jsonrpc",
+          ":scheme": "https",
+          "accept": "*/*",
+          "accept-encoding": "gzip, deflate, br, zstd",
+          "accept-language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+          "cache-control": "no-cache",
+          "content-length": "268",
+          "content-type": "application/json",
+          "origin": "https://www.deepl.com",
+          "pragma": "no-cache",
+          "priority": "u=1, i",
+          "referer": "https://www.deepl.com/",
+          "sec-fetch-dest": "empty",
+          "sec-fetch-mode": "cors",
+          "sec-fetch-site": "none",
+          "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0"
+        },
+        "credentialHeaderNames": [],
+        "associatedCookieCount": 0
+      },
+      "responseExtra": {
+        "statusCode": 200,
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "access-control-allow-origin": "https://www.deepl.com",
+          "access-control-expose-headers": "Server-Timing, X-Trace-ID",
+          "content-encoding": "gzip",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Wed, 21 Oct 2026 13:12:03 GMT",
+          "server-timing": "l7_lb_tls;dur=670, l7_lb_idle;dur=6, l7_lb_receive;dur=1, l7_lb_total;dur=772",
+          "set-cookie": "[present; redacted]",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "vary": "Accept-Encoding",
+          "x-trace-id": "01dc731d560e4757ad90a2a71b21b661"
+        }
+      },
+      "response": {
+        "status": 200,
+        "url": "https://www2.deepl.com/jsonrpc",
+        "headers": {
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "access-control-expose-headers": "Server-Timing, X-Trace-ID",
+          "content-encoding": "gzip",
+          "access-control-allow-credentials": "true",
+          "x-trace-id": "01dc731d560e4757ad90a2a71b21b661",
+          "access-control-allow-origin": "https://www.deepl.com",
+          "server-timing": "l7_lb_tls;dur=670, l7_lb_idle;dur=6, l7_lb_receive;dur=1, l7_lb_total;dur=772",
+          "date": "Wed, 21 Oct 2026 13:12:03 GMT",
+          "content-type": "application/json; charset=utf-8",
+          "vary": "Accept-Encoding"
+        },
+        "protocol": "h2",
+        "fromDiskCache": false,
+        "fromServiceWorker": false
+      },
+      "finished": {
+        "timestamp": 83507.598262,
+        "encodedDataLength": 906
+      },
+      "body": {
+        "text": "{\"jsonrpc\":\"2.0\",\"id\":171599000,\"result\":{\"texts\":[{\"alternatives\":[{\"text\":\"\\u56FE\\u4E66\\u9986\\u7684\\u5F00\\u653E\\u65F6\\u95F4\\u4E3A 9 \\u70B9\\u81F3 5 \\u70B9\\u3002\"},{\"text\":\"\\u56FE\\u4E66\\u9986\\u7684\\u5F00\\u653E\\u65F6\\u95F4\\u4E3A 9 \\u70B9\\u5230 5 \\u70B9\\u3002\"},{\"text\":\"\\u56FE\\u4E66\\u9986\\u7684\\u5F00\\u653E\\u65F6\\u95F4\\u4E3A\\u65E9\\u4E5D\\u70B9\\u81F3\\u665A\\u4E94\\u70B9\\u3002\"}],\"text\":\"\\u56FE\\u4E66\\u9986\\u5F00\\u653E\\u65F6\\u95F4\\u4E3A 9 \\u70B9\\u81F3 5 \\u70B9\\u3002\"}],\"lang\":\"EN\",\"lang_is_confident\":true,\"detectedLanguages\":{\"EN\":0.9999629999999999,\"unsupported\":0.000032999999999999999}}}\r\n",
+        "truncated": false
+      },
+      "responseBodyPending": false
+    },
+    {
+      "sessionId": "863685F09FA3FC454D6C4DB5AAD0E707",
+      "requestId": "45796.3",
+      "sequence": 2,
+      "target": {
+        "id": "BC4D4AE3B0B7D72ECBA57C510BD727FB",
+        "type": "service_worker",
+        "url": "chrome-extension://eehnbcjknchpidkacjiebkodmhdnlmmm/worker.js"
+      },
+      "request": {
+        "url": "https://www2.deepl.com/jsonrpc",
+        "method": "POST",
+        "headers": {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0",
+          "Content-Type": "application/json",
+          "Referer": ""
+        },
+        "postData": "{\"jsonrpc\":\"2.0\",\"method\": \"LMT_handle_texts\",\"id\":189366000,\"params\":{\"splitting\":\"newlines\",\"lang\":{\"source_lang_user_selected\":\"auto\",\"target_lang\":\"ZH\"},\"texts\":[{\"text\":\"The train arrives at the station at noon.\",\"requestAlternatives\":3}],\"timestamp\":1792588324612}}",
+        "resourceType": "Fetch",
+        "timestamp": 83508.601923,
+        "wallTime": 1792588324.612094,
+        "initiator": {
+          "type": "script",
+          "stack": {
+            "callFrames": [
+              {
+                "functionName": "eval",
+                "scriptId": "14",
+                "url": "",
+                "lineNumber": 5,
+                "columnNumber": 42
+              },
+              {
+                "functionName": "evaluate",
+                "scriptId": "4",
+                "url": "",
+                "lineNumber": 371,
+                "columnNumber": 15
+              },
+              {
+                "functionName": "",
+                "scriptId": "9",
+                "url": "",
+                "lineNumber": 0,
+                "columnNumber": 43
+              }
+            ]
+          }
+        }
+      },
+      "wire": {
+        "headers": {
+          ":authority": "www2.deepl.com",
+          ":method": "POST",
+          ":path": "/jsonrpc",
+          ":scheme": "https",
+          "accept": "*/*",
+          "accept-encoding": "gzip, deflate, br, zstd",
+          "accept-language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+          "cache-control": "no-cache",
+          "content-length": "271",
+          "content-type": "application/json",
+          "origin": "https://www.deepl.com",
+          "pragma": "no-cache",
+          "priority": "u=1, i",
+          "referer": "https://www.deepl.com/",
+          "sec-fetch-dest": "empty",
+          "sec-fetch-mode": "cors",
+          "sec-fetch-site": "none",
+          "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0"
+        },
+        "credentialHeaderNames": [],
+        "associatedCookieCount": 0
+      },
+      "responseExtra": {
+        "statusCode": 200,
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "access-control-allow-origin": "https://www.deepl.com",
+          "access-control-expose-headers": "Server-Timing, X-Trace-ID",
+          "content-encoding": "gzip",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Wed, 21 Oct 2026 13:12:05 GMT",
+          "server-timing": "l7_lb_tls;dur=0, l7_lb_idle;dur=1773, l7_lb_receive;dur=22, l7_lb_total;dur=58",
+          "set-cookie": "[present; redacted]",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "vary": "Accept-Encoding",
+          "x-trace-id": "07bf75a52694456fad9aea6e0cdbdff2"
+        }
+      },
+      "response": {
+        "status": 200,
+        "url": "https://www2.deepl.com/jsonrpc",
+        "headers": {
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "access-control-expose-headers": "Server-Timing, X-Trace-ID",
+          "content-encoding": "gzip",
+          "access-control-allow-credentials": "true",
+          "x-trace-id": "07bf75a52694456fad9aea6e0cdbdff2",
+          "access-control-allow-origin": "https://www.deepl.com",
+          "server-timing": "l7_lb_tls;dur=0, l7_lb_idle;dur=1773, l7_lb_receive;dur=22, l7_lb_total;dur=58",
+          "date": "Wed, 21 Oct 2026 13:12:05 GMT",
+          "content-type": "application/json; charset=utf-8",
+          "vary": "Accept-Encoding"
+        },
+        "protocol": "h2",
+        "fromDiskCache": false,
+        "fromServiceWorker": false
+      },
+      "finished": {
+        "timestamp": 83509.321638,
+        "encodedDataLength": 884
+      },
+      "body": {
+        "text": "{\"jsonrpc\":\"2.0\",\"id\":189366000,\"result\":{\"texts\":[{\"alternatives\":[{\"text\":\"\\u706B\\u8F66\\u4E2D\\u5348\\u62B5\\u8FBE\\u8F66\\u7AD9\\u3002\"},{\"text\":\"\\u5217\\u8F66\\u4E2D\\u5348\\u5230\\u8FBE\\u8F66\\u7AD9\\u3002\"},{\"text\":\"\\u706B\\u8F66\\u5728\\u4E2D\\u5348\\u5230\\u8FBE\\u8F66\\u7AD9\\u3002\"}],\"text\":\"\\u706B\\u8F66\\u4E2D\\u5348\\u5230\\u8FBE\\u8F66\\u7AD9\\u3002\"}],\"lang\":\"EN\",\"lang_is_confident\":true,\"detectedLanguages\":{\"EN\":0.9999239999999999,\"FR\":0.000021,\"unsupported\":0.000049999999999999999}}}\r\n",
+        "truncated": false
+      },
+      "responseBodyPending": false
+    },
+    {
+      "sessionId": "863685F09FA3FC454D6C4DB5AAD0E707",
+      "requestId": "45796.4",
+      "sequence": 3,
+      "target": {
+        "id": "BC4D4AE3B0B7D72ECBA57C510BD727FB",
+        "type": "service_worker",
+        "url": "chrome-extension://eehnbcjknchpidkacjiebkodmhdnlmmm/worker.js"
+      },
+      "request": {
+        "url": "https://www2.deepl.com/jsonrpc",
+        "method": "POST",
+        "headers": {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0",
+          "Content-Type": "application/json",
+          "Referer": ""
+        },
+        "postData": "{\"jsonrpc\":\"2.0\",\"method\": \"LMT_handle_texts\",\"id\":151338000,\"params\":{\"splitting\":\"newlines\",\"lang\":{\"source_lang_user_selected\":\"auto\",\"target_lang\":\"ZH\"},\"texts\":[{\"text\":\"Please close the window before you leave.\",\"requestAlternatives\":3}],\"timestamp\":1792588326334}}",
+        "resourceType": "Fetch",
+        "timestamp": 83510.325028,
+        "wallTime": 1792588326.335183,
+        "initiator": {
+          "type": "script",
+          "stack": {
+            "callFrames": [
+              {
+                "functionName": "eval",
+                "scriptId": "14",
+                "url": "",
+                "lineNumber": 5,
+                "columnNumber": 42
+              },
+              {
+                "functionName": "evaluate",
+                "scriptId": "4",
+                "url": "",
+                "lineNumber": 371,
+                "columnNumber": 15
+              },
+              {
+                "functionName": "",
+                "scriptId": "9",
+                "url": "",
+                "lineNumber": 0,
+                "columnNumber": 43
+              }
+            ]
+          }
+        }
+      },
+      "wire": {
+        "headers": {
+          ":authority": "www2.deepl.com",
+          ":method": "POST",
+          ":path": "/jsonrpc",
+          ":scheme": "https",
+          "accept": "*/*",
+          "accept-encoding": "gzip, deflate, br, zstd",
+          "accept-language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+          "cache-control": "no-cache",
+          "content-length": "271",
+          "content-type": "application/json",
+          "origin": "https://www.deepl.com",
+          "pragma": "no-cache",
+          "priority": "u=1, i",
+          "referer": "https://www.deepl.com/",
+          "sec-fetch-dest": "empty",
+          "sec-fetch-mode": "cors",
+          "sec-fetch-site": "none",
+          "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36 Edg/155.0.0.0"
+        },
+        "credentialHeaderNames": [],
+        "associatedCookieCount": 0
+      },
+      "responseExtra": {
+        "statusCode": 200,
+        "headers": {
+          "access-control-allow-credentials": "true",
+          "access-control-allow-origin": "https://www.deepl.com",
+          "access-control-expose-headers": "Server-Timing, X-Trace-ID",
+          "content-encoding": "gzip",
+          "content-type": "application/json; charset=utf-8",
+          "date": "Wed, 21 Oct 2026 13:12:06 GMT",
+          "server-timing": "l7_lb_tls;dur=0, l7_lb_idle;dur=1726, l7_lb_receive;dur=0, l7_lb_total;dur=42",
+          "set-cookie": "[present; redacted]",
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "vary": "Accept-Encoding",
+          "x-trace-id": "b8ace2021a9a435abf9ea35b3e500709"
+        }
+      },
+      "response": {
+        "status": 200,
+        "url": "https://www2.deepl.com/jsonrpc",
+        "headers": {
+          "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+          "access-control-expose-headers": "Server-Timing, X-Trace-ID",
+          "content-encoding": "gzip",
+          "access-control-allow-credentials": "true",
+          "x-trace-id": "b8ace2021a9a435abf9ea35b3e500709",
+          "access-control-allow-origin": "https://www.deepl.com",
+          "server-timing": "l7_lb_tls;dur=0, l7_lb_idle;dur=1726, l7_lb_receive;dur=0, l7_lb_total;dur=42",
+          "date": "Wed, 21 Oct 2026 13:12:06 GMT",
+          "content-type": "application/json; charset=utf-8",
+          "vary": "Accept-Encoding"
+        },
+        "protocol": "h2",
+        "fromDiskCache": false,
+        "fromServiceWorker": false
+      },
+      "finished": {
+        "timestamp": 83511.034356,
+        "encodedDataLength": 853
+      },
+      "body": {
+        "text": "{\"jsonrpc\":\"2.0\",\"id\":151338000,\"result\":{\"texts\":[{\"alternatives\":[{\"text\":\"\\u79BB\\u5F00\\u524D\\u8BF7\\u5173\\u95ED\\u7A97\\u53E3\\u3002\"},{\"text\":\"\\u8BF7\\u5728\\u79BB\\u5F00\\u4E4B\\u524D\\u5173\\u95ED\\u7A97\\u53E3\\u3002\"},{\"text\":\"\\u8BF7\\u5728\\u79BB\\u5F00\\u524D\\u5173\\u95ED\\u7A97\\u6237\\u3002\"}],\"text\":\"\\u8BF7\\u5728\\u79BB\\u5F00\\u524D\\u5173\\u95ED\\u7A97\\u53E3\\u3002\"}],\"lang\":\"EN\",\"lang_is_confident\":true,\"detectedLanguages\":{\"EN\":0.9999969999999999}}}\r\n",
+        "truncated": false
+      },
+      "responseBodyPending": false
+    }
+  ],
+  "observerErrors": [],
+  "cleanup": {
+    "browserClosed": true,
+    "errors": []
+  },
+  "generatedAt": "2026-10-21T13:12:07.341Z"
+}

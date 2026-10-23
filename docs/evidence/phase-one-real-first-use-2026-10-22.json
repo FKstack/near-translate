@@ -1,0 +1,54 @@
+{
+  "at": "2026-10-22T15:56:24.568Z",
+  "version": "0.9.0",
+  "browser": "isolated fresh Edge profile; test-copy host grants preapproved",
+  "nativePermissionDialogTested": false,
+  "serviceMocked": false,
+  "before": {
+    "hasApiKey": false,
+    "engine": "deepl-web",
+    "modelProfilesWithKey": 0,
+    "requestCount": 0
+  },
+  "fixedPublicSample": "The library opens at nine in the morning.",
+  "translation": "图书馆早上九点开门。",
+  "elapsedMs": 2472,
+  "metrics": {
+    "requestCount": 1,
+    "totalTexts": 1,
+    "totalChars": 41,
+    "activeRequests": 0,
+    "maxConcurrent": 1,
+    "statusCounts": {
+      "200": 1
+    },
+    "errorCounts": {},
+    "requests": [
+      {
+        "sequence": 1,
+        "startedAt": 1792684582050,
+        "textCount": 1,
+        "charCount": 41,
+        "maxTextChars": 41,
+        "status": 200,
+        "endedAt": 1792684584098,
+        "networkTiming": {
+          "dnsMs": 0,
+          "connectMs": 1005.1,
+          "tlsMs": 1004,
+          "waitMs": 1037.3,
+          "downloadMs": 1,
+          "totalMs": 2044.7,
+          "protocol": "h2"
+        }
+      }
+    ],
+    "preparationCount": 0,
+    "activePreparations": 0,
+    "preparations": [],
+    "rateLimitDiagnostics": []
+  },
+  "passed": true,
+  "credentialValuesRead": false,
+  "profileRemovedAfterTest": true
+}

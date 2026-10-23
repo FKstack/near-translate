@@ -1,0 +1,37 @@
+{
+  "at": "2026-10-22T15:59:42.351Z",
+  "version": "0.9.0",
+  "previousVersion": "0.9.0",
+  "originalVersion": "0.8.0",
+  "extensionId": "dbdooijmbinjmnbmgglajigaoiinolnc",
+  "installed": "D:\\浏览器翻译扩展\\artifacts\\installed\\near-translate-edge-v0.1.0",
+  "backup": "D:\\浏览器翻译扩展\\.output\\phase-one\\installed-backup-1792684780240",
+  "filesVerified": 317,
+  "permissionsChanged": false,
+  "programFiles": {
+    "manifest.json": "98ad4027e56837954d9fae4b8f873f40b76c7f2a99f1585db2fe7436bfdb54c1",
+    "background.js": "4e3436eb72f389ea9426db472a2766e438fd77866ffe40e6bcfde5dd924fe072",
+    "content-scripts/selection.js": "85a14730cc4ce846074437838c735ff4eaf82b307420de140d947445f248c892"
+  },
+  "validation": {
+    "unitPassed": 1051,
+    "targetedAndRegressionEdgePassed": 74,
+    "chromeBuild": true,
+    "edgeBuild": true
+  },
+  "actualRuntime": {
+    "version": "0.9.0",
+    "groupId": 235866371,
+    "passed": 23,
+    "total": 23,
+    "settingsRestored": true,
+    "evidence": "docs/evidence/phase-one-real-browser-2026-10-22.json",
+    "manifestSha256": "98ad4027e56837954d9fae4b8f873f40b76c7f2a99f1585db2fe7436bfdb54c1"
+  },
+  "finalProgramVerification": {
+    "at": "2026-10-22T16:02:47.941Z",
+    "filesVerified": 317,
+    "allHashesMatch": true,
+    "temporaryHelpersRemoved": true
+  }
+}

@@ -1,4 +1,5 @@
 import type { LanguageOptions } from './languages';
+import type { KeyVaultStatus } from './key-vault';
 
 export type TranslationKind = 'word' | 'text';
 export type TranslationEngine = 'model' | 'deepl-web';
@@ -59,7 +60,7 @@ export interface EditableSettings extends LanguageOptions {
 export type ProviderId = 'deepseek' | 'openai' | 'gemini' | 'qwen' | 'moonshot' | 'siliconflow' | 'openrouter' | 'ollama' | 'custom';
 export interface ApiProfile { model: string; apiKey: string; baseUrl: string; jsonMode: boolean }
 export interface PublicApiProfile { model: string; hasApiKey: boolean; baseUrl: string; jsonMode: boolean }
-export interface StoredSettings extends EditableSettings { schemaVersion: 2; translationEngine: TranslationEngine; connectionRevision: number; profiles: Partial<Record<ProviderId, ApiProfile>> }
+export interface StoredSettings extends EditableSettings { schemaVersion: 2; translationEngine: TranslationEngine; connectionRevision: number; profiles: Partial<Record<ProviderId, ApiProfile>>; keyVaultLocked?: boolean }
 export interface PublicSettings extends LanguageOptions {
   translationEngine?: TranslationEngine;
   enabled: boolean;
@@ -67,6 +68,8 @@ export interface PublicSettings extends LanguageOptions {
   sentenceAnalysisEnabled: boolean;
   model: string;
   hasApiKey: boolean;
+  /** Capability only; vault details and secrets stay in trusted extension contexts. */
+  keyVaultLocked?: boolean;
   webAccess: boolean;
   provider?: ProviderId;
   requiresApiKey?: boolean;
@@ -75,6 +78,7 @@ export interface PublicSettings extends LanguageOptions {
 }
 /** Only returned to trusted extension pages; never contains API keys. */
 export interface ConnectionSettings extends PublicSettings {
+  vault?: KeyVaultStatus;
   /** Optional browser permission, not a stored model preference. */
   networkPreparationAccess?: boolean;
   provider: ProviderId;

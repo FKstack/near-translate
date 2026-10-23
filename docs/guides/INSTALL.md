@@ -2,14 +2,14 @@
 
 适用于当前桌面版 Chrome / Edge。普通用户下载 Release 中的 ZIP 即可安装，无需 Node.js、npm 或编译工具。
 
-## 下载 v0.11.0
+## 下载 v0.11.1
 
-打开 [v0.11.0 Release](https://github.com/FKstack/near-translate/releases/tag/v0.11.0)，在 **Assets** 中选择与你的浏览器对应的安装包：
+打开 [v0.11.1 Release](https://github.com/FKstack/near-translate/releases/tag/v0.11.1)，在 **Assets** 中选择与你的浏览器对应的安装包：
 
 | 浏览器 | 安装包 | 扩展管理页 |
 | --- | --- | --- |
-| Chrome | [near-translate-chrome-v0.11.0.zip](https://github.com/FKstack/near-translate/releases/download/v0.11.0/near-translate-chrome-v0.11.0.zip) | `chrome://extensions` |
-| Edge | [near-translate-edge-v0.11.0.zip](https://github.com/FKstack/near-translate/releases/download/v0.11.0/near-translate-edge-v0.11.0.zip) | `edge://extensions` |
+| Chrome | [near-translate-chrome-v0.11.1.zip](https://github.com/FKstack/near-translate/releases/download/v0.11.1/near-translate-chrome-v0.11.1.zip) | `chrome://extensions` |
+| Edge | [near-translate-edge-v0.11.1.zip](https://github.com/FKstack/near-translate/releases/download/v0.11.1/near-translate-edge-v0.11.1.zip) | `edge://extensions` |
 
 请选择上表中的安装包；GitHub 自动提供的 **Source code (zip / tar.gz)** 是源码，不能直接加载为扩展。近译目前采用开发者模式加载安装包，尚未提供浏览器商店安装。
 
@@ -19,18 +19,18 @@
 2. 在地址栏输入 `chrome://extensions`（Chrome）或 `edge://extensions`（Edge），按回车。
 3. 开启「开发者模式」，点击「加载已解压的扩展程序」。
 4. 选择**直接包含 `manifest.json` 的文件夹**。如果解压工具多创建了一层文件夹，请继续进入，直到能看到 `manifest.json`；不要选择 ZIP 文件。
-5. 在扩展列表确认显示「近译 · 阅读与翻译」及版本 **0.11.0**。通过浏览器的「扩展」菜单将近译固定到工具栏。
+5. 在扩展列表确认显示「近译 · 阅读与翻译」及版本 **0.11.1**。通过浏览器的「扩展」菜单将近译固定到工具栏。
 6. 打开或刷新一篇普通网页，点击近译图标 →「阅读当前网页」，即可先体验本地阅读。
 
 如果显示「无法加载清单」，先检查是否完整解压、选择的文件夹是否直接包含 `manifest.json`。浏览器设置页、扩展商店等受限页面不能开启网页阅读或划词，请换成普通文章页。
 
 ### 可选：校验下载文件
 
-同一 Release 提供 [SHA256SUMS.txt](https://github.com/FKstack/near-translate/releases/download/v0.11.0/SHA256SUMS.txt)。下载后可在 PowerShell 中计算安装包的 SHA-256，与文件中对应包名的值比较：
+同一 Release 提供 [SHA256SUMS.txt](https://github.com/FKstack/near-translate/releases/download/v0.11.1/SHA256SUMS.txt)。下载后可在 PowerShell 中计算安装包的 SHA-256，与文件中对应包名的值比较：
 
 ```powershell
-Get-FileHash .\near-translate-chrome-v0.11.0.zip -Algorithm SHA256
-# Edge 用户改为 near-translate-edge-v0.11.0.zip
+Get-FileHash .\near-translate-chrome-v0.11.1.zip -Algorithm SHA256
+# Edge 用户改为 near-translate-edge-v0.11.1.zip
 ```
 
 ## 已有用户升级
@@ -42,7 +42,7 @@ Get-FileHash .\near-translate-chrome-v0.11.0.zip -Algorithm SHA256
 1. 下载与你原安装浏览器对应的新 ZIP，先解压到另一临时文件夹，确认其中存在 `manifest.json`。
 2. 备份原扩展程序文件夹，再将新包的程序文件完整替换到**原来加载的同一路径**。注意保持 `manifest.json` 直接位于原加载目录，不要多嵌套一层文件夹。
 3. 在扩展管理页点击原近译卡片的「重新加载」。不要先移除原扩展，也不要从另一路径另装一份。
-4. 确认版本为 **0.11.0**、扩展 ID 与升级前一致，再核对翻译方式、模型、语言方向和阅读样式。刷新已打开的网页；PDF 阅读器请关闭后重新打开。
+4. 确认版本为 **0.11.1**、扩展 ID 与升级前一致，再核对翻译方式、模型、语言方向和阅读样式。刷新已打开的网页；PDF 阅读器请关闭后重新打开。
 
 设置保存在浏览器的扩展存储中。沿用原浏览器配置、原加载路径和原扩展身份通常可继续使用已有设置；更换目录、浏览器配置或移除后重装可能改变扩展身份或清除数据，不能保证配置自动迁移。若需恢复版式，使用「导入版式」；翻译设置请按自己的记录重新配置。
 
@@ -50,7 +50,7 @@ Get-FileHash .\near-translate-chrome-v0.11.0.zip -Algorithm SHA256
 
 **先阅读，无需登录或 API Key。** 打开文章后，点击扩展图标 →「阅读当前网页」。阅读模式中的「显示设置」可调整主题、字号、行距和栏宽，也可保存「我的样式」。只有需要翻译时才配置服务。
 
-全新安装且没有已保存设置时，默认选择「DeepL 免费翻译」，默认语言为「自动识别 → 简体中文」。读取或保存设置不会自动发送试译，也不会自动翻译当前文章。沿用原扩展身份升级时，既有的翻译方式、模型、地址和 Key 会继续按保存的配置读取。
+全新安装且没有已保存设置时，默认选择「DeepL 免费翻译」，默认语言为「自动识别 → 简体中文」。读取或保存设置不会自动发送试译，也不会自动翻译当前文章。沿用原扩展身份升级时保留翻译方式、模型与地址；旧版 Key 需在设置页完成口令加密迁移后使用。
 
 1. 点击近译图标，或打开「翻译设置」，点击「启用免费翻译」。
 2. 接受浏览器对 HTTP(S) 网页和 `oneshot-free.www.deepl.com` 服务域名的访问请求，一次完成网页与免费服务授权。无需登录、API Key 或 Cookie；拒绝授权不会改动原配置，仍可本地阅读。
@@ -101,7 +101,17 @@ Get-FileHash .\near-translate-chrome-v0.11.0.zip -Algorithm SHA256
 
 ## 配置模型与 API
 
-点击近译图标 →「翻译设置」，选择「大模型 API」，再选择 API 服务商，核对基址和模型名，填写该服务的 Key 并保存。需要时接受浏览器对该 API 域名的访问请求。API 用量由所选服务商或网关的账户支付。
+点击近译图标 →「翻译设置」，选择「大模型 API」，先在「API Key 保护」创建独立解锁口令，再选择 API 服务商，核对基址和模型名，填写该服务的 Key 并保存。需要时接受浏览器对该 API 域名的访问请求；包括 DeepSeek 在内，API 主机权限都按需申请。API 用量由所选服务商或网关的账户支付。
+
+### 模型密钥库与升级迁移
+
+0.11.1 起，API Key 使用口令加密保存。口令为12–128字符，空格属于口令；请使用独立的长口令，不要把 API Key 当作口令。设置页不会回显已有 Key，也不会把解锁口令发往网络。
+
+浏览器重启后，在设置页输入口令解锁；同一浏览器会话内的后台休眠不要求重复输入。可手动锁定、更换口令。锁定时停止模型请求，免费翻译、本地阅读和无鉴权的本机模型仍可使用。
+
+旧版本保存的 Key 需要先设置口令完成迁移；迁移前不会用于模型请求。系统会先保存并验证密文，再清理旧明文；失败时保留原数据供恢复，请按提示重试。不要先卸载扩展，也不要为了迁移把 Key 贴到公开 Issue。
+
+口令不能找回，遗失后无法解密已有 Key；请妥善保存，并保留自己所用 API 服务的凭证恢复渠道。更换口令时如提示「新口令已生效」，请使用新口令重新解锁。
 
 | 预设 | 接入方式 |
 | --- | --- |
@@ -125,7 +135,7 @@ Base URL 填接口根路径，例如 `https://api.deepseek.com` 或 `https://api
 
 0.2.0 单词卡分为「本句含义」和「常见义项」。前者给出当前句中的词性、词义和说明；后者按词性列出其他常见含义，默认展开。点击「参考原句」可查看用于判断的上下文，「复制」会复制两部分完整内容。未提供上下文时显示「参考释义」，明确提示不能确定本句含义。
 
-每个服务商独立保存一份模型、基址、JSON 模式和 Key，切换服务不会借用其他服务的 Key。当前服务基址未变时，Key 输入框留空会保留 Key；修改地址后需重新填写要发送给新地址的 Key，留空不会把旧 Key 带到新地址。点击「删除已保存的 Key」再保存才会删除。Key 只存本机受信任扩展存储、不跨设备同步；浏览器存储本身不提供密码保险库式加密。不要把 Key 写进项目文件、Issue、截图或 Git。详见 [隐私说明](PRIVACY.md)。
+每个服务商独立保存一份模型、基址、JSON 模式和加密 Key，切换服务不会借用其他服务的 Key。当前服务基址未变时，Key 输入框留空会保留 Key；修改地址后需重新填写要发送给新地址的 Key，留空不会把旧 Key 带到新地址。新增、删除 Key 或修改已有 Key 的服务地址前需解锁密钥库。点击「删除已保存的 Key」再保存才会删除。Key 不跨设备同步；加密不能保护已解锁浏览器中被恶意程序或调试权限访问的运行内存。不要把 Key 写进项目文件、Issue、截图或 Git。详见 [隐私说明](PRIVACY.md)。
 
 「附带上下文」默认开启：单词或短语使用所在句，完整句段使用邻近一句，最多额外 600 字符。关闭后只发送选中内容。
 

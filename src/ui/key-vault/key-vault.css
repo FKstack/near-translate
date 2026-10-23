@@ -1,0 +1,10 @@
+.key-vault { margin: 16px 0 24px; padding: 18px; border: 1px solid var(--border, #d8e2d5); border-radius: 12px; background: var(--surface-subtle, #f6f8f2); }
+.key-vault-title { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.key-vault-title h3 { margin: 0; }
+.key-vault-badge { flex-shrink: 0; padding: 3px 8px; border: 1px solid var(--border, #d8e2d5); border-radius: 6px; font-size: 12px; }
+.key-vault p { line-height: 1.7; }
+.key-vault-form fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
+.key-vault-form input { box-sizing: border-box; width: 100%; }
+.key-vault .actions { flex-wrap: wrap; }
+.key-vault-notice { margin-bottom: 0; color: var(--accent, #216747); }
+.key-vault-error { margin-bottom: 0; color: #a52d32; }

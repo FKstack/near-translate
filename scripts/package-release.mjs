@@ -60,7 +60,7 @@ for (const browser of ['chrome', 'edge']) {
   const manifest = JSON.parse(entries.get('manifest.json').toString());
   assert.equal(manifest.version, version);
   assert.equal(manifest.manifest_version, 3);
-  assert.deepEqual(manifest.host_permissions, ['https://api.deepseek.com/*']);
+  assert.deepEqual(manifest.host_permissions ?? [], []);
   assert.deepEqual(manifest.optional_host_permissions, ['http://*/*', 'https://*/*']);
   assert(!manifest.permissions.includes('tabs'));
   assert(!manifest.content_scripts?.length, 'Website scripts must be runtime-registered.');

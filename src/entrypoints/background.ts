@@ -1,7 +1,7 @@
 import { browser } from 'wxt/browser';
 import { OpenAICompatibleProvider } from '@/providers/openai-compatible';
 import { DeepLWebProvider, type DeepLWebDiagnostic } from '@/providers/deepl-web';
-import { apiOriginPattern, getProvider } from '@/shared/api-config';
+import { apiOriginPattern, getProvider, isProviderId } from '@/shared/api-config';
 import { normalizeTranslationInput } from '@/core/input';
 import { toTranslationError } from '@/core/errors';
 import { REQUEST_TIMEOUT_MS, TRANSLATION_PORT, type TranslationServerMessage, type TranslationServiceStatus } from '@/shared/contracts';
@@ -14,12 +14,26 @@ import { DEEPL_WEB_SCHEDULING } from '@/shared/translation-policy';
 import { readReadingPreferences, saveReadingPreferences } from '@/platform/reading-preferences';
 import { readLanguagePair, supportsWordDetails } from '@/shared/languages';
 import { FreeTranslationCheck } from '@/platform/free-translation-check';
+import { keyVaultStatus, createKeyVault, unlockKeyVault, lockKeyVault, changeKeyVaultPassphrase } from '@/platform/settings';
+import type { KeyVaultStatus } from '@/shared/key-vault';
+import { KeyVaultError } from '@/platform/key-vault';
 
 export default defineBackground(() => {
   let registrationQueue = Promise.resolve();
   let settingsQueue = Promise.resolve();
   let activeCount = 0;
   const requests = new Map<AbortController, () => void>();
+  const modelRequests = new Set<AbortController>();
+  let vaultEpoch = 0;
+  const cancelModelTranslations = () => {
+    vaultEpoch++;
+    for (const controller of modelRequests) requests.get(controller)?.();
+  };
+  const vaultProjection = (status: KeyVaultStatus): KeyVaultStatus => ({
+    configured: status.configured === true, locked: status.locked === true,
+    migrationRequired: status.migrationRequired === true,
+    savedProviders: status.savedProviders.filter(isProviderId),
+  });
   const deeplNetwork = createDeepLWebTransport();
   const deeplRateLimitDiagnostics: DeepLWebDiagnostic[] = [];
   let statusBroadcast: Promise<void> | undefined;
@@ -137,6 +151,50 @@ export default defineBackground(() => {
       return true;
     }
     const trusted = sender.url?.startsWith(browser.runtime.getURL('')) === true;
+    if (request.type === 'get-key-vault-status' && trusted) {
+      void settingsQueue.catch(() => {}).then(keyVaultStatus)
+        .then(status => sendResponse({ ok: true, status: vaultProjection(status) }))
+        .catch(() => sendResponse({ ok: false, error: '读取密钥库状态失败，请重试。' }));
+      return true;
+    }
+    if (['create-key-vault', 'unlock-key-vault', 'lock-key-vault', 'change-key-vault-passphrase'].includes(String(request.type))) {
+      let optionsPage = false;
+      try { optionsPage = trusted && new URL(sender.url!).pathname === '/options.html'; } catch { /* Reject malformed sender URLs. */ }
+      if (!optionsPage) return false;
+      settingsQueue = settingsQueue.catch(() => {}).then(async () => {
+        // Stop model work before core awaits: a failed metadata write can follow
+        // a successful lock or rotation. DeepL requests have no vault dependency.
+        cancelModelTranslations();
+        try {
+          let status: KeyVaultStatus;
+          if (request.type === 'lock-key-vault') status = await lockKeyVault();
+          else if (request.type === 'change-key-vault-passphrase') {
+            if (typeof request.currentPassphrase !== 'string' || typeof request.newPassphrase !== 'string') throw new KeyVaultError('请输入当前口令和新口令。');
+            status = await changeKeyVaultPassphrase(request.currentPassphrase, request.newPassphrase);
+          } else {
+            if (typeof request.passphrase !== 'string') throw new KeyVaultError('请输入密钥库口令。');
+            status = request.type === 'create-key-vault' ? await createKeyVault(request.passphrase) : await unlockKeyVault(request.passphrase);
+          }
+          try { await synchronize(); }
+          catch (error) {
+            // A committed local vault does not depend on the saved translation
+            // service having host access. Actual translations still recheck it.
+            if (!(error instanceof DeepLWebTransportError)) throw error;
+          }
+          await broadcastPublicSettings();
+          sendResponse({ ok: true, status: vaultProjection(status), settings: await connectionSettings() });
+        } catch (error) {
+          // Core exposes fixed KeyVaultError messages; never echo a browser or
+          // storage exception. Refresh a partially committed operation as well.
+          const message = error instanceof KeyVaultError ? error.message : '密钥库操作失败，请重试。';
+          const refresh = await Promise.allSettled([synchronize(), broadcastPublicSettings(), connectionSettings(), keyVaultStatus()]);
+          const settings = refresh[2].status === 'fulfilled' ? refresh[2].value : undefined;
+          const status = refresh[3].status === 'fulfilled' ? vaultProjection(refresh[3].value) : undefined;
+          sendResponse({ ok: false, error: message, ...(settings ? { settings } : {}), ...(status ? { status } : {}) });
+        }
+      });
+      return true;
+    }
     if (request.type === 'get-translation-status') {
       let web = false;
       try { web = Number.isInteger(sender.tab?.id) && /^https?:$/.test(new URL(sender.url ?? '').protocol); } catch { /* Invalid sender. */ }
@@ -254,6 +312,7 @@ export default defineBackground(() => {
         return;
       }
       const owner = { requestId, controller: new AbortController() };
+      const startingVaultEpoch = vaultEpoch;
       requests.set(owner.controller, () => {
         if (!closed && current === owner) send({ type: 'error', requestId, error: {
           code: 'CONFIG', message: '翻译配置已更改，请使用当前设置重新翻译。', retryable: false,
@@ -273,14 +332,26 @@ export default defineBackground(() => {
           if (input.kind === 'word' && !supportsWordDetails(input)) input.kind = 'text';
           const deepl = settings.translationEngine === 'deepl-web';
           if (!belongs()) return;
+          if (!deepl) {
+            if (startingVaultEpoch !== vaultEpoch) {
+              send({ type: 'error', requestId, error: { code: 'CONFIG', message: '密钥库状态已更改，请重新翻译。', retryable: false } });
+              return;
+            }
+            modelRequests.add(owner.controller);
+          }
           const trustedPage = port.sender?.url?.startsWith(browser.runtime.getURL('')) === true;
           if (!trustedPage && !await browser.permissions.contains({ origins: WEB_ORIGINS })) {
             if (belongs()) send({ type: 'error', requestId, error: { code: 'CONFIG', message: '网页访问权限已关闭，请在扩展设置中重新启用网页划词。', retryable: false } });
             return;
           }
           if (!belongs()) return;
-          if (!settings.enabled || (!deepl && !settings.apiKey && getProvider(settings.provider).requiresApiKey)) {
-            send({ type: 'error', requestId, error: { code: 'CONFIG', message: settings.enabled ? '请先在扩展设置中填写 API Key。' : '翻译已暂停，请在扩展设置中启用。', retryable: false } });
+          if (!settings.enabled || (!deepl && (settings.keyVaultLocked || (!settings.apiKey && getProvider(settings.provider).requiresApiKey)))) {
+            const vault = !deepl && settings.enabled ? await keyVaultStatus() : undefined;
+            if (!belongs()) return;
+            const protectedKey = settings.keyVaultLocked || (vault?.savedProviders.includes(settings.provider) && (vault.locked || vault.migrationRequired));
+            send({ type: 'error', requestId, error: { code: 'CONFIG', message: !settings.enabled ? '翻译已暂停，请在扩展设置中启用。'
+              : protectedKey ? vault?.migrationRequired ? '请在翻译设置中设置密钥库口令，完成已有 Key 的加密迁移。' : '密钥库已锁定，请在翻译设置中输入口令解锁。'
+                : '请先在扩展设置中填写 API Key。', retryable: false } });
             return;
           }
           if (!await browser.permissions.contains(deepl
@@ -314,6 +385,7 @@ export default defineBackground(() => {
         } finally {
           clearTimeout(timeout);
           requests.delete(owner.controller);
+          modelRequests.delete(owner.controller);
           activeCount -= 1;
           if (current === owner) current = undefined;
         }

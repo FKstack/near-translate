@@ -1,0 +1,149 @@
+{
+  "version": "0.11.1",
+  "date": "2026-10-23",
+  "timezone": "Asia/Singapore",
+  "unit": {
+    "files": 54,
+    "passed": 1335,
+    "failed": 0
+  },
+  "typecheck": "passed",
+  "boundaries": "passed",
+  "browsers": {
+    "chrome": {
+      "finalCriticalTests": 13,
+      "failed": 0,
+      "backgroundSha256": "970774aaab4a34cd3b61e88ef0d648a1112a5c68617d5c83eca4231846c504b7",
+      "originalManifestFreshInstallAndFullRestart": [
+        {
+          "browser": "Chrome",
+          "browserVersion": "156.0.8078.4",
+          "extensionVersion": "0.11.1",
+          "manifestSha256": "34ee3bf5e1290876f24444e79a14c811f1c30c3dc0024d1186e5c4c5817efdaa",
+          "backgroundSha256": "970774aaab4a34cd3b61e88ef0d648a1112a5c68617d5c83eca4231846c504b7",
+          "scenario": "fresh-no-host-permissions",
+          "originalProductionManifest": true,
+          "optionalHostsNeverGranted": true,
+          "genuineUiCreateOrMigrationSucceeded": true,
+          "localContainsEncryptedVaultAndNoPlaintextKeyOrPassphrase": true,
+          "secretInputsCleared": true,
+          "paidRequests": 0
+        },
+        {
+          "browser": "Chrome",
+          "browserVersion": "156.0.8078.4",
+          "extensionVersion": "0.11.1",
+          "manifestSha256": "34ee3bf5e1290876f24444e79a14c811f1c30c3dc0024d1186e5c4c5817efdaa",
+          "backgroundSha256": "970774aaab4a34cd3b61e88ef0d648a1112a5c68617d5c83eca4231846c504b7",
+          "scenario": "legacy-upgrade-and-full-restart",
+          "originalProductionManifest": true,
+          "optionalHostsNeverGranted": true,
+          "genuineUiCreateOrMigrationSucceeded": true,
+          "localContainsEncryptedVaultAndNoPlaintextKeyOrPassphrase": true,
+          "secretInputsCleared": true,
+          "paidRequests": 0,
+          "syntheticLegacyFixtureOnly": true,
+          "fullBrowserClosedAndDisconnected": true,
+          "sameTemporaryProfileAndUnpackedPath": true,
+          "lockedAfterRestart": true,
+          "modelBlockedWithoutNetworkBeforeUnlock": true,
+          "correctPassphraseRestoresKeyAvailability": true,
+          "optionalApiPermissionRemainsRequired": true,
+          "modelNetworkRestorationCoveredBySeparateApiE2E": true
+        }
+      ]
+    },
+    "edge": {
+      "finalCriticalTests": 13,
+      "failed": 0,
+      "backgroundSha256": "970774aaab4a34cd3b61e88ef0d648a1112a5c68617d5c83eca4231846c504b7",
+      "originalManifestFreshInstallAndFullRestart": [
+        {
+          "browser": "Edge",
+          "browserVersion": "155.0.4283.62",
+          "extensionVersion": "0.11.1",
+          "manifestSha256": "34ee3bf5e1290876f24444e79a14c811f1c30c3dc0024d1186e5c4c5817efdaa",
+          "backgroundSha256": "970774aaab4a34cd3b61e88ef0d648a1112a5c68617d5c83eca4231846c504b7",
+          "scenario": "fresh-no-host-permissions",
+          "originalProductionManifest": true,
+          "optionalHostsNeverGranted": true,
+          "genuineUiCreateOrMigrationSucceeded": true,
+          "localContainsEncryptedVaultAndNoPlaintextKeyOrPassphrase": true,
+          "secretInputsCleared": true,
+          "paidRequests": 0
+        },
+        {
+          "browser": "Edge",
+          "browserVersion": "155.0.4283.62",
+          "extensionVersion": "0.11.1",
+          "manifestSha256": "34ee3bf5e1290876f24444e79a14c811f1c30c3dc0024d1186e5c4c5817efdaa",
+          "backgroundSha256": "970774aaab4a34cd3b61e88ef0d648a1112a5c68617d5c83eca4231846c504b7",
+          "scenario": "legacy-upgrade-and-full-restart",
+          "originalProductionManifest": true,
+          "optionalHostsNeverGranted": true,
+          "genuineUiCreateOrMigrationSucceeded": true,
+          "localContainsEncryptedVaultAndNoPlaintextKeyOrPassphrase": true,
+          "secretInputsCleared": true,
+          "paidRequests": 0,
+          "syntheticLegacyFixtureOnly": true,
+          "fullBrowserClosedAndDisconnected": true,
+          "sameTemporaryProfileAndUnpackedPath": true,
+          "lockedAfterRestart": true,
+          "modelBlockedWithoutNetworkBeforeUnlock": true,
+          "correctPassphraseRestoresKeyAvailability": true,
+          "optionalApiPermissionRemainsRequired": true,
+          "modelNetworkRestorationCoveredBySeparateApiE2E": true
+        }
+      ]
+    }
+  },
+  "packageIntegrity": [
+    {
+      "browser": "chrome",
+      "filename": "near-translate-chrome-v0.11.1.zip",
+      "bytes": 10406916,
+      "sha256": "9f2b9b14e9b78892d6320b4fd44731019cb1681dd70603f887077173eef5d97a",
+      "files": 334,
+      "unpackedBytes": 15292187,
+      "fileTreeSha256": "93ab58a67c966e361ed628101ab4c9c08ad12243b3e05db033d415f2a0e667b1",
+      "crcAllPassed": true,
+      "safePathsAllPassed": true,
+      "buildHashesAllMatched": true,
+      "mandatoryHostPermissions": [],
+      "licenses": 19
+    },
+    {
+      "browser": "edge",
+      "filename": "near-translate-edge-v0.11.1.zip",
+      "bytes": 10406916,
+      "sha256": "9f2b9b14e9b78892d6320b4fd44731019cb1681dd70603f887077173eef5d97a",
+      "files": 334,
+      "unpackedBytes": 15292187,
+      "fileTreeSha256": "93ab58a67c966e361ed628101ab4c9c08ad12243b3e05db033d415f2a0e667b1",
+      "crcAllPassed": true,
+      "safePathsAllPassed": true,
+      "buildHashesAllMatched": true,
+      "mandatoryHostPermissions": [],
+      "licenses": 19
+    }
+  ],
+  "assets": {
+    "screenshots": 5,
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    },
+    "realUI": true,
+    "manualDemonstrationTranslations": true,
+    "paidRequests": 0,
+    "fileManifest": "../assets/store/v0.11.1/asset-verification.json"
+  },
+  "limitations": [
+    "Earlier broad browser regression passed 76 tests per browser before the final permission-sync and fault-handling refinements; the final package reran the relevant 13 tests per browser and original-manifest fresh-install/restart scenarios.",
+    "Model HTTP behavior uses isolated synthetic keys and mocked translation responses; this is not a provider availability or model-quality certification.",
+    "Legacy plaintext credentials remain pending migration until the user creates a passphrase vault; pending legacy keys are not provided to model requests.",
+    "Store registration, certification and publication are separate external processes; this evidence does not assert store approval."
+  ],
+  "dailyBrowserProfileAccess": false,
+  "realApiKeyAccess": false
+}

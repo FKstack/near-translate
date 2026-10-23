@@ -1,0 +1,93 @@
+{
+  "version": "0.11.1",
+  "productionHashes": {
+    "manifestSha256": "34ee3bf5e1290876f24444e79a14c811f1c30c3dc0024d1186e5c4c5817efdaa",
+    "backgroundSha256": "970774aaab4a34cd3b61e88ef0d648a1112a5c68617d5c83eca4231846c504b7",
+    "selectionSha256": "2ab816b68f8b245ad49e2dda994bf5ad0b803a5034ac1ceafaa6a021cf94e23e"
+  },
+  "capturedAt": "2026-10-23T15:32:56.442Z",
+  "viewport": {
+    "width": 1280,
+    "height": 800
+  },
+  "deviceScaleFactor": 1,
+  "realUI": true,
+  "manualDemonstrationTranslations": true,
+  "paidRequests": 0,
+  "vaultCreatedThroughTrustedProductionInterface": true,
+  "secretInputsEmpty": true,
+  "persistedDemonstrationKeyEncrypted": true,
+  "temporaryManifestChange": "Grant website origins in a private test copy to exercise the same UI without an interactive browser permission prompt. Distributed packages are untouched.",
+  "files": [
+    {
+      "name": "store-icon-128.png",
+      "width": 128,
+      "height": 128,
+      "bytes": 2437,
+      "sha256": "4a636b1e15f18efac5e1f71821b402128b033b5672ae49d603bef038380740ae"
+    },
+    {
+      "name": "store-icon-300.png",
+      "width": 300,
+      "height": 300,
+      "bytes": 7945,
+      "sha256": "14c320b0a20d5fb2013f50e992ebfe0de2fe5010bc78960bc808eee1f4c90fae"
+    },
+    {
+      "name": "extension-icon-128.png",
+      "width": 128,
+      "height": 128,
+      "bytes": 4458,
+      "sha256": "8417b5ad99849af70a79db8a254040bd63c297ccbfa68dde6a08318e2c96b39f"
+    },
+    {
+      "name": "promo-small-440x280.png",
+      "width": 440,
+      "height": 280,
+      "bytes": 46887,
+      "sha256": "05687204a149e3b1a89094b8bf2f2482fa9d9b87a39475d2fd1b676ca92310c6"
+    },
+    {
+      "name": "promo-marquee-1400x560.png",
+      "width": 1400,
+      "height": 560,
+      "bytes": 212552,
+      "sha256": "e0f2e8602ab3829bdbe5637e0d7a4c86a8da8ce8debd958650edf2f1dda1fc65"
+    },
+    {
+      "name": "01-reader-bilingual-1280x800.png",
+      "width": 1280,
+      "height": 800,
+      "bytes": 119525,
+      "sha256": "1aab8a181d1332d713b7b24b186afb6cde557ce8beba40944bcce41c754e369a"
+    },
+    {
+      "name": "02-reader-appearance-1280x800.png",
+      "width": 1280,
+      "height": 800,
+      "bytes": 145563,
+      "sha256": "220632f69cbeff5804febbe48e6334861a19971b96a3f99be06f06d12bfd5462"
+    },
+    {
+      "name": "03-word-context-1280x800.png",
+      "width": 1280,
+      "height": 800,
+      "bytes": 108396,
+      "sha256": "7175cce365adbd474eb5566412ec676218a55011cc2715583ae1ad78170e8abe"
+    },
+    {
+      "name": "04-pdf-selection-1280x800.png",
+      "width": 1280,
+      "height": 800,
+      "bytes": 136940,
+      "sha256": "0119c63c36c98d2e8d1d63175bdd21fdd70e6c181e680ec1245f3c6a6a4f7e7c"
+    },
+    {
+      "name": "05-key-protection-1280x800.png",
+      "width": 1280,
+      "height": 800,
+      "bytes": 81184,
+      "sha256": "b6831d83d49f16efb445c3dd4eed4a1f77a682870965f589cf995f7368510c1c"
+    }
+  ]
+}

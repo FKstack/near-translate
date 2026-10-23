@@ -9,6 +9,8 @@ import { LANGUAGES, languageLabel, readLanguagePair, type SourceLanguage, type T
 import { FreeSetup } from '@/ui/free-setup/FreeSetup';
 import { useFreeSetup } from '@/ui/free-setup/useFreeSetup';
 import type { FreeSetupClient } from '@/ui/free-setup/client';
+import type { KeyVaultStatus } from '@/shared/key-vault';
+import { KeyVaultPanel } from '@/ui/key-vault/KeyVaultPanel';
 import '@/ui/app.css';
 
 const freeSetupClient: FreeSetupClient = {
@@ -38,6 +40,7 @@ function Options() {
   const [error, setError] = useState('');
   const [removeKey, setRemoveKey] = useState(false);
   const [freeReady, setFreeReady] = useState(false);
+  const [vault, setVault] = useState<KeyVaultStatus>();
   const apply = (settings: ConnectionSettings) => {
     setTranslationEngine(settings.translationEngine ?? 'model');
     const languages = readLanguagePair(settings);
@@ -48,6 +51,7 @@ function Options() {
     setHasApiKey(settings.hasApiKey); setWebAccess(settings.webAccess);
     setNetworkPreparationAccess(settings.networkPreparationAccess === true);
     setProvider(settings.provider); setBaseUrl(settings.baseUrl); setJsonMode(settings.jsonMode); setProfiles(settings.profiles);
+    setVault(settings.vault);
   };
   const freeSetup = useFreeSetup(freeSetupClient, settings => {
     apply(settings); setApiKey(''); setRemoveKey(false); setError('');
@@ -62,6 +66,8 @@ function Options() {
   const preset = getProvider(provider);
   const usesDeepL = translationEngine === 'deepl-web';
   const savedProfile = profiles[provider];
+  const vaultUnavailable = !vault?.configured || vault.locked || vault.migrationRequired;
+  const profileHasSavedKey = hasApiKey || savedProfile?.hasApiKey === true;
   async function changeNetworkPreparation() {
     setError(''); setNotice(''); setBusy(true);
     try {
@@ -76,7 +82,7 @@ function Options() {
     finally { setBusy(false); }
   }
   let keepsKey = false;
-  try { keepsKey = hasApiKey && !removeKey && normalizeBaseUrl(baseUrl) === savedProfile?.baseUrl; } catch { /* Invalid address is explained on save. */ }
+  try { keepsKey = profileHasSavedKey && !removeKey && normalizeBaseUrl(baseUrl) === savedProfile?.baseUrl; } catch { /* Invalid address is explained on save. */ }
   function selectProvider(id: ProviderId) {
     const next = profiles[id] ?? { ...getProvider(id), hasApiKey: false };
     setProvider(id); setModel(next.model); setBaseUrl(next.baseUrl); setJsonMode(next.jsonMode);
@@ -88,6 +94,8 @@ function Options() {
     try {
       const normalizedUrl = usesDeepL ? baseUrl : normalizeBaseUrl(baseUrl);
       if (!usesDeepL && !model.trim()) throw new Error('请填写服务支持的模型名称。');
+      if (!usesDeepL && vaultUnavailable && (apiKey || removeKey || (profileHasSavedKey && normalizedUrl !== savedProfile?.baseUrl))) throw new Error(vault?.configured ? '请先解锁密钥库，再新增、删除 Key 或更换已有 Key 的 API 地址。' : '请先设置密钥库口令，再保存 API Key。');
+      if (!usesDeepL && vaultUnavailable && preset.requiresApiKey && !keepsKey && !removeKey) throw new Error(vault?.configured ? '请先解锁密钥库，再配置此服务的 API Key。' : '请先设置密钥库口令，再配置此服务的 API Key。');
       if (!usesDeepL && preset.requiresApiKey && !apiKey.trim() && !keepsKey && !removeKey) throw new Error('请填写此 API 地址的 API Key。');
       // Request from the submit gesture, before awaiting any other operation.
       const granted = (!usesDeepL && removeKey) || !enabled || await browser.permissions.request(usesDeepL
@@ -118,6 +126,8 @@ function Options() {
     <FreeSetup ready={ready && !busy} enabled={freeReady} {...freeSetup} onEnable={() => { setError(''); setNotice(''); freeSetup.enable(); }} onTest={() => { setError(''); setNotice(''); freeSetup.test(); }}/>
     <div className="settings-layout">
     <section className="panel settings-main" aria-labelledby="service-heading"><div className="section-heading"><span className="section-step" aria-hidden="true">01</span><div><h2 id="service-heading">选择翻译服务</h2><p className="muted">连接常用服务，再调整你的阅读偏好。</p></div></div>
+      {(!usesDeepL || vault?.configured || vault?.migrationRequired) && <KeyVaultPanel status={vault} disabled={!ready || busy || freeSetup.enabling || freeSetup.testing}
+        sendMessage={message => browser.runtime.sendMessage(message)} onBusyChange={setBusy} onChanged={settings => { setVault(settings.vault); setProfiles(settings.profiles); setHasApiKey(settings.profiles[provider]?.hasApiKey === true); setApiKey(''); setRemoveKey(false); setError(''); setNotice(''); }} />}
       <form onSubmit={save}><fieldset disabled={busy || freeSetup.enabling || freeSetup.testing || !ready}>
         <div className="field"><label htmlFor="translationEngine">翻译方式</label><select id="translationEngine" value={translationEngine} onChange={event => { setTranslationEngine(event.target.value as TranslationEngine); setError(''); setNotice('点击保存设置后切换翻译方式。'); }}>
           <option value="deepl-web">DeepL 免费翻译（实验性，无需登录或 Key）</option><option value="model">大模型 API</option>
@@ -137,9 +147,9 @@ function Options() {
           <div className="muted">每个服务分别记忆模型、地址与 Key。支持 OpenAI Chat Completions 兼容接口；Claude 可通过 OpenRouter 或兼容网关使用。</div></div>
         <div className="field"><label htmlFor="baseUrl">API Base URL</label><input id="baseUrl" type="url" value={baseUrl} onChange={event => setBaseUrl(event.target.value)} required maxLength={2048} placeholder="https://your-api.example/v1" />
           <div className="muted">填写服务提供的 API 基址（保留 /v1 等路径），也可粘贴完整 /chat/completions 地址。保存时授权此 API 域名；更换地址后请重新填写 Key。本机服务支持 HTTP。</div></div>
-        <div className="field"><label htmlFor="apiKey">{preset.label} API Key</label><input id="apiKey" type="password" autoComplete="off" value={apiKey} onChange={event => { setApiKey(event.target.value); setRemoveKey(false); }} placeholder={keepsKey ? '已保存；留空保留现有 Key' : preset.requiresApiKey ? '填写此服务的 API Key' : '可留空（无鉴权的本地或自建服务）'} />
-          <div className="muted">Key 保存在本机扩展存储中，不同步。翻译内容发送到上方配置的 API 地址，按服务商规则计费。{preset.docsUrl && <a href={preset.docsUrl} target="_blank" rel="noreferrer">查看服务文档</a>}</div>
-          {hasApiKey && <button type="button" onClick={() => { setRemoveKey(true); setApiKey(''); setNotice('点击保存后将删除已有 Key。'); }}>删除已保存的 Key</button>}
+        <div className="field"><label htmlFor="apiKey">{preset.label} API Key</label><input id="apiKey" type="password" autoComplete="off" disabled={vaultUnavailable} value={apiKey} onChange={event => { setApiKey(event.target.value); setRemoveKey(false); }} placeholder={vaultUnavailable ? vault?.configured ? '先在上方解锁密钥库' : '先在上方设置密钥库口令' : keepsKey ? '已加密保存；留空保留现有 Key' : preset.requiresApiKey ? '填写此服务的 API Key' : '可留空（无鉴权的本地或自建服务）'} />
+          <div className="muted">Key 使用口令加密后保存在本机，不同步；口令不会发送给服务商。翻译内容及鉴权 Key 发送到上方配置的 API 地址，按服务商规则计费。{preset.docsUrl && <a href={preset.docsUrl} target="_blank" rel="noreferrer">查看服务文档</a>}</div>
+          {profileHasSavedKey && <button type="button" disabled={vaultUnavailable} onClick={() => { setRemoveKey(true); setApiKey(''); setNotice('点击保存后将删除已有 Key。'); }}>删除已保存的 Key</button>}
         </div>
         <div className="field"><label htmlFor="model">模型名</label><input id="model" type="text" value={model} onChange={event => setModel(event.target.value)} required maxLength={200} placeholder="填写你有权访问的模型 ID" /><div className="muted">按服务文档填写完整模型 ID；聚合服务可能包含厂商前缀，本地模型须已下载。DeepSeek 默认 deepseek-flash，关闭思考。</div></div>
         <label className="check"><input type="checkbox" checked={jsonMode} onChange={event => setJsonMode(event.target.checked)} />JSON 模式</label>
@@ -154,7 +164,7 @@ function Options() {
         </>}
         <p className="muted">整页翻译按所选语言逐段处理正文，代码块、图片与输入区域会跳过。仅点击翻译后发送正文。{!usesDeepL && '划词额外上下文最多 600 字符。'}</p>
         </div>
-        <div className="actions form-footer"><button className="primary" disabled={busy || !ready} type="submit">{busy ? '正在保存…' : '保存设置'}</button><span className="muted key-state">{usesDeepL ? '无需登录或 Key' : keepsKey ? '✓ 已配置 Key' : preset.requiresApiKey ? '尚未配置 Key' : '支持无 Key 连接'}</span></div>
+        <div className="actions form-footer"><button className="primary" disabled={busy || !ready} type="submit">{busy ? '正在保存…' : '保存设置'}</button><span className="muted key-state">{usesDeepL ? '无需登录或 Key' : vaultUnavailable && profileHasSavedKey ? vault?.migrationRequired ? '已有 Key · 需加密迁移' : '已加密保存 · 待解锁' : keepsKey ? '✓ 已配置 Key' : preset.requiresApiKey ? '尚未配置 Key' : '支持无 Key 连接'}</span></div>
       </fieldset>
       </form>
       <div role="status" className="status success">{notice}</div>{error && <div role="alert" className="status notice error">{error}</div>}

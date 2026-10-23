@@ -7,7 +7,7 @@
 <p align="center">网页双语、语境查词与专注阅读，连成一个顺畅的阅读过程。</p>
 <p align="center">适用于 Chrome / Edge 的开源阅读翻译扩展 · MIT</p>
 
-**[下载 v0.11.0](https://github.com/FKstack/near-translate/releases/tag/v0.11.0)** · [开始使用](#开始使用) · [阅读体验](#让一篇外文更容易读下去) · [使用指南](docs/guides/INSTALL.md) · [参与改进](CONTRIBUTING.md)
+**[下载 v0.11.1](https://github.com/FKstack/near-translate/releases/tag/v0.11.1)** · [开始使用](#开始使用) · [阅读体验](#让一篇外文更容易读下去) · [使用指南](docs/guides/INSTALL.md) · [参与改进](CONTRIBUTING.md)
 
 读英文技术文章时，遇到生词就地查，遇到长句看拆解，需要整篇理解时打开双语对照。近译把这些帮助放在你正在读的地方，让你接着读下去。
 
@@ -53,18 +53,18 @@
 
 普通文本翻译提供 16 种源／目标语言选项，源语言也可自动识别。模型服务、语言方向与配置方法见[使用指南](docs/guides/INSTALL.md)。
 
-**先阅读，需要时再翻译。** 本地阅读无需登录或 Key；点击翻译后，所选正文或选区及可选上下文发送至你选择的服务。Key 保存在本机受信任扩展存储，正文、译文和 PDF 不持久化。[了解数据去向](docs/guides/PRIVACY.md)
+**先阅读，需要时再翻译。** 本地阅读无需登录或 Key；点击翻译后，所选正文或选区及可选上下文发送至你选择的服务。模型 Key 用独立口令加密保存在本机，浏览器重启后解锁；正文、译文和 PDF 不持久化。[了解数据去向](docs/guides/PRIVACY.md)
 
 ## 开始使用
 
 ### 1. 安装到 Chrome 或 Edge
 
-从 [v0.11.0 Release](https://github.com/FKstack/near-translate/releases/tag/v0.11.0) 下载对应安装包，无需安装 Node.js 或构建源码：
+从 [v0.11.1 Release](https://github.com/FKstack/near-translate/releases/tag/v0.11.1) 下载对应安装包，无需安装 Node.js 或构建源码：
 
 | 浏览器 | 下载 ZIP | 扩展管理页 |
 | --- | --- | --- |
-| Chrome | [near-translate-chrome-v0.11.0.zip](https://github.com/FKstack/near-translate/releases/download/v0.11.0/near-translate-chrome-v0.11.0.zip) | `chrome://extensions` |
-| Edge | [near-translate-edge-v0.11.0.zip](https://github.com/FKstack/near-translate/releases/download/v0.11.0/near-translate-edge-v0.11.0.zip) | `edge://extensions` |
+| Chrome | [near-translate-chrome-v0.11.1.zip](https://github.com/FKstack/near-translate/releases/download/v0.11.1/near-translate-chrome-v0.11.1.zip) | `chrome://extensions` |
+| Edge | [near-translate-edge-v0.11.1.zip](https://github.com/FKstack/near-translate/releases/download/v0.11.1/near-translate-edge-v0.11.1.zip) | `edge://extensions` |
 
 1. 将 ZIP **解压到长期保留的固定文件夹**。
 2. 打开对应扩展管理页，开启「开发者模式」，点击「加载已解压的扩展程序」。

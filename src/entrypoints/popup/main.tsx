@@ -18,7 +18,7 @@ const freeSetupClient: FreeSetupClient = {
 function Popup() {
   const [settings, setSettings] = useState<PublicSettings>();
   const [error, setError] = useState('');
-  const ready = Boolean(settings && (settings.hasApiKey || settings.requiresApiKey === false) && settings.enabled && settings.apiAccess !== false && settings.webAccess);
+  const ready = Boolean(settings && !settings.keyVaultLocked && (settings.hasApiKey || settings.requiresApiKey === false) && settings.enabled && settings.apiAccess !== false && settings.webAccess);
   const freeReady = Boolean(settings && settings.translationEngine === 'deepl-web' && ready);
   const languages = readLanguagePair(settings ?? {});
   const freeSetup = useFreeSetup(freeSetupClient, updated => { setSettings(updated); setError(''); });
@@ -58,8 +58,9 @@ function Popup() {
     <p className="muted popup-intro">把文章变成安静的阅读页。保留目录、代码和图片，随时切换原文与双语。</p>
     <div className="notice popup-status" role="status" data-ready={ready}>
       <span className="status-dot" aria-hidden="true" />
-      <span>{settings ? !ready && settings.translationEngine === 'deepl-web' ? '本地阅读已可用。点击下方“启用免费翻译”，一次完成翻译权限设置。' : !settings.hasApiKey && settings.requiresApiKey !== false ? '可先启用免费翻译，无需 Key；已有模型配置会保留。' : !settings.enabled ? '翻译已暂停，可在设置中启用。' : settings.apiAccess === false ? '请在翻译设置中保存并授权当前翻译服务。' : !settings.webAccess ? '翻译服务已配置，请在设置中启用网页划词。' : `已就绪 · ${settings.translationEngine === 'deepl-web' ? 'DeepL 免费翻译' : settings.model}` : '正在读取设置…'}</span>
+      <span>{settings ? settings.keyVaultLocked && settings.translationEngine === 'model' ? 'API Key 受密钥库保护。请到翻译设置中解锁或完成加密迁移；本地阅读和免费翻译仍可使用。' : !ready && settings.translationEngine === 'deepl-web' ? '本地阅读已可用。点击下方“启用免费翻译”，一次完成翻译权限设置。' : !settings.hasApiKey && settings.requiresApiKey !== false ? '可先启用免费翻译，无需 Key；已有模型配置会保留。' : !settings.enabled ? '翻译已暂停，可在设置中启用。' : settings.apiAccess === false ? '请在翻译设置中保存并授权当前翻译服务。' : !settings.webAccess ? '翻译服务已配置，请在设置中启用网页划词。' : `已就绪 · ${settings.translationEngine === 'deepl-web' ? 'DeepL 免费翻译' : settings.model}` : '正在读取设置…'}</span>
     </div>
+    {settings?.keyVaultLocked && settings.translationEngine === 'model' && <button type="button" className="popup-language" onClick={() => void browser.runtime.openOptionsPage()}>打开翻译设置，解锁密钥库</button>}
     {(!ready || settings?.translationEngine === 'deepl-web') && <FreeSetup compact ready={Boolean(settings)} enabled={freeReady} {...freeSetup} onEnable={() => { setError(''); freeSetup.enable(); }} onTest={() => { setError(''); freeSetup.test(); }}/>}
     <button type="button" className="popup-language" aria-label="修改翻译语言" onClick={() => void browser.runtime.openOptionsPage()}><span>{languageLabel(languages.sourceLanguage)} <span aria-hidden="true">→</span> {languageLabel(languages.targetLanguage)}</span><span>语言设置</span></button>
     <div className="actions popup-actions">

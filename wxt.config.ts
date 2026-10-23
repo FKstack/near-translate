@@ -9,7 +9,7 @@ export default defineConfig({
     permissions: ['storage', 'scripting', 'activeTab'],
     // Optional metadata-only connection acceleration, also used for legacy rule cleanup.
     optional_permissions: ['declarativeNetRequestWithHostAccess'],
-    host_permissions: ['https://api.deepseek.com/*'],
+    host_permissions: [],
     optional_host_permissions: ['http://*/*', 'https://*/*'],
     content_security_policy: {
       extension_pages: "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'; worker-src 'self'",

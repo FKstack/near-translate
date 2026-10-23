@@ -54,6 +54,11 @@ async function capturedRequests(): Promise<CapturedRequest[]> {
   return worker.evaluate(() => (globalThis as unknown as { __nearConnectionsTest: TestState }).__nearConnectionsTest.requests);
 }
 
+async function vaultMessage(message: object): Promise<{ ok: boolean; status?: { locked: boolean }; error?: string }> {
+  return options.evaluate(message => (globalThis as unknown as { chrome: ExtensionApi }).chrome.runtime
+    .sendMessage(message), message) as Promise<{ ok: boolean; status?: { locked: boolean }; error?: string }>;
+}
+
 async function saveForm(): Promise<void> {
   await options.getByRole('button', { name: '保存设置', exact: true }).click();
   await expect(options.getByRole('status')).toContainText('设置已保存');
@@ -117,6 +122,10 @@ test.beforeAll(async () => {
     };
   });
   options = await context.newPage();
+  await options.goto(`chrome-extension://${extensionId}/options.html`);
+  const vault = await options.evaluate(() => (globalThis as unknown as { chrome: ExtensionApi }).chrome.runtime
+    .sendMessage({ type: 'create-key-vault', passphrase: 'test-only-long-passphrase-2026' })) as { ok: boolean };
+  expect(vault.ok).toBe(true);
 });
 
 test.beforeEach(async () => {
@@ -182,6 +191,33 @@ test('provider selection restores isolated profiles and never returns saved keys
   expect(publicProjection).not.toHaveProperty('profiles');
   expect(publicProjection).not.toHaveProperty('apiKey');
   expect(publicProjection).not.toHaveProperty('baseUrl');
+});
+
+test('encrypted keys stay unavailable after locking until the correct passphrase unlocks the vault', async () => {
+  const persistent = await options.evaluate(() => (globalThis as unknown as {
+    chrome: { storage: { local: { get(keys: null): Promise<Record<string, unknown>> } } };
+  }).chrome.storage.local.get(null));
+  expect(JSON.stringify(persistent)).not.toMatch(/fake-test-(?:deepseek|openai)-key/);
+  expect(persistent['key-vault:v1']).toMatchObject({ version: 1, cipher: { name: 'AES-GCM' } });
+  const locked = await vaultMessage({ type: 'lock-key-vault' });
+  expect(locked).toMatchObject({ ok: true, status: { locked: true } });
+  try {
+    const settings = await readConnection();
+    expect(settings).toMatchObject({ hasApiKey: false, keyVaultLocked: true, vault: { configured: true, locked: true } });
+    expect(JSON.stringify(settings)).not.toContain('fake-test-deepseek-key');
+    expect((await translateFromOptions()).at(-1)).toMatchObject({ type: 'error', error: { code: 'CONFIG', retryable: false } });
+    expect(await capturedRequests()).toEqual([]);
+    const rejected = await vaultMessage({ type: 'unlock-key-vault', passphrase: 'incorrect-test-only-passphrase-2026' });
+    expect(rejected.ok).toBe(false);
+    expect(rejected.error).not.toMatch(/fake-test-deepseek-key|incorrect-test-only-passphrase-2026/);
+    expect((await readConnection()).vault?.locked).toBe(true);
+    expect(await capturedRequests()).toEqual([]);
+  } finally {
+    const unlocked = await vaultMessage({ type: 'unlock-key-vault', passphrase: 'test-only-long-passphrase-2026' });
+    expect(unlocked).toMatchObject({ ok: true, status: { locked: false } });
+  }
+  expect((await translateFromOptions()).at(-1)).toMatchObject({ type: 'result' });
+  expect((await capturedRequests()).at(-1)?.authorization).toBe('Bearer fake-test-deepseek-key');
 });
 
 test('an anonymous custom local endpoint translates through the background with its chosen model', async () => {

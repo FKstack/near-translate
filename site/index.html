@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'self'; script-src 'none'; base-uri 'none'; object-src 'none'; form-action 'none'">
+  <meta name="theme-color" content="#f2f5ed">
+  <meta name="description" content="近译是一款适用于 Chrome、Edge 与篡改猴的开源阅读翻译工具。网页双语、语境查词与专注阅读，让你读外文时留在文章里。">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="zh_CN">
+  <meta property="og:title" content="近译 · 读外文，留在文章里。">
+  <meta property="og:description" content="网页双语、语境查词与专注阅读，连成一个顺畅的阅读过程。适用于 Chrome / Edge，也有篡改猴版。MIT 开源。">
+  <meta property="og:url" content="https://fkstack.github.io/near-translate/">
+  <meta property="og:image" content="https://fkstack.github.io/near-translate/assets/reader-bilingual.png">
+  <meta property="og:image:alt" content="近译阅读模式：原文、译文、目录与阅读排版">
+  <link rel="canonical" href="https://fkstack.github.io/near-translate/">
+  <link rel="icon" href="./assets/near-translate.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./assets/site.css">
+  <title>近译 · 读外文，留在文章里。</title>
+</head>
+<body>
+  <a class="skip-link" href="#main">跳到正文</a>
+  <header class="site-header wrap">
+    <a class="brand" href="./" aria-label="近译首页">
+      <img src="./assets/near-translate.svg" width="38" height="38" alt="">
+      <span>近译<small>NEAR TRANSLATE</small></span>
+    </a>
+    <nav aria-label="主导航">
+      <a href="#experience">阅读体验</a>
+      <a href="#questions">常见问题</a>
+      <a class="nav-github" href="https://github.com/FKstack/near-translate">GitHub <span aria-hidden="true">↗</span></a>
+      <a class="nav-install" href="#install">开始使用 <span aria-hidden="true">↗</span></a>
+    </nav>
+  </header>
+
+  <main id="main">
+    <section class="hero wrap" aria-labelledby="hero-title">
+      <div class="hero-top">
+        <div>
+          <p class="eyebrow"><span class="little-line" aria-hidden="true"></span> A LITTLE CLOSER TO UNDERSTANDING</p>
+          <h1 id="hero-title">读外文，<br>留在<span class="title-emphasis">文章里。</span></h1>
+        </div>
+        <div class="hero-copy">
+          <p class="hero-description">遇到生词，就地查；<br>遇到长句，慢慢读。<br>把翻译放在需要它的地方，<br>让一个思路，接着另一个思路。</p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="#install">安装近译 <span aria-hidden="true">↗</span></a>
+            <a class="text-link" href="#experience">看看阅读体验 <span aria-hidden="true">↓</span></a>
+          </div>
+          <p class="hero-meta">Chrome / Edge · 篡改猴版 · MIT 开源</p>
+        </div>
+      </div>
+      <figure class="hero-preview">
+        <div class="preview-heading"><span><span class="status-dot" aria-hidden="true"></span> 一页安静的阅读空间</span><span>原文在旁，理解更近。</span></div>
+        <img src="./assets/reader-bilingual.png" width="1440" height="1000" fetchpriority="high" alt="近译双语阅读界面，英文原文下方保留中文译文，左侧为文章目录，右侧可调整阅读样式">
+        <figcaption><span>阅读模式 · 双语对照 · 个人排版</span><span>界面演示，文章与译文为预置示例。</span></figcaption>
+      </figure>
+      <div class="hero-footnote"><p>网页双语 / 语境查词 / 专注阅读</p><p>先阅读，需要时再翻译。</p></div>
+    </section>
+
+    <section class="experience wrap section-space" id="experience" aria-labelledby="experience-title">
+      <div class="section-intro">
+        <p class="eyebrow">01 / READ WITHOUT LOSING YOUR PLACE</p>
+        <h2 id="experience-title">从一个生词，<br>读到一整篇文章。</h2>
+        <p class="section-description">查词、看译文、继续阅读。<br>这些事，本来就应该发生在一起。</p>
+      </div>
+      <div class="reading-principles">
+        <article><span class="step-number">01</span><h3>看译文，也留着原句。</h3><p>译文紧随原文段落，术语、代码和上下文仍在眼前。遇到拿不准的表达，随时回看。</p></article>
+        <article><span class="step-number">02</span><h3>需要时翻译，随时停下。</h3><p>主动点击后才开始正文翻译。想先读一会儿就停止，已经完成的译文留在当前页面。</p></article>
+        <article><span class="step-number">03</span><h3>把长文章，读得舒服些。</h3><p>从舒适长读、技术文档、夜间阅读开始，调整字号、行距和栏宽，保存自己的阅读样式。</p></article>
+      </div>
+    </section>
+
+    <section class="word-section" aria-labelledby="word-title">
+      <div class="word-layout wrap">
+        <figure class="word-preview">
+          <img src="./assets/word-context.png" width="1440" height="1000" loading="lazy" alt="在英文文章里查询 approach，近译词卡展示本句含义、词性、解释和常见义项">
+          <figcaption>实际界面 · 词卡使用预置示例响应。</figcaption>
+        </figure>
+        <div class="word-copy">
+          <p class="eyebrow">KEEP THE CONTEXT CLOSE</p>
+          <h2 id="word-title">查这个句子里<br>的意思。</h2>
+          <p>同一个词，在不同的句子里，可能是不同的意思。开启上下文后，选中单词并点击「译」，查看本句含义、词性和解释，再看看常见义项。</p>
+          <p>遇到英文长句，还可以查看句子主干、语法标注和分块阅读提示，让理解一步步展开。</p>
+          <p class="feature-condition">语境词典与长句拆解需要模型模式。词典支持英语到简／繁中文；长句拆解目前支持英语到简体中文。</p>
+          <a class="text-link" href="https://github.com/FKstack/near-translate/blob/main/docs/guides/INSTALL.md#配置模型与-api">了解模型配置 <span aria-hidden="true">↗</span></a>
+        </div>
+      </div>
+    </section>
+
+    <section class="documents wrap section-space" aria-labelledby="documents-title">
+      <div class="document-copy">
+        <p class="eyebrow">02 / A LITTLE MORE ROOM TO READ</p>
+        <h2 id="documents-title">换成 PDF，<br>继续顺手查词。</h2>
+        <p>用扩展里的阅读器打开本地或在线文字型 PDF，翻页、搜索、缩放，选中文字后，使用同样的翻译卡片。</p>
+        <p>还有一套本地文档工具：把 Markdown、文本和 HTML 导出为带文字层的 PDF，或合并、拆分、重排 PDF 页面。</p>
+        <p class="feature-condition">PDF 阅读与文档工具由扩展版提供。扫描版 PDF 需先有 OCR 文字层；PDF 翻译目前针对所选文字。</p>
+        <a class="text-link" href="https://github.com/FKstack/near-translate/blob/main/docs/reports/PDF_CONVERSIONS_2026-10-23.md">查看文档工具 <span aria-hidden="true">↗</span></a>
+      </div>
+      <div class="document-visual" aria-hidden="true">
+        <div class="paper-back"><span>Markdown</span><span class="paper-rule"></span><span class="paper-rule short"></span><span class="paper-rule"></span><span class="paper-rule short"></span></div>
+        <div class="paper-front"><span class="paper-type">PDF</span><span class="paper-label">A page worth<br>staying with.</span><span class="paper-rule"></span><span class="paper-rule"></span><span class="paper-rule short"></span><span class="paper-translation">让文字，留在文字里。</span><img src="./assets/near-translate.svg" width="32" height="32" alt="" loading="lazy"></div>
+        <span class="document-note">LOCAL DOCUMENT TOOLS</span>
+      </div>
+    </section>
+
+    <section class="services wrap section-space" aria-labelledby="services-title">
+      <div class="section-heading-row"><div><p class="eyebrow">03 / YOUR READING, YOUR CHOICE</p><h2 id="services-title">翻译方式，由你选择。</h2></div><p>先找到适合自己的方式，<br>再把注意力交还给文章。</p></div>
+      <div class="service-list">
+        <article><span class="service-label">轻松开始</span><h3>DeepL 免费服务</h3><p>无需登录、无需 API Key，先体验网页和句段翻译。</p><p class="service-note">实验性服务，可能限流或调整。限流后需等待并手动重试。</p></article>
+        <article><span class="service-label">使用熟悉的模型</span><h3>自带模型 Key</h3><p>DeepSeek、OpenAI、Gemini、Qwen 等预设，也支持兼容的自定义接口。</p><p class="service-note">按所选服务的额度与价格计费。英语语境词典和长句拆解使用模型模式。</p></article>
+        <article><span class="service-label">连接自己的部署</span><h3>Ollama / 本机模型</h3><p>连接你已经部署的模型，按自己的环境选择服务和能力。</p><p class="service-note">数据实际去向取决于保存的服务地址与部署配置。</p></article>
+      </div>
+      <p class="language-note">普通文本翻译提供 16 种源／目标语言选项，也支持自动识别源语言。<a href="https://github.com/FKstack/near-translate/blob/main/docs/guides/INSTALL.md">查看支持范围与配置说明 <span aria-hidden="true">↗</span></a></p>
+    </section>
+
+    <section class="privacy-section" aria-labelledby="privacy-title">
+      <div class="privacy-layout wrap">
+        <div><p class="eyebrow">MADE TO STAY CLOSE</p><h2 id="privacy-title">阅读这件事，<br>可以简单一点。</h2><p class="privacy-lead">本地阅读无需账号或 Key。<br>需要翻译时，数据去向也说清楚。</p><a class="text-link" href="https://github.com/FKstack/near-translate/blob/main/docs/guides/PRIVACY.md">阅读完整隐私说明 <span aria-hidden="true">↗</span></a></div>
+        <dl class="privacy-facts">
+          <div><dt>正文提取，在本机完成。</dt><dd>阅读排版和文档转换在本地处理。正文、译文与 PDF 不作为历史记录持久保存。</dd></div>
+          <div><dt>翻译，直达你选择的服务。</dt><dd>主动翻译的文字及可选上下文发送至所选服务，近译没有自建翻译中转服务器。</dd></div>
+          <div><dt>自己的 Key，保存在本机。</dt><dd>模型 Key 使用独立口令加密保存。没有近译账号系统、广告或开发者使用统计。</dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <section class="installation wrap section-space" id="install" aria-labelledby="install-title">
+      <div class="section-intro"><p class="eyebrow">04 / MAKE YOURSELF AT HOME</p><h2 id="install-title">下一篇外文，<br>用近译读读看。</h2><p class="section-description">选择适合你的安装方式。本地阅读随时开始。</p></div>
+      <div class="install-options">
+        <article class="install-option extension-option">
+          <div class="install-option-head"><span class="option-number">A</span><span class="option-tag">完整体验</span></div>
+          <h3>Chrome / Edge 扩展</h3><p class="option-summary">网页阅读与翻译，还有 PDF 和本地文档工具。</p>
+          <a class="button button-primary" href="https://github.com/FKstack/near-translate/releases/latest">下载扩展安装包 <span aria-hidden="true">↗</span></a>
+          <ol><li>在 Release 页面下载对应浏览器的 ZIP，解压到固定文件夹。</li><li>打开浏览器扩展管理页，开启「开发者模式」。</li><li>点击「加载已解压的扩展程序」，选择含 manifest.json 的文件夹。</li></ol>
+          <a class="text-link" href="https://github.com/FKstack/near-translate/blob/main/docs/guides/INSTALL.md">完整安装与升级指南 <span aria-hidden="true">↗</span></a>
+        </article>
+        <article class="install-option userscript-option">
+          <div class="install-option-head"><span class="option-number">B</span><span class="option-tag">网页阅读</span></div>
+          <h3>篡改猴脚本</h3><p class="option-summary">已有 Tampermonkey？从网页双语、划词和阅读模式开始。</p>
+          <a class="button button-secondary" href="./userscript/">前往脚本安装页 <span aria-hidden="true">↗</span></a>
+          <ol><li>先安装并启用 Tampermonkey（篡改猴）5.4 或更新版本。</li><li>在安装页选择渠道，核对脚本权限并确认安装。</li><li>刷新文章页，从近译入口开始阅读或翻译。</li></ol>
+          <div class="script-links"><a class="text-link" href="https://greasyfork.org/zh-CN/scripts/601973">Greasy Fork <span aria-hidden="true">↗</span></a><a class="text-link" href="./userscript/guide.html">使用指南 <span aria-hidden="true">↗</span></a></div>
+        </article>
+      </div>
+      <p class="installation-note">同一网站请只启用一种近译安装方式。篡改猴版不含 PDF 与文档工具，设置与扩展版独立保存。</p>
+      <div class="first-read"><span class="first-read-icon" aria-hidden="true">↳</span><p><strong>装好以后，先打开一篇想读的文章。</strong>扩展用户点击「阅读当前网页」；页面已加载近译后，也可按 <kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>R</kbd>。需要翻译时，再启用免费服务或配置自己的模型。</p></div>
+    </section>
+
+    <section class="questions wrap section-space" id="questions" aria-labelledby="questions-title">
+      <div><p class="eyebrow">BEFORE YOU START</p><h2 id="questions-title">你可能想问。</h2><p>还有问题？<br><a class="text-link" href="https://github.com/FKstack/near-translate/issues">到 GitHub 聊聊 <span aria-hidden="true">↗</span></a></p></div>
+      <div class="faq-list">
+        <details><summary>近译免费吗？</summary><div><p>近译以 MIT 许可证开源，没有近译会员订阅。本地阅读与文档工具无需模型 Key。DeepL 免费服务是实验性接入，可能限流；自带模型 API 的费用由所选服务收取。</p></div></details>
+        <details><summary>一定要配置 API Key 才能用吗？</summary><div><p>本地阅读不需要 Key。普通网页与句段翻译可以选择 DeepL 免费服务；英语语境词典和长句拆解需要模型模式。可以先阅读，等有需要再配置。</p></div></details>
+        <details><summary>扩展版和篡改猴版，选哪个？</summary><div><p>需要 PDF 阅读和文档工具，选 Chrome / Edge 扩展。已经使用 Tampermonkey、主要阅读网页，可以选篡改猴版。两版设置独立，同一网站请只启用一种。</p></div></details>
+        <details><summary>可以直接翻译整本 PDF 吗？</summary><div><p>目前 PDF 翻译针对选中的文字，不是整本文档一键翻译。扫描版 PDF 需要先通过 OCR 获得文字层；网页正文则支持段落双语翻译。</p></div></details>
+        <details><summary>我的文章和 API Key 会发到哪里？</summary><div><p>点击翻译后，相应文字及可选上下文直接发往你选择的服务，Key 只作为该服务的鉴权凭证发送。近译没有翻译中转服务器。模型 Key 用口令加密保存在本机；服务商对请求的留存和处理以各自政策为准。</p><p>可选 DeepL 连接准备可能提前联系其服务，但不包含正文。<a href="https://github.com/FKstack/near-translate/blob/main/docs/guides/PRIVACY.md">查看完整数据说明。</a></p></div></details>
+      </div>
+    </section>
+
+    <section class="closing wrap" aria-labelledby="closing-title"><img src="./assets/near-translate.svg" width="52" height="52" alt="" loading="lazy"><p class="eyebrow">OPEN SOURCE, OPEN TO IDEAS.</p><h2 id="closing-title">让一篇外文，<br>更容易读下去。</h2><p>近译还在生长。一个页面问题、一点使用感受，<br>都能让下一次阅读更顺畅。</p><div class="closing-links"><a class="button button-primary" href="#install">开始使用 <span aria-hidden="true">↗</span></a><a class="text-link" href="https://github.com/FKstack/near-translate">在 GitHub 一起改进 <span aria-hidden="true">↗</span></a></div></section>
+  </main>
+
+  <footer class="site-footer wrap"><a class="footer-brand" href="./">近译 <span>读外文，留在文章里。</span></a><nav aria-label="页脚导航"><a href="https://github.com/FKstack/near-translate/blob/main/LICENSE">MIT 开源</a><a href="https://github.com/FKstack/near-translate/blob/main/docs/guides/PRIVACY.md">隐私说明</a><a href="https://github.com/FKstack/near-translate/issues">反馈问题</a><a href="https://github.com/FKstack/near-translate">GitHub <span aria-hidden="true">↗</span></a></nav></footer>
+</body>
+</html>

@@ -1,6 +1,6 @@
 {
   "name": "near-translate",
-  "version": "0.11.4",
+  "version": "0.11.5",
   "private": true,
   "description": "Browser page, selection and PDF translation with configurable model APIs",
   "license": "MIT",
@@ -11,6 +11,7 @@
     "dev:edge": "npm run assets:pdf && wxt -b edge",
     "build": "npm run assets:pdf && wxt build",
     "build:edge": "npm run assets:pdf && wxt build -b edge",
+    "build:site": "node scripts/build-project-site.mjs",
     "build:userscript": "node scripts/build-userscript.mjs",
     "build:greasyfork": "node scripts/build-userscript.mjs --greasyfork",
     "zip": "npm run assets:pdf && wxt zip",

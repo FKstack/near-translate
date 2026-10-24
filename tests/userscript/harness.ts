@@ -1,0 +1,137 @@
+import type { JSHandle, Page } from '@playwright/test';
+import { readFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
+
+export const FIXTURE_ORIGIN = 'http://127.0.0.1:4178';
+export const SETTINGS_URL = 'https://fkstack.github.io/near-translate/userscript/settings.html';
+export const DEEPL_ENDPOINT = 'https://oneshot-free.www.deepl.com/v1/translate';
+export const SELECTED_TEXT = 'Concurrency does not imply parallelism.';
+export const SELECTED_TRANSLATION = '并发不意味着并行。';
+export const INERT_TRANSLATION = '<img src=x onerror="window.translationExecuted=true">译文保持纯文本。';
+
+type MockRequest = { url: string; method: string; anonymous?: boolean; data: string; body: { text: string[]; target_lang: string } };
+export type HarnessState = { requests: MockRequest[]; rejected: string[]; tabs: string[]; menus: Map<number, { title: string; callback: () => unknown }>;
+  storage: Map<string, unknown>; settingsRoot?: ShadowRoot; remoteWrite(key: string, value: unknown): void };
+
+/**
+ * Execute the real release bundle with grants in a function closure, as a
+ * userscript manager does. No GM function, private store, or runtime test hook
+ * is installed on window. Playwright alone retains this remote state handle.
+ */
+export async function installUserscript(page: Page, settingsPage = false): Promise<JSHandle<HarnessState>> {
+  const source = await readFile(resolve('.output/userscript/near-translate.user.js'), 'utf8');
+  const fixture = await readFile(new URL('./fixture.html', import.meta.url), 'utf8');
+  const settings = settingsPage ? await readFile(resolve('.output/userscript-site/userscript/settings.html'), 'utf8') : '';
+  await page.context().route('**/*', route => {
+    const url = route.request().url();
+    if (url === `${FIXTURE_ORIGIN}/article`) return route.fulfill({ contentType: 'text/html; charset=utf-8', body: fixture });
+    if (settingsPage && url === SETTINGS_URL) return route.fulfill({ contentType: 'text/html; charset=utf-8', body: settings });
+    return route.abort('blockedbyclient');
+  });
+  await page.goto(settingsPage ? SETTINGS_URL : `${FIXTURE_ORIGIN}/article`);
+  return page.evaluateHandle(({ source, endpoint, selected, translated, inert, settingsPage }) => {
+    type XhrOptions = { url: string; method?: string; data?: string; anonymous?: boolean;
+      onload?: (response: object) => void; onerror?: (response: object) => void; onabort?: (response: object) => void };
+    type ValueListener = (key: string, previous: unknown, next: unknown, remote: boolean) => void;
+    const values = new Map<string, unknown>();
+    const listeners = new Map<number, { key: string; callback: ValueListener }>();
+    const state: HarnessState = { requests: [], rejected: [], tabs: [], menus: new Map(), storage: values,
+      remoteWrite(key, value) {
+        const previous = values.get(key);
+        values.set(key, copy(value));
+        notify(key, previous, value, true);
+      },
+    };
+    if (settingsPage) {
+      const original = Element.prototype.attachShadow;
+      Element.prototype.attachShadow = function (options) {
+        const shadow = original.call(this, options);
+        if (this.localName === 'near-userscript-settings') {
+          state.settingsRoot = shadow;
+          Element.prototype.attachShadow = original;
+        }
+        return shadow;
+      };
+    }
+    let nextId = 0;
+    const copy = <T,>(value: T): T => value === undefined ? value : structuredClone(value);
+    const notify = (key: string, previous: unknown, next: unknown, remote = false) => {
+      for (const listener of listeners.values()) if (listener.key === key) {
+        queueMicrotask(() => listener.callback(key, copy(previous), copy(next), remote));
+      }
+    };
+    const grants = {
+      GM_getValue: (key: string, fallback?: unknown) => copy(values.has(key) ? values.get(key) : fallback),
+      GM_setValue: (key: string, value: unknown) => {
+        const previous = values.get(key); values.set(key, copy(value)); notify(key, previous, value);
+      },
+      GM_deleteValue: (key: string) => { const previous = values.get(key); values.delete(key); notify(key, previous, undefined); },
+      GM_listValues: () => [...values.keys()],
+      GM_addValueChangeListener: (key: string, callback: ValueListener) => { const id = ++nextId; listeners.set(id, { key, callback }); return id; },
+      GM_removeValueChangeListener: (id: number) => { listeners.delete(id); },
+      GM_registerMenuCommand: (title: string, callback: () => unknown) => { const id = ++nextId; state.menus.set(id, { title, callback }); return id; },
+      GM_unregisterMenuCommand: (id: number) => { state.menus.delete(id); },
+      GM_openInTab: (url: string) => { state.tabs.push(url); return { close() {} }; },
+      GM_xmlhttpRequest: (options: XhrOptions) => {
+        let done = false;
+        const timer = setTimeout(() => {
+          if (done) return;
+          done = true;
+          if (options.url !== endpoint || options.method !== 'POST') {
+            state.rejected.push(options.url);
+            options.onerror?.({ error: 'Unexpected remote request in isolated userscript E2E.' });
+            return;
+          }
+          const data = options.data ?? '';
+          const body = JSON.parse(data) as { text: string[]; target_lang: string };
+          state.requests.push({ url: options.url, method: options.method, anonymous: options.anonymous, data, body });
+          const payload = { translations: body.text.map(text => ({ text: text === selected ? translated
+            : text === 'Render translated HTML as plain text.' ? inert : `译文：${text}` })) };
+          options.onload?.({ status: 200, statusText: 'OK', responseHeaders: 'Content-Type: application/json\r\n',
+            responseText: JSON.stringify(payload), finalUrl: endpoint });
+        }, 35);
+        return { abort() { if (done) return; done = true; clearTimeout(timer); options.onabort?.({}); } };
+      },
+      GM_info: { script: { version: '0.0.0-test' }, scriptHandler: 'Tampermonkey', version: '5.4.0' },
+    };
+    new Function(...Object.keys(grants), source)(...Object.values(grants));
+    return state;
+  }, { source, endpoint: DEEPL_ENDPOINT, selected: SELECTED_TEXT, translated: SELECTED_TRANSLATION, inert: INERT_TRANSLATION, settingsPage });
+}
+
+/** Native DOM interactions held behind the test's remote closed-root handle. */
+export async function settingsField(state: JSHandle<HarnessState>, label: string, value: string | boolean): Promise<void> {
+  await state.evaluate((state, { label, value }) => {
+    const root = state.settingsRoot;
+    const wrapper = [...root?.querySelectorAll('label') ?? []].find(element => element.firstChild?.textContent?.trim() === label
+      || [...element.childNodes].filter(node => node.nodeType === Node.TEXT_NODE).map(node => node.textContent).join('').trim() === label);
+    const input = wrapper?.querySelector('input,select');
+    if (!(input instanceof HTMLInputElement || input instanceof HTMLSelectElement)) throw new Error(`Missing settings field: ${label}`);
+    if (input.disabled) throw new Error(`Disabled settings field: ${label}`);
+    if (typeof value === 'boolean' && input instanceof HTMLInputElement) {
+      if (input.checked !== value) input.click();
+    } else if (typeof value === 'string') {
+      const prototype = input instanceof HTMLInputElement ? HTMLInputElement.prototype : HTMLSelectElement.prototype;
+      Object.getOwnPropertyDescriptor(prototype, 'value')!.set!.call(input, value);
+      input.dispatchEvent(new Event(input instanceof HTMLSelectElement ? 'change' : 'input', { bubbles: true }));
+    }
+  }, { label, value });
+}
+
+export async function settingsClick(state: JSHandle<HarnessState>, text: string): Promise<void> {
+  await state.evaluate((state, text) => {
+    const button = [...state.settingsRoot?.querySelectorAll('button') ?? []].find(element => element.textContent?.trim() === text);
+    if (!button || button.disabled) throw new Error(`Missing enabled settings button: ${text}`);
+    button.click();
+  }, text);
+}
+
+export async function selectParagraph(page: Page, selector: string): Promise<void> {
+  await page.locator(selector).scrollIntoViewIfNeeded();
+  await page.locator(selector).evaluate(element => {
+    const range = document.createRange(); range.selectNodeContents(element);
+    const selection = document.getSelection(); selection?.removeAllRanges(); selection?.addRange(range);
+    const rect = element.getBoundingClientRect();
+    element.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, composed: true, clientX: rect.right - 4, clientY: rect.bottom - 4 }));
+  });
+}

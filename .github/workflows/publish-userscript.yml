@@ -1,0 +1,66 @@
+name: Publish userscript
+
+# Publish explicit userscript release tags, including from a feature branch.
+# Ordinary branch pushes and pull requests never publish an update.
+on:
+  push:
+    tags:
+      - 'userscript-v*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pages: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify release tag matches package version
+        if: github.ref_type == 'tag'
+        run: node --input-type=module -e "import fs from 'node:fs'; const version = JSON.parse(fs.readFileSync('package.json', 'utf8')).version; if (process.env.GITHUB_REF_NAME !== 'userscript-v' + version) throw new Error('Release tag must match package.json version');"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run check:repo
+      - run: npm run check:docs
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run check:boundaries
+      - run: npm run build:userscript
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test -c playwright.userscript.config.ts
+      - uses: actions/configure-pages@v5
+      - name: Upload installable userscript
+        uses: actions/upload-artifact@v4
+        with:
+          name: near-translate-userscript
+          path: .output/userscript/
+          if-no-files-found: error
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: .output/userscript-site
+
+  deploy:
+    needs: build
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy userscript installation and update files
+        id: deployment
+        uses: actions/deploy-pages@v4

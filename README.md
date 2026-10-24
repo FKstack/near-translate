@@ -7,7 +7,7 @@
 <p align="center">网页双语、语境查词与专注阅读，连成一个顺畅的阅读过程。</p>
 <p align="center">适用于 Chrome / Edge 的开源阅读翻译扩展 · MIT</p>
 
-**[下载 v0.11.2](https://github.com/FKstack/near-translate/releases/tag/v0.11.2)** · [开始使用](#开始使用) · [阅读体验](#让一篇外文更容易读下去) · [使用指南](docs/guides/INSTALL.md) · [参与改进](CONTRIBUTING.md)
+**[下载 v0.11.2](https://github.com/FKstack/near-translate/releases/tag/v0.11.2)** · [开始使用](#开始使用) · [篡改猴版](docs/guides/USERSCRIPT.md) · [阅读体验](#让一篇外文更容易读下去) · [使用指南](docs/guides/INSTALL.md) · [参与改进](CONTRIBUTING.md)
 
 读英文技术文章时，遇到生词就地查，遇到长句看拆解，需要整篇理解时打开双语对照。近译把这些帮助放在你正在读的地方，让你接着读下去。
 
@@ -56,6 +56,12 @@
 **先阅读，需要时再翻译。** 本地阅读无需登录或 Key；点击翻译后，所选正文或选区及可选上下文发送至你选择的服务。模型 Key 用独立口令加密保存在本机，浏览器重启后解锁；正文、译文和 PDF 不持久化。[了解数据去向](docs/guides/PRIVACY.md)
 
 ## 开始使用
+
+### 通过篡改猴安装网页阅读版
+
+仓库也提供 Tampermonkey（篡改猴）版本，保留网页双语翻译、划词与阅读模式，通过 GitHub Pages 分发并由篡改猴检查更新。PDF 阅读器和文档转换继续使用下面的扩展版；同一网站请只启用一种近译安装方式。
+
+打开[篡改猴版安装页](https://fkstack.github.io/near-translate/userscript/)，点击「安装近译」；模型配置见[在线使用指南](https://fkstack.github.io/near-translate/userscript/guide.html)。模型设置位于专用设置页，文章页刷新或新开后需单独解锁模型 Key。维护者推送 `userscript-v<版本号>` 标签即可触发检查和 Pages 发布，无需先合并默认分支，步骤见[发布指南](docs/guides/USERSCRIPT.md#首次启用-github-分发)。
 
 ### 1. 安装到 Chrome 或 Edge
 

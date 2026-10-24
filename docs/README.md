@@ -4,7 +4,7 @@
 
 | 目录 | 内容 | 入口 |
 | --- | --- | --- |
-| `guides/` | 安装、隐私与发布准备 | [安装和使用](guides/INSTALL.md) · [隐私说明](guides/PRIVACY.md) · [上传 GitHub](guides/GITHUB_PUBLISH.md) |
+| `guides/` | 安装、隐私与发布准备 | [安装和使用](guides/INSTALL.md) · [篡改猴版](guides/USERSCRIPT.md) · [隐私说明](guides/PRIVACY.md) · [上传 GitHub](guides/GITHUB_PUBLISH.md) |
 | `releases/` | 发行说明、安装包与升级方法 | [v0.11.1](releases/v0.11.1.md) · [v0.11.0](releases/v0.11.0.md) |
 | `store/` | 商店介绍、图片规格、权限与隐私披露 | [商店文案](store/LISTING.md) · [Edge 审核资料](store/EDGE_REVIEW.md) · [Edge 隐私](store/PRIVACY_EDGE.md) |
 | `development/` | 模块职责、开发约定与质量核验 | [架构与实施记录](development/ARCHITECTURE.md) · [验证记录](development/VALIDATION.md) · [翻译质量样例](development/QUALITY_SAMPLES.md) |

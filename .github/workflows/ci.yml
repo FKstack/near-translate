@@ -25,3 +25,12 @@ jobs:
       - run: npm run check:boundaries
       - run: npm run build
       - run: npm run build:edge
+      - run: npm run build:userscript
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test -c playwright.userscript.config.ts
+      - name: Upload installable userscript
+        uses: actions/upload-artifact@v4
+        with:
+          name: near-translate-userscript
+          path: .output/userscript/
+          if-no-files-found: error

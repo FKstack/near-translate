@@ -1,6 +1,6 @@
 import { JSDOM } from 'jsdom';
 import { describe, expect, it } from 'vitest';
-import { assembleUserscript, userscriptGuidePage, userscriptInstallPage, userscriptMetadata, userscriptSettingsPage,
+import { assembleUserscript, OPENCC_REQUIRE_URL, READABILITY_REQUIRE_URL, GREASY_FORK_MAX_BYTES, userscriptGuidePage, userscriptInstallPage, userscriptMetadata, userscriptSettingsPage,
   type UserscriptBundleEntry } from '../../scripts/lib/userscript-build.mjs';
 
 function entry(overrides = {}): UserscriptBundleEntry {
@@ -9,6 +9,22 @@ function entry(overrides = {}): UserscriptBundleEntry {
 }
 
 describe('standalone userscript distribution', () => {
+  it('gives Greasy Fork its own update ownership and a pinned library dependency', () => {
+    const metadata = userscriptMetadata('0.11.2', 'greasyfork');
+    expect(metadata).toContain('// @require ' + OPENCC_REQUIRE_URL);
+    expect(metadata).toContain('// @require ' + READABILITY_REQUIRE_URL);
+    expect(OPENCC_REQUIRE_URL).toMatch(/opencc-js@1\.4\.2\/dist\/umd\/full\.js#sha256=[a-f0-9]{64}$/);
+    expect(metadata).toContain('// @name:zh-CN 近译');
+    expect(metadata).toContain('// @description:zh-CN ');
+    expect(metadata).not.toMatch(/@(?:updateURL|downloadURL|installURL)/);
+    expect(metadata).toContain('// @namespace https://github.com/FKstack/near-translate');
+    const { userScript } = assembleUserscript([entry({ code: 'function readableApplicationName() { return "hello"; }' })], '0.11.2', 'Original library source', 'greasyfork');
+    expect(userScript).toContain('function readableApplicationName()');
+    expect(userScript).toContain('Original library source');
+    expect(() => assembleUserscript([entry({ code: '/*' + 'x'.repeat(GREASY_FORK_MAX_BYTES) + '*/' })], '0.11.2', '', 'greasyfork'))
+      .toThrow('2 MB');
+  });
+
   it('uses the same stable identity and update paths across versions', () => {
     const oldMetadata = userscriptMetadata('0.11.2');
     const newMetadata = userscriptMetadata('0.12.0');

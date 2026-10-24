@@ -19,9 +19,17 @@ export type HarnessState = { requests: MockRequest[]; rejected: string[]; tabs: 
  * is installed on window. Playwright alone retains this remote state handle.
  */
 export async function installUserscript(page: Page, settingsPage = false): Promise<JSHandle<HarnessState>> {
-  const source = await readFile(resolve('.output/userscript/near-translate.user.js'), 'utf8');
+  const greasyfork = process.env.NEAR_USERSCRIPT_DISTRIBUTION === 'greasyfork';
+  const application = await readFile(resolve(greasyfork ? '.output/greasyfork/near-translate.user.js' : '.output/userscript/near-translate.user.js'), 'utf8');
+  // The manager evaluates @require before the application in the same sandbox.
+  // Tests use the exact pinned npm bytes instead of contacting a real CDN.
+  const library = greasyfork ? (await Promise.all([
+    readFile(resolve('node_modules/opencc-js/dist/umd/full.js'), 'utf8'),
+    readFile(resolve('node_modules/@mozilla/readability/Readability.js'), 'utf8'),
+  ])).join('\n') : '';
+  const source = `${library}\n${application}`;
   const fixture = await readFile(new URL('./fixture.html', import.meta.url), 'utf8');
-  const settings = settingsPage ? await readFile(resolve('.output/userscript-site/userscript/settings.html'), 'utf8') : '';
+  const settings = settingsPage ? await readFile(resolve(greasyfork ? '.output/greasyfork/settings.html' : '.output/userscript-site/userscript/settings.html'), 'utf8') : '';
   await page.context().route('**/*', route => {
     const url = route.request().url();
     if (url === `${FIXTURE_ORIGIN}/article`) return route.fulfill({ contentType: 'text/html; charset=utf-8', body: fixture });

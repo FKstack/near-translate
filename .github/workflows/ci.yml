@@ -26,11 +26,19 @@ jobs:
       - run: npm run build
       - run: npm run build:edge
       - run: npm run build:userscript
+      - run: npm run build:greasyfork
       - run: npx playwright install --with-deps chromium
       - run: npx playwright test -c playwright.userscript.config.ts
+      - run: npx playwright test -c playwright.greasyfork.config.ts
       - name: Upload installable userscript
         uses: actions/upload-artifact@v4
         with:
           name: near-translate-userscript
           path: .output/userscript/
+          if-no-files-found: error
+      - name: Upload Greasy Fork distribution
+        uses: actions/upload-artifact@v4
+        with:
+          name: near-translate-greasyfork
+          path: .output/greasyfork/
           if-no-files-found: error

@@ -1,6 +1,6 @@
 {
   "name": "near-translate",
-  "version": "0.11.2",
+  "version": "0.11.3",
   "private": true,
   "description": "Browser page, selection and PDF translation with configurable model APIs",
   "license": "MIT",
@@ -12,6 +12,7 @@
     "build": "npm run assets:pdf && wxt build",
     "build:edge": "npm run assets:pdf && wxt build -b edge",
     "build:userscript": "node scripts/build-userscript.mjs",
+    "build:greasyfork": "node scripts/build-userscript.mjs --greasyfork",
     "zip": "npm run assets:pdf && wxt zip",
     "zip:edge": "npm run assets:pdf && wxt zip -b edge",
     "package:release": "node scripts/package-release.mjs",
@@ -20,6 +21,7 @@
     "pretest:e2e": "node scripts/prepare-e2e.mjs",
     "test:e2e": "playwright test",
     "test:userscript": "npm run build:userscript && playwright test -c playwright.userscript.config.ts",
+    "test:greasyfork": "npm run build:greasyfork && playwright test -c playwright.greasyfork.config.ts",
     "test:conversion:e2e": "npm run build:edge && playwright test -c playwright.conversion.config.ts",
     "check:boundaries": "node scripts/check-boundaries.mjs",
     "benchmark:installed": "node scripts/benchmarks/benchmark-installed-page.mjs",

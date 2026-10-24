@@ -1,6 +1,11 @@
 export const USERSCRIPT_NAME = 'near-translate';
 export const USERSCRIPT_BASE_URL = 'https://fkstack.github.io/near-translate/userscript';
 export const USERSCRIPT_REPOSITORY = 'https://github.com/FKstack/near-translate';
+// The Greasy Fork build uses the official UMD library through @require instead
+// of embedding its dictionaries. Fixed content + SRI make the dependency auditable.
+export const OPENCC_REQUIRE_URL = 'https://cdn.jsdelivr.net/npm/opencc-js@1.4.2/dist/umd/full.js#sha256=95b04abf136d9c28263773bb7d357eac80b7954d101efd23c4d09c737d3d379e';
+export const READABILITY_REQUIRE_URL = 'https://cdn.jsdelivr.net/npm/@mozilla/readability@0.6.0/Readability.js#sha256=34dcab3d0832d0019f02990eed6b6124e029e8c32b9f0c6f2550544ff8dff174';
+export const GREASY_FORK_MAX_BYTES = 2_000_000;
 
 const grants = [
   'GM_getValue', 'GM_setValue', 'GM_deleteValue', 'GM_listValues',
@@ -13,28 +18,33 @@ const connections = [
   'api.siliconflow.cn', 'openrouter.ai', 'localhost', '127.0.0.1', '*',
 ];
 
-export function userscriptMetadata(version) {
+export function userscriptMetadata(version, distribution = 'github') {
   if (!/^\d+\.\d+\.\d+(?:[.-][\w.-]+)?$/.test(version)) throw new Error('Invalid userscript version.');
+  if (!['github', 'greasyfork'].includes(distribution)) throw new Error('Unknown userscript distribution.');
   const fields = [
     ['name', '近译 · 网页阅读与翻译'],
+    ...(distribution === 'greasyfork' ? [['name:zh-CN', '近译 · 网页阅读与翻译']] : []),
     ['namespace', USERSCRIPT_REPOSITORY],
     ['version', version],
     ['description', '网页双语翻译、划词与专注阅读；可配置自己的模型 API。'],
+    ...(distribution === 'greasyfork' ? [['description:zh-CN', '网页双语翻译、划词与专注阅读；可配置自己的模型 API。']] : []),
     ['author', 'FKstack'], ['license', 'MIT'],
     ['homepageURL', USERSCRIPT_REPOSITORY], ['supportURL', `${USERSCRIPT_REPOSITORY}/issues`],
     ['match', 'http://*/*'], ['match', 'https://*/*'],
     ['noframes', ''], ['run-at', 'document-idle'], ['sandbox', 'DOM'],
     ...grants.map(grant => ['grant', grant]),
     ...connections.map(connection => ['connect', connection]),
-    ['updateURL', `${USERSCRIPT_BASE_URL}/${USERSCRIPT_NAME}.meta.js`],
-    ['downloadURL', `${USERSCRIPT_BASE_URL}/${USERSCRIPT_NAME}.user.js`],
+    ...(distribution === 'greasyfork' ? [['require', OPENCC_REQUIRE_URL], ['require', READABILITY_REQUIRE_URL]] : [
+      ['updateURL', `${USERSCRIPT_BASE_URL}/${USERSCRIPT_NAME}.meta.js`],
+      ['downloadURL', `${USERSCRIPT_BASE_URL}/${USERSCRIPT_NAME}.user.js`],
+    ]),
   ];
   return ['// ==UserScript==', ...fields.map(([key, value]) => `// @${key}${value ? ` ${value}` : ''}`), '// ==/UserScript==', ''].join('\n');
 }
 
 // Fail the build if the browser bundle would depend on a CDN, split chunk,
 // worker, document tool or extension runtime that Tampermonkey cannot provide.
-export function assembleUserscript(output, version, notices = '') {
+export function assembleUserscript(output, version, notices = '', distribution = 'github') {
   const chunks = output.filter(entry => entry.type === 'chunk');
   const assets = output.filter(entry => entry.type === 'asset');
   if (chunks.length !== 1 || !chunks[0].isEntry) throw new Error('Userscript must contain one standalone entry chunk.');
@@ -46,9 +56,12 @@ export function assembleUserscript(output, version, notices = '') {
   if (forbidden) throw new Error(`Unsupported userscript dependency: ${forbidden}`);
   const css = assets.map(asset => typeof asset.source === 'string' ? asset.source : new TextDecoder().decode(asset.source)).join('\n');
   const style = css ? `(() => { const style = document.createElement('style'); style.dataset.nearUserscript = ''; style.textContent = ${JSON.stringify(css)}; (document.head || document.documentElement).append(style); })();\n` : '';
-  const metadata = userscriptMetadata(version);
+  const metadata = userscriptMetadata(version, distribution);
   const licenses = notices ? `\n/* Bundled third-party license notices\n${notices.replaceAll('*/', '* /')}\n*/\n` : '';
   const userScript = `${metadata}${licenses}\n${style}${chunk.code}\n`;
+  if (distribution === 'greasyfork' && new TextEncoder().encode(userScript).byteLength > GREASY_FORK_MAX_BYTES) {
+    throw new Error('Greasy Fork script exceeds the 2 MB limit.');
+  }
   // Parse as a classic script, rather than silently shipping import/export syntax.
   new Function(userScript);
   return { userScript, metadata };

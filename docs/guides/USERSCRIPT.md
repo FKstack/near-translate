@@ -27,6 +27,22 @@
 
 `@connect` 声明列出了预设服务及本机模型地址，同时保留 `*` 以支持用户自己的兼容 API。此声明允许篡改猴对新增域名提供授权选择；实际请求由用户配置和翻译操作决定。没有配置模型 Key 时，阅读模式仍可在本机使用。正文、选区和可选上下文只在使用翻译时发送至所选服务；GitHub 只提供公开脚本和版本文件，不是翻译代理。
 
+## Greasy Fork 分发
+
+Greasy Fork 使用独立的可阅读构建，业务代码不压缩，且限制在 2 MB 内。OpenCC 1.4.2 和 Mozilla Readability 0.6.0 通过固定版本、带 SHA-256 校验的官方 CDN 库加载；React 等需要共享模块状态的 CommonJS 库保留在包内并注明来源和许可证。
+
+```sh
+npm run build:greasyfork
+npm run test:greasyfork
+```
+
+待上传脚本在 `.output/greasyfork/near-translate.user.js`，中文上架说明见 [GREASYFORK_LISTING.md](GREASYFORK_LISTING.md)。发布工作流也会同时提供以下固定同步源：
+
+- 脚本：`https://fkstack.github.io/near-translate/greasyfork/near-translate.user.js`
+- 说明：`https://fkstack.github.io/near-translate/greasyfork/description.md`
+
+在 Greasy Fork 以作者账号发布公开脚本后，可在「同步」设置中使用上述源并选择自动同步。不要把压缩的 GitHub 版或 TypeScript 源文件用作 Greasy Fork 同步源。通过 Greasy Fork 安装的版本由其改写更新地址并从 Greasy Fork 更新，源站同步不会把用户引导到另一个安装渠道。
+
 ## 自动更新
 
 篡改猴读取脚本头部的三个字段：

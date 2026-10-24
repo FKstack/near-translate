@@ -6,9 +6,10 @@ import type { TranslationServiceStatus } from '../shared/contracts';
 const SCRIPT_ID = 'near-translate-selection';
 const PREPARATION_SCRIPT_ID = 'near-translate-network-prepare';
 const BROADCAST_TIMEOUT_MS = 1_500;
+const recoveringTabs = new Map<number, symbol>();
 
 /** Frozen or outdated receivers must not hold the serialized settings save open. */
-function notifyBestEffort(send: () => Promise<unknown>): Promise<void> {
+function notifyBestEffort(send: (pending: () => boolean) => Promise<unknown>): Promise<void> {
   return new Promise(resolve => {
     let settled = false;
     const finish = () => {
@@ -18,9 +19,20 @@ function notifyBestEffort(send: () => Promise<unknown>): Promise<void> {
       resolve();
     };
     const timer = setTimeout(finish, BROADCAST_TIMEOUT_MS);
-    try { void Promise.resolve(send()).then(finish, finish); }
+    try { void Promise.resolve(send(() => !settled)).then(finish, finish); }
     catch { finish(); }
   });
+}
+
+function recoverableOrigin(url: string | undefined): string | undefined {
+  if (!url) return;
+  try {
+    const parsed = new URL(url);
+    if (!['http:', 'https:'].includes(parsed.protocol)) return;
+    // Browser-managed stores reject extension injection. Do not attempt it.
+    if (['chromewebstore.google.com', 'chrome.google.com', 'microsoftedge.microsoft.com', 'addons.mozilla.org'].includes(parsed.hostname)) return;
+    return `${parsed.protocol}//${parsed.hostname}/*`;
+  } catch { /* A tab may be closing or have no inspectable URL. */ }
 }
 
 export async function synchronizeContentRegistration(): Promise<void> {
@@ -60,12 +72,41 @@ export async function synchronizeContentRegistration(): Promise<void> {
 
 export async function broadcastPublicSettings(): Promise<void> {
   const settings = await publicSettings();
-  const tabs = await browser.tabs.query({});
+  const recoveryOwners: Array<[number, symbol]> = [];
+  const tabNotifications = notifyBestEffort(async pending => {
+    const tabs = await browser.tabs.query({});
+    if (!pending()) return;
+    await Promise.all(tabs.filter(tab => tab.id !== undefined).map(async tab => {
+      try {
+        await browser.tabs.sendMessage(tab.id!, { type: 'settings-changed', settings });
+      } catch {
+        const origin = recoverableOrigin(tab.url);
+        if (!pending() || !settings.enabled || !settings.webAccess || !origin || recoveringTabs.has(tab.id!)) return;
+        const owner = Symbol();
+        recoveringTabs.set(tab.id!, owner);
+        recoveryOwners.push([tab.id!, owner]);
+        try {
+          // A save or permission change can race the failed notification. Read
+          // current capabilities before inserting UI, then let the entry point
+          // obtain its own fresh settings instead of resending this snapshot.
+          const current = await publicSettings();
+          if (!pending() || !current.enabled || !current.webAccess) return;
+          if (!await browser.permissions.contains({ origins: [origin] }) || !pending()) return;
+          await browser.scripting.executeScript({ target: { tabId: tab.id!, allFrames: true }, files: ['/content-scripts/selection.js'] });
+        } catch { /* Closed, protected or frozen tabs never block saving. */ }
+        finally {
+          if (recoveringTabs.get(tab.id!) === owner) recoveringTabs.delete(tab.id!);
+        }
+      }
+    }));
+  }).finally(() => {
+    // Also release a recovery whose browser operation never acknowledged. The
+    // pending guard prevents any late failure from starting another injection.
+    for (const [tabId, owner] of recoveryOwners) if (recoveringTabs.get(tabId) === owner) recoveringTabs.delete(tabId);
+  });
   await Promise.all([
     notifyBestEffort(() => browser.runtime.sendMessage({ type: 'settings-changed', settings })),
-    ...tabs.filter(tab => tab.id !== undefined).map(tab => notifyBestEffort(
-      () => browser.tabs.sendMessage(tab.id!, { type: 'settings-changed', settings }),
-    )),
+    tabNotifications,
   ]);
 }
 

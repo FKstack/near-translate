@@ -232,10 +232,6 @@ test.beforeAll(async () => {
   await installFakeApi(worker);
   options = await context.newPage();
   await options.goto(`chrome-extension://${extensionId}/options.html`);
-  const vault = await options.evaluate(() => (globalThis as unknown as {
-    chrome: { runtime: { sendMessage(message: object): Promise<{ ok: boolean }> } };
-  }).chrome.runtime.sendMessage({ type: 'create-key-vault', passphrase: 'test-only-long-passphrase-2026' }));
-  expect(vault.ok).toBe(true);
 });
 
 test.beforeEach(async () => {

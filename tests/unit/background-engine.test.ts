@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { StoredSettings, TranslationInput, TranslationServerMessage } from '../../src/shared/contracts';
 import { DEEPL_WEB_ORIGIN } from '../../src/shared/translation-engine';
-import type { KeyVaultStatus } from '../../src/shared/key-vault';
 
 let VaultError: new (message: string) => Error;
 
@@ -11,8 +10,7 @@ const state = vi.hoisted(() => ({
   deeplConstructed: vi.fn(), modelConstructed: vi.fn(), deeplTranslate: vi.fn(), modelTranslate: vi.fn(),
   prepareNetwork: vi.fn(), cancelPreparation: vi.fn(), enableFree: vi.fn(), serviceStatus: vi.fn(),
   broadcastStatus: vi.fn(), persistCooldown: vi.fn(), loadCooldown: vi.fn(), reservePreparation: vi.fn(),
-  vault: undefined as unknown as KeyVaultStatus,
-  vaultStatus: vi.fn(), createVault: vi.fn(), unlockVault: vi.fn(), lockVault: vi.fn(), changeVault: vi.fn(),
+  importLegacyKeys: vi.fn(),
   connectionSettings: vi.fn(), broadcastPublic: vi.fn(),
   onConnect: undefined as unknown as (port: unknown) => void,
   onMessage: undefined as unknown as (message: unknown, sender: unknown, respond: (result: unknown) => void) => boolean,
@@ -36,8 +34,7 @@ vi.mock('../../src/platform/settings', () => ({
   readSettings: state.readSettings, saveSettings: state.saveSettings, enableFreeTranslation: state.enableFree,
   restrictStorageAccess: async () => undefined,
   publicSettings: async () => ({}), connectionSettings: state.connectionSettings,
-  keyVaultStatus: state.vaultStatus, createKeyVault: state.createVault, unlockKeyVault: state.unlockVault,
-  lockKeyVault: state.lockVault, changeKeyVaultPassphrase: state.changeVault,
+  importLegacyKeys: state.importLegacyKeys,
   WEB_ORIGINS: ['http://*/*', 'https://*/*'],
 }));
 vi.mock('../../src/platform/web-access', () => ({
@@ -138,13 +135,12 @@ describe('background engine boundary', () => {
       model: 'deepseek-flash', apiKey: 'kept-model-secret', baseUrl: 'https://api.deepseek.com', jsonMode: true, profiles: {},
     };
     state.readSettings.mockImplementation(async () => ({ ...state.settings }));
-    state.vault = { configured: true, locked: false, migrationRequired: false, savedProviders: ['deepseek'] };
-    state.vaultStatus.mockImplementation(async () => ({ ...state.vault }));
-    state.createVault.mockImplementation(async () => { state.vault = { ...state.vault, configured: true, locked: false, migrationRequired: false }; return state.vault; });
-    state.unlockVault.mockImplementation(async () => { state.vault = { ...state.vault, locked: false }; return state.vault; });
-    state.lockVault.mockImplementation(async () => { state.vault = { ...state.vault, locked: true }; state.settings.apiKey = ''; return state.vault; });
-    state.changeVault.mockImplementation(async () => ({ ...state.vault }));
-    state.connectionSettings.mockImplementation(async () => ({ profiles: {}, vault: { ...state.vault } }));
+    state.importLegacyKeys.mockResolvedValue(undefined);
+    state.connectionSettings.mockImplementation(async () => ({
+      profiles: { deepseek: { hasApiKey: Boolean(state.settings.apiKey), baseUrl: state.settings.baseUrl, model: state.settings.model, jsonMode: true } },
+      apiKeyMigrationRequired: state.settings.apiKeyMigrationRequired === true,
+      legacyKeyMigrationAvailable: state.settings.apiKeyMigrationRequired === true,
+    }));
     state.broadcastPublic.mockResolvedValue(undefined);
     state.saveSettings.mockImplementation(async (settings: Partial<StoredSettings>) => {
       state.settings = { ...state.settings, translationEngine: settings.translationEngine ?? state.settings.translationEngine,
@@ -453,187 +449,162 @@ describe('background engine boundary', () => {
     expect(port.messages.at(-1)).toMatchObject({ type: 'error', error: { code: 'CONFIG' } });
   });
 
-  it.each(['create-key-vault', 'unlock-key-vault', 'lock-key-vault', 'change-key-vault-passphrase'])(
-    'limits %s to the actual options page of this extension', async type => {
-      for (const sender of [
-        { id: 'test-extension', url: 'https://example.com/options.html' },
-        { id: 'test-extension', url: 'chrome-extension://test-extension/reader.html' },
-        { id: 'test-extension', url: 'chrome-extension://test-extension/popup.html' },
-        { id: 'test-extension', url: 'chrome-extension://test-extension/options.html.fake' },
-        { id: 'other-extension', url: 'chrome-extension://test-extension/options.html' },
-      ]) {
-        const reply = vi.fn();
-        expect(state.onMessage({ type, passphrase: 'test-only-long-passphrase' }, sender, reply)).toBe(false);
-        expect(reply).not.toHaveBeenCalled();
-      }
-      await Promise.resolve();
-      for (const operation of [state.createVault, state.unlockVault, state.lockVault, state.changeVault]) expect(operation).not.toHaveBeenCalled();
-    },
-  );
 
-  it('projects only non-secret vault status to trusted pages and rejects content scripts', async () => {
-    state.vaultStatus.mockResolvedValue({ ...state.vault, passphrase: 'never-return-this', ciphertext: 'secret-ciphertext', savedProviders: ['deepseek', 'invalid'] });
-    const blocked = vi.fn();
-    expect(state.onMessage({ type: 'get-key-vault-status' }, { id: 'test-extension', url: 'https://example.com/' }, blocked)).toBe(false);
-    expect(blocked).not.toHaveBeenCalled();
-    const reply = vi.fn();
-    state.onMessage({ type: 'get-key-vault-status' }, { id: 'test-extension', url: 'chrome-extension://test-extension/options.html' }, reply);
-    await vi.waitFor(() => expect(reply).toHaveBeenCalledWith({ ok: true, status: state.vault }));
-    expect(JSON.stringify(reply.mock.calls)).not.toMatch(/never-return-this|secret-ciphertext|kept-model-secret/);
+  it('limits legacy import to the actual options page of this extension', async () => {
+    for (const sender of [
+      { id: 'test-extension', url: 'https://example.com/options.html' },
+      { id: 'test-extension', url: 'chrome-extension://test-extension/reader.html' },
+      { id: 'test-extension', url: 'chrome-extension://test-extension/popup.html' },
+      { id: 'test-extension', url: 'chrome-extension://test-extension/options.html.fake' },
+      { id: 'test-extension', url: 'chrome-extension://test-extension.evil/options.html' },
+      { id: 'other-extension', url: 'chrome-extension://test-extension/options.html' },
+    ]) {
+      const reply = vi.fn();
+      expect(state.onMessage({ type: 'import-legacy-keys', passphrase: 'test-only-old-passphrase' }, sender, reply)).toBe(false);
+      expect(reply).not.toHaveBeenCalled();
+    }
+    await Promise.resolve(); expect(state.importLegacyKeys).not.toHaveBeenCalled();
   });
 
-  it.each(['create-key-vault', 'unlock-key-vault'])(
-    'preserves significant spaces in %s and returns no passphrase', async type => {
-      const passphrase = '  test-only-long-passphrase  ';
+  it.each(['get-key-vault-status', 'create-key-vault', 'unlock-key-vault', 'lock-key-vault', 'change-key-vault-passphrase'])(
+    'no longer accepts the obsolete %s flow even from options', async type => {
       const reply = vi.fn();
-      state.onMessage({ type, passphrase }, { id: 'test-extension', url: 'chrome-extension://test-extension/options.html' }, reply);
-      await vi.waitFor(() => expect(reply).toHaveBeenCalledWith(expect.objectContaining({ ok: true, status: state.vault })));
-      expect(type === 'create-key-vault' ? state.createVault : state.unlockVault).toHaveBeenCalledExactlyOnceWith(passphrase);
-      expect(JSON.stringify(reply.mock.calls)).not.toContain(passphrase);
+      expect(state.onMessage({ type, passphrase: 'obsolete-test-passphrase' },
+        { id: 'test-extension', url: 'chrome-extension://test-extension/options.html' }, reply)).toBe(false);
+      await Promise.resolve(); expect(reply).not.toHaveBeenCalled(); expect(state.importLegacyKeys).not.toHaveBeenCalled();
     },
   );
 
-  it('creates a local vault without any host grants even when the real DeepL synchronization rejects', async () => {
-    state.contains.mockResolvedValue(false);
-    state.vault = { configured: false, locked: false, migrationRequired: false, savedProviders: [] };
-    state.connectionSettings.mockImplementation(async () => ({ translationEngine: 'deepl-web', enabled: true,
-      webAccess: false, apiAccess: false, hasApiKey: false, requiresApiKey: false, keyVaultLocked: false,
-      profiles: {}, vault: { ...state.vault } }));
-    const before = state.broadcastPublic.mock.calls.length;
+  it('imports once with significant passphrase spaces and returns only public connection data', async () => {
+    const passphrase = '  test-only-old-passphrase  ';
     const reply = vi.fn();
-    state.onMessage({ type: 'create-key-vault', passphrase: 'fresh-install-test-only-passphrase' },
-      { id: 'test-extension', url: 'chrome-extension://test-extension/options.html' }, reply);
-    await vi.waitFor(() => expect(reply).toHaveBeenCalledWith({ ok: true,
-      status: { configured: true, locked: false, migrationRequired: false, savedProviders: [] },
-      settings: expect.objectContaining({ translationEngine: 'deepl-web', webAccess: false, apiAccess: false, requiresApiKey: false,
-        vault: expect.objectContaining({ configured: true, locked: false }) }) }));
-    // deepl-web-transport is intentionally not mocked: synchronize(true) observes
-    // this false host grant and throws the production DeepLWebTransportError.
-    expect(state.contains).toHaveBeenCalledWith({ origins: [DEEPL_WEB_ORIGIN] });
-    expect(state.broadcastPublic.mock.calls.length).toBeGreaterThan(before);
+    expect(state.onMessage({ type: 'import-legacy-keys', passphrase },
+      { id: 'test-extension', url: 'chrome-extension://test-extension/options.html' }, reply)).toBe(true);
+    await vi.waitFor(() => expect(reply).toHaveBeenCalledWith({ ok: true, settings: expect.objectContaining({ profiles: expect.any(Object) }) }));
+    expect(state.importLegacyKeys).toHaveBeenCalledExactlyOnceWith(passphrase);
+    expect(JSON.stringify(reply.mock.calls)).not.toMatch(/test-only-old-passphrase|kept-model-secret|ciphertext/);
     expect(state.modelConstructed).not.toHaveBeenCalled(); expect(state.deeplTranslate).not.toHaveBeenCalled();
-    expect(JSON.stringify(reply.mock.calls)).not.toContain('fresh-install-test-only-passphrase');
-    const denied = connect(); denied.start({ kind: 'text', text: 'Translation still needs explicit permission.' });
+  });
+
+  it('allows local Key import while service permission is absent, but translation still checks permission', async () => {
+    state.contains.mockResolvedValue(false);
+    const reply = vi.fn();
+    state.onMessage({ type: 'import-legacy-keys', passphrase: 'test-only-old-passphrase' },
+      { id: 'test-extension', url: 'chrome-extension://test-extension/options.html' }, reply);
+    await vi.waitFor(() => expect(reply).toHaveBeenCalledWith(expect.objectContaining({ ok: true })));
+    expect(state.contains).toHaveBeenCalledWith({ origins: [DEEPL_WEB_ORIGIN] });
+    const denied = connect(); denied.start({ kind: 'text', text: 'Translation still needs permission.' });
     await completed(denied);
     expect(denied.messages.at(-1)).toMatchObject({ type: 'error', error: { code: 'CONFIG' } });
     expect(state.deeplTranslate).not.toHaveBeenCalled();
   });
 
-  it('routes passphrase changes without exposing either value or swallowing a safe failure', async () => {
-    const sender = { id: 'test-extension', url: 'chrome-extension://test-extension/options.html' };
+  it('preserves a safe import error without returning the Key or password', async () => {
+    state.importLegacyKeys.mockRejectedValueOnce(new VaultError('口令不正确，旧版数据仍保留。'));
     const reply = vi.fn();
-    state.onMessage({ type: 'change-key-vault-passphrase', currentPassphrase: 'current-test-only-passphrase', newPassphrase: 'new-test-only-passphrase' }, sender, reply);
-    await vi.waitFor(() => expect(reply).toHaveBeenCalledWith(expect.objectContaining({ ok: true })));
-    expect(state.changeVault).toHaveBeenCalledExactlyOnceWith('current-test-only-passphrase', 'new-test-only-passphrase');
-    expect(JSON.stringify(reply.mock.calls)).not.toMatch(/current-test-only|new-test-only/);
-    state.unlockVault.mockRejectedValueOnce(new VaultError('口令不正确，请重试。'));
-    const denied = vi.fn();
-    state.onMessage({ type: 'unlock-key-vault', passphrase: 'wrong-test-only-passphrase' }, sender, denied);
-    await vi.waitFor(() => expect(denied).toHaveBeenCalledWith(expect.objectContaining({ ok: false, error: '口令不正确，请重试。' })));
+    state.onMessage({ type: 'import-legacy-keys', passphrase: 'incorrect-test-passphrase' },
+      { id: 'test-extension', url: 'chrome-extension://test-extension/options.html' }, reply);
+    await vi.waitFor(() => expect(reply).toHaveBeenCalledWith(expect.objectContaining({ ok: false, error: '口令不正确，旧版数据仍保留。' })));
+    expect(JSON.stringify(reply.mock.calls)).not.toMatch(/incorrect-test-passphrase|kept-model-secret/);
   });
 
-  it('rejects non-string vault credentials without calling the vault', async () => {
+  it('rejects non-string import passwords without attempting import', async () => {
     const reply = vi.fn();
-    state.onMessage({ type: 'create-key-vault', passphrase: { invalid: true } }, { id: 'test-extension', url: 'chrome-extension://test-extension/options.html' }, reply);
-    await vi.waitFor(() => expect(reply).toHaveBeenCalledWith(expect.objectContaining({ ok: false, error: '请输入密钥库口令。' })));
-    expect(state.createVault).not.toHaveBeenCalled();
+    state.onMessage({ type: 'import-legacy-keys', passphrase: { invalid: true } },
+      { id: 'test-extension', url: 'chrome-extension://test-extension/options.html' }, reply);
+    await vi.waitFor(() => expect(reply).toHaveBeenCalledWith(expect.objectContaining({ ok: false, error: '请输入旧版口令。' })));
+    expect(state.importLegacyKeys).not.toHaveBeenCalled();
   });
 
-  it.each([
-    { locked: true, migrationRequired: false, message: '密钥库已锁定' },
-    { locked: true, migrationRequired: true, message: '加密迁移' },
-  ])('explains protected model credentials without treating them as missing: %j', async change => {
-    state.settings.translationEngine = 'model'; state.settings.apiKey = '';
-    state.vault = { ...state.vault, ...change };
-    const port = connect(); port.start({ kind: 'text', text: 'A model translation.' });
+  it.each(['deepseek', 'ollama'] as const)('explains an unimported Key without silently removing authentication for %s', async provider => {
+    state.settings = { ...state.settings, translationEngine: 'model', provider,
+      baseUrl: provider === 'ollama' ? 'http://localhost:11434/v1' : 'https://api.deepseek.com', apiKey: '', apiKeyMigrationRequired: true };
+    const port = connect(); port.start({ kind: 'text', text: 'A translation with an old Key.' });
     await completed(port);
-    expect(port.messages.at(-1)).toMatchObject({ type: 'error', error: { message: expect.stringContaining(change.message) } });
+    expect(port.messages.at(-1)).toMatchObject({ type: 'error', error: { message: '请在翻译设置中重新填写 API Key，或导入旧版配置。' } });
     expect(state.modelConstructed).not.toHaveBeenCalled();
   });
 
-  it('cancels model work on vault lock while leaving a running DeepL request alone', async () => {
+  it('cancels active model work during import while leaving a running DeepL request alone', async () => {
     state.modelTranslate.mockImplementation(waiting); state.deeplTranslate.mockImplementation(waiting);
     state.settings.translationEngine = 'model';
-    const model = connect(); model.start({ kind: 'text', text: 'Waiting for model.' });
+    const model = connect(); model.start({ kind: 'text', text: 'Model before import.' });
     await vi.waitFor(() => expect(state.modelTranslate).toHaveBeenCalledOnce());
     const modelSignal = state.modelTranslate.mock.calls[0]![1] as AbortSignal;
     state.settings.translationEngine = 'deepl-web';
-    const free = connect(); free.start({ kind: 'text', text: 'Waiting for free translation.' });
+    const free = connect(); free.start({ kind: 'text', text: 'Free translation is independent.' });
     await vi.waitFor(() => expect(state.deeplTranslate).toHaveBeenCalledOnce());
     const freeSignal = state.deeplTranslate.mock.calls[0]![1] as AbortSignal;
     const reply = vi.fn();
-    state.onMessage({ type: 'lock-key-vault' }, { id: 'test-extension', url: 'chrome-extension://test-extension/options.html' }, reply);
+    state.onMessage({ type: 'import-legacy-keys', passphrase: 'test-only-old-passphrase' },
+      { id: 'test-extension', url: 'chrome-extension://test-extension/options.html' }, reply);
     await vi.waitFor(() => expect(reply).toHaveBeenCalledWith(expect.objectContaining({ ok: true })));
     expect(modelSignal.aborted).toBe(true); expect(freeSignal.aborted).toBe(false);
+    expect(model.messages.at(-1)).toMatchObject({ type: 'error', error: { code: 'CONFIG' } });
     free.disconnect();
   });
 
-  it('does not silently drop protected authentication for an optional-key model service', async () => {
-    state.settings = { ...state.settings, translationEngine: 'model', provider: 'ollama', baseUrl: 'http://localhost:11434/v1', apiKey: '', keyVaultLocked: true };
-    state.vault = { ...state.vault, locked: true, savedProviders: ['ollama'] };
-    const port = connect(); port.start({ kind: 'text', text: 'Protected local service.' });
-    await completed(port);
-    expect(port.messages.at(-1)).toMatchObject({ type: 'error', error: { message: expect.stringContaining('密钥库已锁定') } });
-    expect(state.modelConstructed).not.toHaveBeenCalled();
+  it('still cancels old model work and refreshes public state when import reports a safe failure', async () => {
+    state.settings.translationEngine = 'model'; state.modelTranslate.mockImplementation(waiting);
+    const model = connect(); model.start({ kind: 'text', text: 'Model before import failure.' });
+    await vi.waitFor(() => expect(state.modelTranslate).toHaveBeenCalledOnce());
+    const signal = state.modelTranslate.mock.calls[0]![1] as AbortSignal;
+    state.importLegacyKeys.mockImplementationOnce(async () => {
+      expect(signal.aborted).toBe(true);
+      throw new VaultError('导入失败，旧版数据仍保留。');
+    });
+    const before = state.broadcastPublic.mock.calls.length;
+    const reply = vi.fn();
+    state.onMessage({ type: 'import-legacy-keys', passphrase: 'test-only-old-passphrase' },
+      { id: 'test-extension', url: 'chrome-extension://test-extension/options.html' }, reply);
+    await vi.waitFor(() => expect(reply).toHaveBeenCalledWith(expect.objectContaining({ ok: false, error: '导入失败，旧版数据仍保留。' })));
+    expect(state.broadcastPublic.mock.calls.length).toBeGreaterThan(before);
+    expect(JSON.stringify(reply.mock.calls)).not.toMatch(/test-only-old-passphrase|kept-model-secret/);
   });
 
-  it.each(['lock-key-vault', 'change-key-vault-passphrase'] as const)(
-    'cancels model work before %s and refreshes state after a committed operation reports failure', async type => {
-      state.modelTranslate.mockImplementation(waiting); state.deeplTranslate.mockImplementation(waiting);
-      state.settings.translationEngine = 'model';
-      const model = connect(); model.start({ kind: 'text', text: 'Model before vault commit.' });
-      await vi.waitFor(() => expect(state.modelTranslate).toHaveBeenCalledOnce());
-      const modelSignal = state.modelTranslate.mock.calls[0]![1] as AbortSignal;
-      state.settings.translationEngine = 'deepl-web';
-      const free = connect(); free.start({ kind: 'text', text: 'Free translation is independent.' });
-      await vi.waitFor(() => expect(state.deeplTranslate).toHaveBeenCalledOnce());
-      const freeSignal = state.deeplTranslate.mock.calls[0]![1] as AbortSignal;
-      const error = type === 'lock-key-vault' ? '密钥库操作失败，已有数据未被主动删除。请重试。' : '新口令已生效，但当前会话尚未解锁。请用新口令重新解锁。';
-      const operation = type === 'lock-key-vault' ? state.lockVault : state.changeVault;
-      operation.mockImplementationOnce(async () => {
-        expect(modelSignal.aborted).toBe(true); expect(freeSignal.aborted).toBe(false);
-        state.vault = { ...state.vault, locked: true }; state.settings.apiKey = '';
-        throw new VaultError(error);
-      });
-      const before = state.broadcastPublic.mock.calls.length;
-      const reply = vi.fn();
-      state.onMessage({ type, currentPassphrase: 'current-test-only-passphrase', newPassphrase: 'new-test-only-passphrase' },
-        { id: 'test-extension', url: 'chrome-extension://test-extension/options.html' }, reply);
-      await vi.waitFor(() => expect(reply).toHaveBeenCalledWith(expect.objectContaining({ ok: false, error,
-        status: expect.objectContaining({ locked: true }), settings: expect.objectContaining({ vault: expect.objectContaining({ locked: true }) }) })));
-      expect(state.broadcastPublic.mock.calls.length).toBeGreaterThan(before);
-      expect(modelSignal.aborted).toBe(true); expect(freeSignal.aborted).toBe(false);
-      expect(JSON.stringify(reply.mock.calls)).not.toMatch(/current-test-only|new-test-only|kept-model-secret/);
-      free.disconnect();
-    },
-  );
-
-  it('never echoes arbitrary storage errors and preserves a safe core error if refresh also fails', async () => {
+  it('sanitizes unknown import and refresh errors instead of echoing private values', async () => {
     const unsafe = 'test-only-storage-exception-with-private-values';
-    state.lockVault.mockRejectedValueOnce(new Error(unsafe));
+    state.importLegacyKeys.mockRejectedValueOnce(new Error(unsafe));
     state.broadcastPublic.mockRejectedValue(new Error(unsafe)); state.connectionSettings.mockRejectedValue(new Error(unsafe));
-    state.vaultStatus.mockRejectedValue(new Error(unsafe)); state.readSettings.mockRejectedValue(new Error(unsafe));
     const sender = { id: 'test-extension', url: 'chrome-extension://test-extension/options.html' };
-    const reply = vi.fn(); state.onMessage({ type: 'lock-key-vault' }, sender, reply);
-    await vi.waitFor(() => expect(reply).toHaveBeenCalledWith({ ok: false, error: '密钥库操作失败，请重试。' }));
-    expect(JSON.stringify(reply.mock.calls)).not.toContain(unsafe);
-    state.lockVault.mockRejectedValueOnce(new VaultError('新口令已生效，请用新口令重新解锁。'));
-    const safe = vi.fn(); state.onMessage({ type: 'lock-key-vault' }, sender, safe);
-    await vi.waitFor(() => expect(safe).toHaveBeenCalledWith({ ok: false, error: '新口令已生效，请用新口令重新解锁。' }));
+    const reply = vi.fn(); state.onMessage({ type: 'import-legacy-keys', passphrase: 'test-only-old-passphrase' }, sender, reply);
+    await vi.waitFor(() => expect(reply).toHaveBeenCalledWith({ ok: false, error: '导入失败，旧版数据仍保留。' }));
+    expect(JSON.stringify(reply.mock.calls)).not.toMatch(/test-only-storage-exception|test-only-old-passphrase/);
+    state.importLegacyKeys.mockRejectedValueOnce(new VaultError('口令不正确，旧版数据仍保留。'));
+    const safe = vi.fn(); state.onMessage({ type: 'import-legacy-keys', passphrase: 'test-only-old-passphrase' }, sender, safe);
+    await vi.waitFor(() => expect(safe).toHaveBeenCalledWith({ ok: false, error: '口令不正确，旧版数据仍保留。' }));
   });
 
-  it('rejects a model request that read credentials before a concurrent vault transition', async () => {
+  it('rejects a model request that read credentials before concurrent import', async () => {
     state.settings.translationEngine = 'model';
     const oldSettings = { ...state.settings };
     const pending = deferred<StoredSettings>();
     state.readSettings.mockImplementationOnce(() => pending.promise);
     const model = connect(); model.start({ kind: 'text', text: 'Stale credential snapshot.' });
     const reply = vi.fn();
-    state.onMessage({ type: 'lock-key-vault' }, { id: 'test-extension', url: 'chrome-extension://test-extension/options.html' }, reply);
+    state.onMessage({ type: 'import-legacy-keys', passphrase: 'test-only-old-passphrase' },
+      { id: 'test-extension', url: 'chrome-extension://test-extension/options.html' }, reply);
     await vi.waitFor(() => expect(reply).toHaveBeenCalledWith(expect.objectContaining({ ok: true })));
     pending.resolve(oldSettings);
     await completed(model);
-    expect(model.messages.at(-1)).toMatchObject({ type: 'error', error: { message: expect.stringContaining('密钥库状态已更改') } });
+    expect(model.messages.at(-1)).toMatchObject({ type: 'error', error: { message: '翻译配置已更改，请重新翻译。' } });
     expect(state.modelConstructed).not.toHaveBeenCalled();
+  });
+
+  it('does not invalidate an in-flight fixed DeepL test merely because old model keys are imported', async () => {
+    const finished = deferred<void>();
+    state.deeplTranslate.mockImplementation(async function* (input: TranslationInput) { await finished.promise; yield* result(input); });
+    const freeReply = vi.fn();
+    state.onMessage({ type: 'test-free-translation' },
+      { id: 'test-extension', url: 'chrome-extension://test-extension/options.html' }, freeReply);
+    await vi.waitFor(() => expect(state.deeplTranslate).toHaveBeenCalledOnce());
+    const signal = state.deeplTranslate.mock.calls[0]![1] as AbortSignal;
+    const imported = vi.fn();
+    state.onMessage({ type: 'import-legacy-keys', passphrase: 'test-only-old-passphrase' },
+      { id: 'test-extension', url: 'chrome-extension://test-extension/options.html' }, imported);
+    await vi.waitFor(() => expect(imported).toHaveBeenCalledWith(expect.objectContaining({ ok: true })));
+    expect(signal.aborted).toBe(false);
+    finished.resolve();
+    await vi.waitFor(() => expect(freeReply).toHaveBeenCalledWith(expect.objectContaining({ ok: true })));
   });
 });

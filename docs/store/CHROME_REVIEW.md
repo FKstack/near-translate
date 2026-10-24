@@ -2,6 +2,10 @@
 
 核对日期：2026-10-23。本文是上架材料与源码核对记录，不代表已注册开发者、已上传、已提交审核或已获准发布。账号与控制台状态须在实际页面确认。
 
+## 当前源码变更提示（2026-10-25）
+
+当前源码已改为 API Key 填入保存后直接使用，保存在 `TRUSTED_CONTEXTS` 限制的扩展私有本机存储中，不额外使用口令加密。旧口令仅用于可选的一次性旧库导入。下文 0.11.0／0.11.1 的检查与政策判断是历史记录，不能作为新保存方式已获商店认可的依据；正式提交前应按当前政策和实际候选包重新核对，不继续宣称“已加密保存”。
+
 ## 初次核对的历史包（不是本次商店提交候选）
 
 - 文件：`artifacts/releases/v0.11.0/near-translate-chrome-v0.11.0.zip`。
@@ -91,9 +95,9 @@ Google 将本地采集、使用、保存和传输均视为处理数据；“没�
 
 必须如实认证：数据不用作出售、广告或与阅读翻译无关的用途，不用于信用评估；仅为已披露功能发送给用户选择的翻译服务。不应声称所有第三方提供方均不留存、不训练或永不读取，因为其政策不由本项目控制。
 
-## 提交前源码整改项：API Key 静态存储
+## 历史审查：API Key 静态存储（2026-10-23）
 
-当前 `src/platform/settings.ts` 把 `ApiProfile.apiKey` 作为字符串保存在 `browser.storage.local` 的 `settings:v1` 中，没有应用层静态加密。`TRUSTED_CONTEXTS` 限制内容脚本读取，属于访问控制，不能表述为 AES／RSA 加密；设置页不回显 Key 也不改变磁盘上的保存方式。
+初次核对的候选把 `ApiProfile.apiKey` 作为字符串保存在 `browser.storage.local` 的 `settings:v1` 中，没有应用层静态加密。`TRUSTED_CONTEXTS` 限制内容脚本读取，属于访问控制，不能表述为 AES／RSA 加密；设置页不回显 Key 也不改变磁盘上的保存方式。以下保留当时的审查依据，当前源码以页首变更提示为准。
 
 [User Data FAQ 第 9 项](https://developer.chrome.com/docs/webstore/program-policies/user-data-faq) 要求用户数据安全传输并在静态保存时使用强加密。[当前 MV3 Storage API](https://developer.chrome.com/docs/extensions/reference/api/storage) 对敏感数据推荐 `storage.session`，该区域只在内存保留，重启浏览器等情况清除。[Protect user privacy](https://developer.chrome.com/docs/extensions/develop/security-privacy/user-privacy) 说明扩展存储未加密，提醒避免客户端保留敏感数据。本次没有找到将 `storage.local` 加上 `TRUSTED_CONTEXTS` 视为静态加密合规例外的官方依据。
 

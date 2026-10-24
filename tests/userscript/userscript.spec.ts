@@ -1,5 +1,22 @@
 import { expect, test } from '@playwright/test';
-import { INERT_TRANSLATION, SELECTED_TEXT, SELECTED_TRANSLATION, installUserscript, selectParagraph, settingsClick, settingsField } from './harness';
+import { createEncryptedKeyVault } from '../../src/platform/key-vault';
+import { INERT_TRANSLATION, MODEL_ENDPOINT, OLLAMA_ENDPOINT, SELECTED_TEXT, SELECTED_TRANSLATION, installUserscript, selectParagraph, settingsClick, settingsField } from './harness';
+
+const STORAGE_PREFIX = 'near-translate:userscript:v1:';
+const LEGACY_PASSPHRASE = 'test-only-old-vault-passphrase';
+const LEGACY_KEY = 'fake-old-userscript-model-key';
+
+async function legacySettings(provider: 'deepseek' | 'ollama' = 'deepseek'): Promise<Record<string, unknown>> {
+  const baseUrl = provider === 'ollama' ? 'http://localhost:11434/v1' : 'https://api.deepseek.com';
+  const profile = { baseUrl, model: 'test-model', jsonMode: false };
+  const { vault } = await createEncryptedKeyVault(LEGACY_PASSPHRASE, { [provider]: { baseUrl, apiKey: LEGACY_KEY } });
+  return {
+    [STORAGE_PREFIX + 'settings:v1']: { schemaVersion: 3, translationEngine: 'model', provider, ...profile,
+      sourceLanguage: 'en', targetLanguage: 'zh-Hans', enabled: true, includeContext: false, sentenceAnalysisEnabled: false,
+      connectionRevision: 1, profiles: { [provider]: profile } },
+    [STORAGE_PREFIX + 'key-vault:v1']: vault,
+  };
+}
 
 test('fresh installation reads articles without API setup or translation requests', async ({ page }) => {
   const errors: string[] = [];
@@ -84,82 +101,200 @@ test('the dedicated settings page keeps a closed UI and saves ordinary configura
   await expect(page.locator('near-userscript-settings')).toBeVisible();
   expect(await page.locator('near-userscript-settings').evaluate(element => element.shadowRoot)).toBeNull();
   expect(await state.evaluate(state => state.settingsRoot?.mode)).toBe('closed');
-  expect(await state.evaluate(state => (state.settingsRoot?.querySelector('select') as HTMLSelectElement).value)).toBe('deepl-web');
-  await settingsField(state, '翻译方式', 'model');
   await settingsField(state, '源语言', 'en');
   await settingsField(state, '目标语言', 'ja');
   await settingsField(state, '启用翻译', false);
   await settingsClick(state, '保存设置');
   await expect.poll(() => state.evaluate(state => state.settingsRoot?.querySelector('[role="status"]')?.textContent)).toContain('设置已保存');
-  const stored = await state.evaluate(state => state.storage.get('near-translate:userscript:v1:settings:v1'));
-  expect(stored).toMatchObject({ schemaVersion: 3, translationEngine: 'model', sourceLanguage: 'en', targetLanguage: 'ja', enabled: false });
-  expect(JSON.stringify(stored)).not.toContain('apiKey');
-  expect(await state.evaluate(state => state.requests)).toEqual([]);
-  expect(await state.evaluate(state => state.rejected)).toEqual([]);
+  const storage = await state.evaluate(state => Object.fromEntries(state.storage));
+  const reloaded = await installUserscript(page, true, {}, storage);
+  await expect.poll(() => reloaded.evaluate(state => Boolean(state.settingsRoot?.querySelector('select')))).toBe(true);
+  expect(await reloaded.evaluate(state => {
+    const fields = [...state.settingsRoot!.querySelectorAll('label')];
+    const field = (label: string) => fields.find(element => element.firstChild?.textContent?.trim() === label
+      || [...element.childNodes].filter(node => node.nodeType === Node.TEXT_NODE).map(node => node.textContent).join('').trim() === label)?.querySelector('input,select');
+    return { source: (field('源语言') as HTMLSelectElement)?.value, target: (field('目标语言') as HTMLSelectElement)?.value,
+      enabled: (field('启用翻译') as HTMLInputElement)?.checked };
+  })).toEqual({ source: 'en', target: 'ja', enabled: false });
+  expect(await reloaded.evaluate(state => state.requests)).toEqual([]);
+  expect(await reloaded.evaluate(state => state.rejected)).toEqual([]);
   expect(errors).toEqual([]);
 });
 
-test('settings encrypt a simulated model Key and clear secret inputs after saving', async ({ page }) => {
+test('a model Key saves without creating a passphrase and is never refilled into the settings form', async ({ page }) => {
   const state = await installUserscript(page, true);
   await expect.poll(() => state.evaluate(state => Boolean(state.settingsRoot?.querySelector('select')))).toBe(true);
   await settingsField(state, '翻译方式', 'model');
   const fakeKey = 'fake-userscript-only-key';
-  const fakePassphrase = 'test-only-vault-passphrase';
-  await settingsField(state, '设置密钥库口令', fakePassphrase);
-  await settingsField(state, '确认口令', fakePassphrase);
-  await settingsClick(state, '创建密钥库');
-  await expect.poll(() => state.evaluate(state => state.settingsRoot?.querySelector('[role="status"]')?.textContent)).toContain('已解锁');
   await settingsField(state, 'DeepSeek API Key', fakeKey);
   await settingsClick(state, '保存设置');
-  await expect.poll(() => state.evaluate(state => state.settingsRoot?.querySelector('[role="status"]')?.textContent)).toContain('设置已保存');
+  await expect.poll(() => state.evaluate(state => state.settingsRoot?.querySelector('[role="status"]')?.textContent)).toBe('设置已保存，返回网页即可翻译。');
+  expect(await state.evaluate(state => ({
+    passwords: [...state.settingsRoot?.querySelectorAll('input[type="password"]') ?? []].map(input => (input as HTMLInputElement).value),
+    details: state.settingsRoot?.querySelector('details') !== null,
+    text: state.settingsRoot?.textContent,
+  }))).toMatchObject({ passwords: [''], details: false });
   const storage = await state.evaluate(state => Object.fromEntries(state.storage));
-  const vault = storage['near-translate:userscript:v1:key-vault:v1'];
-  expect(vault).toMatchObject({ version: 1, savedProviders: ['deepseek'], cipher: { name: 'AES-GCM' }, kdf: { name: 'PBKDF2' } });
-  expect(vault).toHaveProperty('ciphertext');
-  expect(JSON.stringify(storage)).not.toContain(fakeKey);
-  expect(JSON.stringify(storage)).not.toContain(fakePassphrase);
-  expect(JSON.stringify(storage['near-translate:userscript:v1:settings:v1'])).not.toContain('apiKey');
-  expect(await state.evaluate(state => [...state.settingsRoot?.querySelectorAll('input[type="password"]') ?? []]
-    .every(input => (input as HTMLInputElement).value === ''))).toBe(true);
+  expect(JSON.stringify(storage)).toContain(fakeKey);
+  expect(storage[STORAGE_PREFIX + 'key-vault:v1']).toBeUndefined();
+  const reloaded = await installUserscript(page, true, {}, storage);
+  await expect.poll(() => reloaded.evaluate(state => state.settingsRoot?.querySelector('input[type="password"]')?.getAttribute('placeholder'))).toBe('已保存，留空保留');
+  expect(await reloaded.evaluate(state => (state.settingsRoot?.querySelector('input[type="password"]') as HTMLInputElement)?.value)).toBe('');
+  expect(await page.evaluate(() => document.documentElement.outerHTML)).not.toContain(fakeKey);
   expect(await page.evaluate(() => Object.getOwnPropertyNames(window).filter(key => /^GM(?:_|$)/.test(key)))).toEqual([]);
-  expect(await state.evaluate(state => state.requests)).toEqual([]);
-  expect(await state.evaluate(state => state.rejected)).toEqual([]);
+  expect(await reloaded.evaluate(state => state.requests)).toEqual([]);
+  expect(await reloaded.evaluate(state => state.rejected)).toEqual([]);
 });
 
-test('remote settings changes lock the vault, clear the unsaved Key, and preserve connection edits', async ({ page }) => {
+test('a saved model Key works in new article documents without unlocking or entering it again', async ({ page }) => {
   const state = await installUserscript(page, true);
   await expect.poll(() => state.evaluate(state => Boolean(state.settingsRoot?.querySelector('select')))).toBe(true);
   await settingsField(state, '翻译方式', 'model');
-  const passphrase = 'test-only-remote-lock-passphrase';
-  await settingsField(state, '设置密钥库口令', passphrase);
-  await settingsField(state, '确认口令', passphrase);
-  await settingsClick(state, '创建密钥库');
-  await expect.poll(() => state.evaluate(state => state.settingsRoot?.querySelector('[role="status"]')?.textContent)).toContain('已解锁');
+  await settingsField(state, 'DeepSeek API Key', 'fake-saved-model-key');
+  await settingsField(state, '划词翻译附带附近一句上下文', false);
+  await settingsField(state, '长句翻译后追加句子拆解（额外一次模型请求）', false);
+  await settingsClick(state, '保存设置');
+  await expect.poll(() => state.evaluate(state => state.settingsRoot?.querySelector('[role="status"]')?.textContent)).toContain('设置已保存');
+  // A blank Key field on a later save preserves the stored credential.
+  await settingsField(state, '模型名称', 'test-saved-model');
+  await settingsClick(state, '保存设置');
+  await expect.poll(() => state.evaluate(state => state.settingsRoot?.querySelector('[role="status"]')?.textContent)).toContain('设置已保存');
+  const storage = await state.evaluate(state => Object.fromEntries(state.storage));
+  for (let index = 0; index < 2; index++) {
+    const article = await page.context().newPage();
+    const articleState = await installUserscript(article, false, {}, storage);
+    await expect(article.getByRole('button', { name: '翻译整个页面', exact: true })).toBeVisible();
+    expect(await articleState.evaluate(state => [...state.menus.values()].map(menu => menu.title))).not.toContain('近译 · 解锁本页模型 Key');
+    await selectParagraph(article, '#selection');
+    await article.getByRole('button', { name: '翻译选中文字', exact: true }).click();
+    await expect(article.getByRole('dialog', { name: '翻译结果', exact: true }).getByText(SELECTED_TRANSLATION, { exact: true })).toBeVisible();
+    const requests = await articleState.evaluate(state => state.requests);
+    expect(requests).toHaveLength(1);
+    expect(requests[0]).toMatchObject({ url: MODEL_ENDPOINT, anonymous: true, headers: { authorization: 'Bearer fake-saved-model-key' } });
+    expect(await article.evaluate(() => document.documentElement.outerHTML)).not.toContain('fake-saved-model-key');
+    expect(await article.evaluate(() => Object.getOwnPropertyNames(window).filter(key => /^GM(?:_|$)/.test(key)))).toEqual([]);
+    expect(await articleState.evaluate(state => state.rejected)).toEqual([]);
+    await article.close();
+  }
+});
+
+test('deleting the saved Key stops model translation in a later document', async ({ page }) => {
+  const state = await installUserscript(page, true);
+  await expect.poll(() => state.evaluate(state => Boolean(state.settingsRoot?.querySelector('select')))).toBe(true);
+  await settingsField(state, '翻译方式', 'model');
+  await settingsField(state, 'DeepSeek API Key', 'fake-key-to-delete');
+  await settingsClick(state, '保存设置');
+  await expect.poll(() => state.evaluate(state => state.settingsRoot?.querySelector('[role="status"]')?.textContent)).toContain('设置已保存');
+  await settingsField(state, '保存时删除此服务的 Key', true);
+  await settingsClick(state, '保存设置');
+  await expect.poll(() => state.evaluate(state => state.settingsRoot?.querySelector('input[type="password"]')?.getAttribute('placeholder'))).toBe('填写 API Key');
+  const storage = await state.evaluate(state => Object.fromEntries(state.storage));
+  expect(JSON.stringify(storage)).not.toContain('fake-key-to-delete');
+  const article = await page.context().newPage();
+  const articleState = await installUserscript(article, false, {}, storage);
+  await expect(article.getByRole('button', { name: '翻译整个页面', exact: true })).toBeVisible();
+  await article.getByRole('button', { name: '翻译整个页面', exact: true }).click();
+  await expect(article.getByText(/API Key/)).toBeVisible();
+  expect(await articleState.evaluate(state => state.requests)).toEqual([]);
+  expect(await articleState.evaluate(state => state.rejected)).toEqual([]);
+});
+
+test('remote settings changes clear an unfinished Key without locking the form or losing other edits', async ({ page }) => {
+  const state = await installUserscript(page, true);
+  await expect.poll(() => state.evaluate(state => Boolean(state.settingsRoot?.querySelector('select')))).toBe(true);
+  await settingsField(state, '翻译方式', 'model');
+  await settingsField(state, 'DeepSeek API Key', 'fake-remote-saved-key');
+  await settingsClick(state, '保存设置');
+  await expect.poll(() => state.evaluate(state => state.settingsRoot?.querySelector('[role="status"]')?.textContent)).toContain('设置已保存');
+  const storage = await state.evaluate(state => Object.fromEntries(state.storage));
   await settingsField(state, '模型名称', 'unsaved-draft-model');
   await settingsField(state, 'API Base URL', 'https://unsaved-model.invalid/v1');
-  await settingsField(state, 'DeepSeek API Key', 'fake-unsaved-remote-lock-key');
-  await state.evaluate(state => {
-    const key = 'near-translate:userscript:v1:settings:v1';
-    const previous = state.storage.get(key) as Record<string, unknown>;
-    state.remoteWrite(key, { ...previous, connectionRevision: Number(previous.connectionRevision) + 1 });
-  });
-  await expect.poll(() => state.evaluate(state => state.settingsRoot?.querySelector('[role="status"]')?.textContent)).toContain('另一页面更改');
+  await settingsField(state, 'DeepSeek API Key', 'fake-unsaved-remote-key');
+  const otherPage = await page.context().newPage();
+  const other = await installUserscript(otherPage, true, {}, storage);
+  await expect.poll(() => other.evaluate(state => Boolean(state.settingsRoot?.querySelector('select')))).toBe(true);
+  await settingsField(other, '模型名称', 'remote-saved-model');
+  await settingsClick(other, '保存设置');
+  await expect.poll(() => other.evaluate(state => state.settingsRoot?.querySelector('[role="status"]')?.textContent)).toContain('设置已保存');
+  const changed = await other.evaluate(state => Object.fromEntries(state.storage));
+  await state.evaluate((state, changed) => { for (const [key, value] of Object.entries(changed)) state.remoteWrite(key, value); }, changed);
+  await expect.poll(() => state.evaluate(state => state.settingsRoot?.querySelector('[role="status"]')?.textContent)).toContain('另一页面更新');
   expect(await state.evaluate(state => {
-    const root = state.settingsRoot!;
-    const field = (label: string) => [...root.querySelectorAll('label')].find(element => element.firstChild?.textContent?.trim() === label
-      || [...element.childNodes].filter(node => node.nodeType === Node.TEXT_NODE).map(node => node.textContent).join('').trim() === label)
-      ?.querySelector('input') as HTMLInputElement | undefined;
-    const key = field('DeepSeek API Key');
-    return {
-      key: { value: key?.value, disabled: key?.disabled },
-      model: field('模型名称')?.value,
-      baseUrl: field('API Base URL')?.value,
-      unlock: [...root.querySelectorAll('button')].some(button => button.textContent?.trim() === '解锁密钥库'),
-      passphrase: field('密钥库口令')?.value,
-    };
-  })).toEqual({ key: { value: '', disabled: true }, model: 'unsaved-draft-model', baseUrl: 'https://unsaved-model.invalid/v1', unlock: true, passphrase: '' });
-  expect(await state.evaluate(state => JSON.stringify(Object.fromEntries(state.storage)))).not.toContain('fake-unsaved-remote-lock-key');
-  expect(await page.evaluate(() => Object.hasOwn(window, 'remoteWrite'))).toBe(false);
+    const fields = [...state.settingsRoot!.querySelectorAll('label')];
+    const field = (label: string) => fields.find(element => element.firstChild?.textContent?.trim() === label
+      || [...element.childNodes].filter(node => node.nodeType === Node.TEXT_NODE).map(node => node.textContent).join('').trim() === label)?.querySelector('input') as HTMLInputElement | undefined;
+    return { key: field('DeepSeek API Key')?.value, disabled: field('DeepSeek API Key')?.disabled,
+      model: field('模型名称')?.value, baseUrl: field('API Base URL')?.value,
+      unlock: [...state.settingsRoot!.querySelectorAll('button')].some(button => button.textContent?.includes('解锁')) };
+  })).toEqual({ key: '', disabled: false, model: 'unsaved-draft-model', baseUrl: 'https://unsaved-model.invalid/v1', unlock: false });
+  expect(await state.evaluate(state => JSON.stringify(Object.fromEntries(state.storage)))).not.toContain('fake-unsaved-remote-key');
   expect(await state.evaluate(state => state.requests)).toEqual([]);
-  expect(await state.evaluate(state => state.rejected)).toEqual([]);
+});
+
+test('the optional old-Key import preserves the old vault on error and needs its old passphrase only once', async ({ page }) => {
+  const storage = await legacySettings();
+  const state = await installUserscript(page, true, {}, storage);
+  await expect.poll(() => state.evaluate(state => Boolean(state.settingsRoot?.querySelector('details')))).toBe(true);
+  expect(await state.evaluate(state => state.settingsRoot?.querySelector('details')?.open)).toBe(false);
+  await settingsClick(state, '导入旧版保存的 Key');
+  await settingsField(state, '旧版口令', 'incorrect-old-passphrase');
+  await settingsClick(state, '导入旧版 Key');
+  await expect.poll(() => state.evaluate(state => state.settingsRoot?.querySelector('[role="alert"]')?.textContent)).toMatch(/口令|导入/);
+  expect(await state.evaluate(state => state.storage.get('near-translate:userscript:v1:key-vault:v1'))).toEqual(storage[STORAGE_PREFIX + 'key-vault:v1']);
+  await settingsField(state, '旧版口令', LEGACY_PASSPHRASE);
+  await settingsClick(state, '导入旧版 Key');
+  await expect.poll(() => state.evaluate(state => state.settingsRoot?.querySelector('[role="status"]')?.textContent)).toContain('旧版 Key 已导入');
+  const migrated = await state.evaluate(state => Object.fromEntries(state.storage));
+  expect(migrated[STORAGE_PREFIX + 'key-vault:v1']).toEqual(storage[STORAGE_PREFIX + 'key-vault:v1']);
+  expect(JSON.stringify(migrated)).not.toContain(LEGACY_PASSPHRASE);
+  const article = await page.context().newPage();
+  const articleState = await installUserscript(article, false, {}, migrated);
+  await expect(article.getByRole('button', { name: '翻译整个页面', exact: true })).toBeVisible();
+  await selectParagraph(article, '#selection');
+  await article.getByRole('button', { name: '翻译选中文字', exact: true }).click();
+  await expect(article.getByRole('dialog', { name: '翻译结果', exact: true }).getByText(SELECTED_TRANSLATION, { exact: true })).toBeVisible();
+  expect((await articleState.evaluate(state => state.requests))[0]).toMatchObject({ headers: { authorization: 'Bearer ' + LEGACY_KEY } });
+});
+
+test('an old encrypted Key can be replaced directly without entering the old passphrase', async ({ page }) => {
+  const storage = await legacySettings();
+  const state = await installUserscript(page, true, {}, storage);
+  await expect.poll(() => state.evaluate(state => Boolean(state.settingsRoot?.querySelector('select')))).toBe(true);
+  await settingsField(state, 'DeepSeek API Key', 'fake-reentered-model-key');
+  await settingsClick(state, '保存设置');
+  await expect.poll(() => state.evaluate(state => state.settingsRoot?.querySelector('[role="status"]')?.textContent)).toBe('设置已保存，返回网页即可翻译。');
+  const replaced = await state.evaluate(state => Object.fromEntries(state.storage));
+  expect(replaced[STORAGE_PREFIX + 'key-vault:v1']).toEqual(storage[STORAGE_PREFIX + 'key-vault:v1']);
+  const article = await page.context().newPage();
+  const articleState = await installUserscript(article, false, {}, replaced);
+  await expect(article.getByRole('button', { name: '翻译整个页面', exact: true })).toBeVisible();
+  await selectParagraph(article, '#selection');
+  await article.getByRole('button', { name: '翻译选中文字', exact: true }).click();
+  await expect(article.getByRole('dialog', { name: '翻译结果', exact: true }).getByText(SELECTED_TRANSLATION, { exact: true })).toBeVisible();
+  expect((await articleState.evaluate(state => state.requests))[0]).toMatchObject({ headers: { authorization: 'Bearer fake-reentered-model-key' } });
+});
+
+test('an old encrypted Ollama Key can be discarded without its passphrase to use an unauthenticated local model', async ({ page }) => {
+  const storage = await legacySettings('ollama');
+  const state = await installUserscript(page, true, {}, storage);
+  await expect.poll(() => state.evaluate(state => Boolean(state.settingsRoot?.querySelector('select')))).toBe(true);
+  expect(await state.evaluate(state => state.settingsRoot?.querySelector('input[type="password"]')?.getAttribute('placeholder'))).toBe('无鉴权接口可留空');
+  expect(await state.evaluate(state => state.settingsRoot?.querySelector('details')?.open)).toBe(false);
+  await settingsField(state, '保存时删除此服务的 Key', true);
+  await settingsClick(state, '保存设置');
+  await expect.poll(() => state.evaluate(state => state.settingsRoot?.querySelector('[role="status"]')?.textContent)).toBe('设置已保存，返回网页即可翻译。');
+  const discarded = await state.evaluate(state => Object.fromEntries(state.storage));
+  expect(discarded[STORAGE_PREFIX + 'key-vault:v1']).toEqual(storage[STORAGE_PREFIX + 'key-vault:v1']);
+  expect(await state.evaluate(state => state.settingsRoot?.querySelector('details'))).toBeNull();
+  const article = await page.context().newPage();
+  const articleState = await installUserscript(article, false, {}, discarded);
+  await expect(article.getByRole('button', { name: '翻译整个页面', exact: true })).toBeVisible();
+  await selectParagraph(article, '#selection');
+  await article.getByRole('button', { name: '翻译选中文字', exact: true }).click();
+  await expect(article.getByRole('dialog', { name: '翻译结果', exact: true }).getByText(SELECTED_TRANSLATION, { exact: true })).toBeVisible();
+  const requests = await articleState.evaluate(state => state.requests);
+  expect(requests).toHaveLength(1);
+  expect(requests[0]).toMatchObject({ url: OLLAMA_ENDPOINT, anonymous: true });
+  expect(requests[0]!.headers).not.toHaveProperty('authorization');
+  expect(await articleState.evaluate(state => state.rejected)).toEqual([]);
 });

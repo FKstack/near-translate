@@ -1,6 +1,6 @@
 # Edge Add-ons 提交与审核资料
 
-准备日期：2026-10-24。适用于近译 v0.11.2 商店版的提交准备；实际账户、上传、提交和审核状态应以 Partner Center 为准。本文件不包含密码、API Key 或身份资料。当前版本沿用口令加密密钥库和可选 API 主机权限，并将发布字体改为普通 TTF，以处理商店对包内 gzip 资源的拒绝；须上传经过对应版本验收的新 ZIP，实际通过状态以商店重新校验为准。
+准备日期：2026-10-25。适用于当前源码候选包的提交准备，版本和测试结果须以最终验收包填写；实际账户、上传、提交和审核状态应以 Partner Center 为准。本文件不包含密码、API Key 或身份资料。新版 API Key 保存后直接可用，不再设置日常口令或锁定步骤；旧版密钥库与字体包装的验收记录属于对应旧包，不能直接作为新版验收结论。
 
 ## 官方入口与当前要求
 
@@ -82,13 +82,13 @@ All executable JavaScript, PDF.js workers, WebAssembly resources, fonts, and dic
 
 ## Notes for certification（英文可复制）
 
-Near Translate v0.11.2 is a Manifest V3 reading and translation extension. Its interface is primarily in Simplified Chinese. No Near Translate account is required. No developer API key or test password is embedded in the package. All API host permissions are optional.
+Near Translate is a Manifest V3 reading and translation extension; fill in the exact candidate version after package validation. Its interface is primarily in Simplified Chinese. No Near Translate account is required. No developer API key or test password is embedded in the package. All API host permissions are optional.
 
 1. Local reader: open a normal public article, for example https://go.dev/doc/effective_go . Open the extension popup and select 阅读当前网页. The article should open in reader mode without an API key. Change theme, text size, line spacing, and width; test the table of contents and the original/bilingual/translation-only view selector. Switching view alone should not send translation requests. Press Escape to leave reader mode.
 
 2. Free translation: open the extension settings, select or keep DeepL 免费翻译, and click 启用免费翻译. Grant the requested website and service permissions. Translation does not start merely from enabling it. The independent 测试免费翻译 button sends only a fixed public example. On a public English article, select text and click 译, or enter reader mode and click 翻译正文. Completed translated paragraphs should remain if translation is stopped. This third-party experimental endpoint may be rate-limited; the UI exposes a cooldown and manual retry. It does not silently switch to a paid model service.
 
-3. Optional model mode: switch to 大模型 API in settings. Create a key vault with a separate 12–128 character passphrase, then configure a compatible service's base URL, model, and a valid API key belonging to the tester. Save and grant optional access to that API origin. Keys are persisted with AES-256-GCM; PBKDF2-SHA-256 uses 600,000 iterations and a random salt. The passphrase and plaintext derivation key are not persisted. Unlocking is maintained only in trusted browser session memory and expires on a browser restart. Test manual locking, rejection of a wrong passphrase and successful unlocking; locked model requests must not be sent. Choose English as source and Simplified Chinese as target for contextual dictionary or eligible sentence analysis. These optional services may require a paid account; credits are not included. Free translation and local reader do not require unlocking.
+3. Optional model mode: switch to 大模型 API in settings. Configure a compatible service's base URL, model, and a valid API key belonging to the tester. Save and grant optional access to that API origin, then translate without creating a passphrase or unlocking. Verify that the saved configuration works across tabs, background suspension, and a full browser restart. Keys are persisted in private extension storage restricted to trusted contexts, without extra passphrase encryption; settings and public messages do not return the saved key. Existing encrypted records have an optional one-time import using the old passphrase, or the tester can enter the key again. Choose English as source and Simplified Chinese as target for contextual dictionary or eligible sentence analysis. These optional services may require a paid account; credits are not included.
 
 4. PDF reader: open PDF 阅读器 from the popup, choose a local text-based PDF, and test page navigation, text search, zoom, and selection. Selecting text followed by 译 uses the configured translation service. The PDF file and PDF password are not uploaded for translation. Scanned PDFs without a text layer do not support selection translation, and OCR or whole-document PDF translation is not included.
 

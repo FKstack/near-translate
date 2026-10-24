@@ -138,6 +138,7 @@ export function mountSelectionTranslator(options: MountSelectionOptions): () => 
     const invalid = selectionError(selection.input.text);
     const error = invalid
       ? { code: 'INVALID_INPUT' as const, message: invalid, retryable: false }
+      : settings.apiKeyMigrationRequired ? { code: 'CONFIG' as const, message: '请在翻译设置中重新填写 API Key，或导入旧版配置。', retryable: false }
       : !settings.hasApiKey && settings.requiresApiKey !== false ? { code: 'CONFIG' as const, message: '请在设置中选择 DeepL 免费翻译，或填写 API Key，再重新选择文字翻译。', retryable: false }
       : settings.apiAccess === false ? { code: 'CONFIG' as const, message: '请在翻译设置中保存并授权当前翻译服务。', retryable: false } : undefined;
     view = { mode: 'card', selection: { ...selection, input: effectiveInput }, status: error ? 'error' : 'loading', streamed: '', error };

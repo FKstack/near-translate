@@ -41,18 +41,6 @@ async function connection(): Promise<ConnectionSettings> {
   return options.evaluate(() => (globalThis as unknown as { chrome: ExtensionApi }).chrome.runtime.sendMessage({ type: 'get-connection-settings' }) as Promise<ConnectionSettings>);
 }
 
-async function prepareModelVault(): Promise<void> {
-  const current = await connection();
-  if (!current.vault?.configured || current.vault.locked) {
-    const type = current.vault?.configured ? 'unlock-key-vault' : 'create-key-vault';
-    const result = await options.evaluate(type => (globalThis as unknown as { chrome: ExtensionApi }).chrome.runtime
-      .sendMessage({ type, passphrase: 'test-only-long-passphrase-2026' }), type) as { ok: boolean };
-    expect(result.ok).toBe(true);
-    await options.reload();
-    await expect(options.getByRole('button', { name: '保存设置', exact: true })).toBeEnabled();
-  }
-}
-
 async function saveForm(): Promise<void> {
   await options.getByRole('button', { name: '保存设置', exact: true }).click();
   await expect(options.getByRole('status')).toContainText('设置已保存');
@@ -137,7 +125,7 @@ test.beforeEach(async () => {
   await expect.poll(async () => (await state()).active).toBe(0);
   await worker.evaluate(async () => {
     const global = globalThis as unknown as { chrome: ExtensionApi; __nearFirstUseTest: FakeState };
-    await global.chrome.storage.local.remove(['settings:v1', 'reading-preferences:v1']);
+    await global.chrome.storage.local.remove(['connection-settings:v2', 'settings:v1', 'reading-preferences:v1']);
     global.__nearFirstUseTest = { requests: [], preparations: 0, unexpected: [], active: 0, aborts: 0, rateLimitNext: false };
   });
   await options.goto(`chrome-extension://${extensionId}/options.html`);
@@ -177,7 +165,6 @@ test('fresh settings use free translation without a Key and only the explicit te
 test('denied setup leaves local reading and old model settings intact, then one click enables free translation', async () => {
   await load();
   await openReader();
-  await prepareModelVault();
   await options.getByLabel('翻译方式', { exact: true }).selectOption('model');
   await options.getByLabel('DeepSeek API Key', { exact: true }).fill(KEY);
   await options.getByLabel('模型名', { exact: true }).fill('retained-first-use-model');
@@ -255,7 +242,6 @@ test('changing language and service clears old reader translations while preserv
     return Math.abs((after?.y ?? Infinity) - before!.y);
   }).toBeLessThan(5);
   expect((await state()).requests).toHaveLength(sent);
-  await prepareModelVault();
   await options.getByLabel('翻译方式', { exact: true }).selectOption('model');
   await options.getByLabel('DeepSeek API Key', { exact: true }).fill(KEY);
   await saveForm();

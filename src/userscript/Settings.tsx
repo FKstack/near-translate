@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { createRoot } from 'react-dom/client';
 import { browser } from './browser';
 import { GUIDE_URL, isSettingsPage } from './locations';
@@ -26,13 +26,12 @@ function Settings() {
   const [draft, setDraft] = useState<EditableSettings>();
   const [busy, setBusy] = useState(false);
   const [removeKey, setRemoveKey] = useState(false);
-  const [passphrase, setPassphrase] = useState('');
-  const [confirmation, setConfirmation] = useState('');
-  const [newPassphrase, setNewPassphrase] = useState('');
-  const [rotating, setRotating] = useState(false);
+  const [legacyPassphrase, setLegacyPassphrase] = useState('');
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
+  const savedRevision = useRef<number | undefined>(undefined);
   const apply = (settings: ConnectionSettings) => {
+    savedRevision.current = settings.connectionRevision;
     setSaved(settings); setDraft(draftOf(settings)); setRemoveKey(false);
   };
   useEffect(() => {
@@ -43,15 +42,17 @@ function Settings() {
       void request<ConnectionSettings>({ type: 'get-connection-settings' }).then(settings => {
         if (!settings?.profiles) throw new Error('读取配置失败，请重新加载此页。');
         if (!active || generation !== owner) return;
+        const changed = !initial && savedRevision.current !== undefined && savedRevision.current !== settings.connectionRevision;
+        savedRevision.current = settings.connectionRevision;
         setSaved(settings);
-        // A remote credential change locks this document. Keep non-secret edits,
-        // clear uncommitted keys, and show the fresh unlock form immediately.
+        // Never refill a saved Key into the form. Keep other unfinished edits
+        // when another settings page changes the shared connection.
         setDraft(previous => initial || !previous ? draftOf(settings) : {
-          ...previous, apiKey: settings.vault?.locked ? '' : previous.apiKey,
+          ...previous, apiKey: '',
         });
-        if (!initial && settings.vault?.locked) {
-          setRotating(false); setPassphrase(''); setConfirmation(''); setNewPassphrase('');
-          setNotice('设置已在另一页面更改，本页密钥库已锁定。未保存的连接信息仍保留，请重新解锁后保存。');
+        if (changed) {
+          setLegacyPassphrase('');
+          setNotice('设置已在另一页面更新。未保存的服务地址和模型名称仍保留。');
         }
       }).catch(() => { if (active && generation === owner) setError('读取配置失败，请重新加载此页。'); });
     };
@@ -63,30 +64,22 @@ function Settings() {
     return () => { active = false; generation++; browser.runtime.onMessage.removeListener(onSettings); };
   }, []);
 
-  async function vaultAction(type: string, fields: Record<string, unknown> = {}) {
+  async function importLegacy(event: FormEvent) {
+    event.preventDefault();
     setBusy(true); setError(''); setNotice('');
     try {
-      const reply = await request<Reply>({ type, ...fields });
+      const reply = await request<Reply>({ type: 'import-legacy-keys', passphrase: legacyPassphrase });
       if (reply?.settings) setSaved(reply.settings);
-      if (!reply?.ok || !reply.settings) throw new Error(reply?.error ?? '密钥库操作失败，请重试。');
-      // Preserve unsaved non-secret connection fields when unlocking the vault.
-      setSaved(reply.settings); setRotating(false);
-      setNotice(type === 'lock-key-vault' ? '本页密钥库已锁定。' : '本页密钥库已解锁。');
-    } catch (reason) { setError(reason instanceof Error ? reason.message : '密钥库操作失败。'); }
+      if (!reply?.ok || !reply.settings) throw new Error(reply?.error ?? '导入失败，旧版 Key 仍然保留。');
+      savedRevision.current = reply.settings.connectionRevision;
+      setSaved(reply.settings);
+      setNotice('旧版 Key 已导入，返回网页即可翻译。以后不再需要口令。');
+    } catch (reason) { setError(reason instanceof Error ? reason.message : '导入失败，旧版 Key 仍然保留。'); }
     finally {
-      setPassphrase(''); setConfirmation(''); setNewPassphrase('');
+      setLegacyPassphrase('');
       setDraft(value => value ? { ...value, apiKey: '' } : value);
       setBusy(false);
     }
-  }
-  function submitVault(event: FormEvent) {
-    event.preventDefault(); setError('');
-    const creating = !saved?.vault?.configured;
-    const candidate = rotating ? newPassphrase : passphrase;
-    if (candidate.length < 12 || candidate.length > 128) { setError('口令长度应为 12–128 个字符。'); return; }
-    if ((creating || rotating) && candidate !== confirmation) { setError('两次输入的口令不一致。'); return; }
-    void vaultAction(rotating ? 'change-key-vault-passphrase' : creating ? 'create-key-vault' : 'unlock-key-vault',
-      rotating ? { currentPassphrase: passphrase, newPassphrase } : { passphrase });
   }
   function selectProvider(provider: ProviderId) {
     if (!draft) return;
@@ -104,15 +97,11 @@ function Settings() {
       const reply = await request<Reply>({ type: 'save-settings', settings, keepExistingKey: !removeKey });
       if (!reply?.ok || !reply.settings) throw new Error(reply?.error ?? '保存设置失败，请重试。');
       apply(reply.settings);
-      setNotice('设置已保存。回到文章页即可使用；模型 Key 请从篡改猴菜单“解锁本页模型 Key”后使用。');
+      setNotice('设置已保存，返回网页即可翻译。');
     } catch (reason) { setError(reason instanceof Error ? reason.message : '保存设置失败。'); }
     finally { setDraft(value => value ? { ...value, apiKey: '' } : value); setBusy(false); }
   }
 
-  const vault = saved?.vault;
-  const creating = !vault?.configured;
-  const locked = vault?.locked === true;
-  const keyUnavailable = creating || locked || vault?.migrationRequired;
   const modelMode = draft?.translationEngine === 'model';
   const profile = draft ? saved?.profiles[draft.provider] : undefined;
   const preset = draft ? getProvider(draft.provider) : undefined;
@@ -141,11 +130,11 @@ function Settings() {
               {PROVIDERS.map(provider => <option key={provider.id} value={provider.id}>{provider.label}</option>)}
             </select></label>
             <label>API Base URL<input type="url" value={draft.baseUrl} required maxLength={2048} onChange={event => setDraft({ ...draft, baseUrl: event.target.value })} /></label>
-            <p className="hint">填写服务提供的兼容 API 基址。允许 HTTPS；本机服务可使用 HTTP。首次请求由篡改猴询问域名授权。</p>
-            <label>{preset?.label} API Key<input type="password" autoComplete="off" spellCheck={false} value={draft.apiKey} disabled={keyUnavailable}
+            <p className="hint">通常无需修改。自定义服务请填写其兼容 API 地址。</p>
+            <label>{preset?.label} API Key<input type="password" autoComplete="off" spellCheck={false} value={draft.apiKey}
               onChange={event => { setDraft({ ...draft, apiKey: event.target.value }); setRemoveKey(false); }}
-              placeholder={keyUnavailable ? '请先在下方创建或解锁密钥库' : keepsKey ? '已加密保存，留空保留' : preset?.requiresApiKey ? '填写 API Key' : '无鉴权接口可留空'} /></label>
-            {profile?.hasApiKey && <label className="check"><input type="checkbox" disabled={keyUnavailable} checked={removeKey} onChange={event => { setRemoveKey(event.target.checked); setDraft({ ...draft, apiKey: '' }); }} />保存时删除此服务的 Key</label>}
+              placeholder={keepsKey ? '已保存，留空保留' : preset?.requiresApiKey ? '填写 API Key' : '无鉴权接口可留空'} /></label>
+            {(profile?.hasApiKey || saved.legacyKeyProviders?.includes(draft.provider)) && <label className="check"><input type="checkbox" checked={removeKey} onChange={event => { setRemoveKey(event.target.checked); setDraft({ ...draft, apiKey: '' }); }} />保存时删除此服务的 Key</label>}
             <label>模型名称<input value={draft.model} required maxLength={200} onChange={event => setDraft({ ...draft, model: event.target.value })} /></label>
             <label className="check"><input type="checkbox" checked={draft.jsonMode} onChange={event => setDraft({ ...draft, jsonMode: event.target.checked })} />词典和句子拆解使用 JSON 模式</label>
             <label className="check"><input type="checkbox" checked={draft.includeContext} onChange={event => setDraft({ ...draft, includeContext: event.target.checked })} />划词翻译附带附近一句上下文</label>
@@ -155,19 +144,14 @@ function Settings() {
           <button type="submit">{busy ? '正在处理…' : '保存设置'}</button>
         </fieldset></form>
       </section>
-      {(modelMode || vault?.configured) && <section><h2>API Key 保护</h2>
-        <p>Key 用口令加密后保存在篡改猴的脚本存储中。口令和解锁状态只留在当前页；刷新后需重新解锁。</p>
-        <p className="hint">请只在这个专用设置页配置 Key。回到文章后，从篡改猴菜单选择“解锁本页模型 Key”；本地阅读与 DeepL 免费翻译无需解锁。</p>
-        {creating || locked || rotating ? <form onSubmit={submitVault}><fieldset disabled={busy}>
-          <label>{creating ? '设置密钥库口令' : rotating ? '当前口令' : '密钥库口令'}<input type="password" autoComplete="off" value={passphrase} required minLength={12} maxLength={128} onChange={event => setPassphrase(event.target.value)} /></label>
-          {rotating && <label>新口令<input type="password" autoComplete="off" value={newPassphrase} required minLength={12} maxLength={128} onChange={event => setNewPassphrase(event.target.value)} /></label>}
-          {(creating || rotating) && <label>确认口令<input type="password" autoComplete="off" value={confirmation} required minLength={12} maxLength={128} onChange={event => setConfirmation(event.target.value)} /></label>}
-          <p className="hint">12–128 个字符。口令不会保存，遗失后无法解密已有 Key。</p>
-          <button type="submit">{creating ? '创建密钥库' : rotating ? '更新口令' : '解锁密钥库'}</button>
-          {rotating && <button type="button" className="secondary" onClick={() => { setRotating(false); setPassphrase(''); setConfirmation(''); setNewPassphrase(''); }}>取消</button>}
-        </fieldset></form> : <div className="actions"><span>本页已解锁</span><button type="button" className="secondary" disabled={busy} onClick={() => void vaultAction('lock-key-vault')}>锁定本页</button>
-          <button type="button" className="secondary" disabled={busy} onClick={() => setRotating(true)}>更改口令</button></div>}
-      </section>}
+      {modelMode && <p className="hint">API Key 保存在篡改猴的本机存储中，保存后在各个网页直接使用。Key 只用于连接你配置的翻译服务。</p>}
+      {saved.legacyKeyMigrationAvailable && <details><summary>导入旧版保存的 Key</summary>
+        <p>旧版加密保存的 Key 可以用原口令导入一次，之后不再需要口令。也可以直接在上方重新填写 Key。</p>
+        <form onSubmit={importLegacy}><fieldset disabled={busy}>
+          <label>旧版口令<input type="password" autoComplete="off" value={legacyPassphrase} required minLength={12} maxLength={128} onChange={event => setLegacyPassphrase(event.target.value)} /></label>
+          <button type="submit">导入旧版 Key</button>
+        </fieldset></form>
+      </details>}
     </>}
     <footer>本版支持网页阅读与翻译；PDF 和文档转换请继续使用扩展版。脚本更新由篡改猴按你的更新设置管理。</footer>
   </main>;

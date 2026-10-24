@@ -53,7 +53,7 @@
 
 普通文本翻译提供 16 种源／目标语言选项，源语言也可自动识别。模型服务、语言方向与配置方法见[使用指南](docs/guides/INSTALL.md)。
 
-**先阅读，需要时再翻译。** 本地阅读无需登录或 Key；点击翻译后，所选正文或选区及可选上下文发送至你选择的服务。模型 Key 用独立口令加密保存在本机，浏览器重启后解锁；正文、译文和 PDF 不持久化。[了解数据去向](docs/guides/PRIVACY.md)
+**先阅读，需要时再翻译。** 本地阅读无需登录或 Key；点击翻译后，所选正文或选区及可选上下文发送至你选择的服务。模型 Key 保存在浏览器扩展或篡改猴的本机私有存储中，填入保存后即可使用；正文、译文和 PDF 不持久化。[了解数据去向](docs/guides/PRIVACY.md)
 
 ## 开始使用
 
@@ -61,7 +61,7 @@
 
 仓库也提供 Tampermonkey（篡改猴）版本，保留网页双语翻译、划词与阅读模式，已发布到 [Greasy Fork](https://greasyfork.org/zh-CN/scripts/601973)，也可通过 GitHub Pages 安装。PDF 阅读器和文档转换继续使用下面的扩展版；同一网站请只启用一种近译安装方式。
 
-打开 [Greasy Fork 安装页](https://greasyfork.org/zh-CN/scripts/601973)点击安装，或选择 [GitHub 分发安装页](https://fkstack.github.io/near-translate/userscript/)；模型配置见[在线使用指南](https://fkstack.github.io/near-translate/userscript/guide.html)。模型设置位于专用设置页，文章页刷新或新开后需单独解锁模型 Key。
+打开 [Greasy Fork 安装页](https://greasyfork.org/zh-CN/scripts/601973)点击安装，或选择 [GitHub 分发安装页](https://fkstack.github.io/near-translate/userscript/)；在专用设置页填入模型 Key 并保存，各网页即可直接翻译。模型配置见[在线使用指南](https://fkstack.github.io/near-translate/userscript/guide.html)。
 
 从 0.11.4 起，主动使用阅读或翻译时发现新版会提示更新；取消后下次使用再提醒。想每次都自己决定，需在篡改猴中关闭近译的内建自动更新。旧版需先手动升级一次；检查缓存和 Greasy Fork 同步可能造成延迟。[更新说明](docs/guides/USERSCRIPT.md#更新提醒与安装) · [维护者发布流程](docs/development/RELEASE_WORKFLOW.md)
 

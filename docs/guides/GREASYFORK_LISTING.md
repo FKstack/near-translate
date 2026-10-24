@@ -16,7 +16,7 @@
 
 在篡改猴菜单里打开[翻译设置](https://fkstack.github.io/near-translate/userscript/settings.html)。可以使用实验性 DeepL 免费翻译，也可以填自己的模型 API 或本机模型接口。免费服务可能限流，模型服务按所选服务计费。
 
-词典和长句拆解需要模型 API：词典支持英译简／繁中文，长句拆解支持英译简体中文。配置模型后，文章页需从脚本菜单解锁 Key，刷新后重新解锁。具体配置见[使用指南](https://fkstack.github.io/near-translate/userscript/guide.html)。
+词典和长句拆解需要模型 API：词典支持英译简／繁中文，长句拆解支持英译简体中文。Key 保存后，各网页可直接翻译。具体配置见[使用指南](https://fkstack.github.io/near-translate/userscript/guide.html)。
 
 发现新版会提示，取消后下次使用再提醒。若想每次升级都自己确认，请关闭篡改猴对近译的内建自动更新。
 

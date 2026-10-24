@@ -2,7 +2,6 @@ import { mountSelectionTranslator } from '../selection/mount';
 import { mountPageTranslator } from '../page/mount';
 import { createReadingMode, type ReadingModeController } from '../reading/mount';
 import { TranslationServiceStatusClient } from '../platform/service-status';
-import { browser } from './browser';
 import { installRuntime } from './runtime';
 import { mountSettings } from './Settings';
 import { SETTINGS_URL, isSettingsPage } from './locations';
@@ -47,25 +46,6 @@ async function main(): Promise<void> {
     document.addEventListener('keydown', shortcut, true);
     menu('近译 · 阅读当前网页', () => { openReading(); });
     menu('近译 · 翻译设置', openSettings);
-    menu('近译 · 解锁本页模型 Key', async () => {
-      if (!globalThis.crypto?.subtle) {
-        globalThis.alert('近译：此网页不支持安全解锁，请使用 HTTPS 页面。本地阅读与免费翻译仍可使用。');
-        return;
-      }
-      // A native sandbox dialog keeps the passphrase out of the article's DOM and keyboard events.
-      const passphrase = globalThis.prompt('近译：输入密钥库口令以解锁本页模型 Key。口令仅留在本页；此原生输入框中的文字可见。');
-      if (passphrase === null) return;
-      try {
-        const reply = await browser.runtime.sendMessage({ type: 'unlock-key-vault', passphrase }) as { ok?: boolean; error?: string };
-        globalThis.alert(reply?.ok ? '近译：本页模型 Key 已解锁。刷新或离开本页后需重新解锁。' : reply?.error ?? '解锁失败，请重试。');
-      } catch { globalThis.alert('近译：解锁失败，请重试。'); }
-    });
-    menu('近译 · 锁定本页模型 Key', async () => {
-      try {
-        const reply = await browser.runtime.sendMessage({ type: 'lock-key-vault' }) as { ok?: boolean };
-        globalThis.alert(reply?.ok ? '近译：本页模型 Key 已锁定。' : '近译：锁定失败，请重试。');
-      } catch { globalThis.alert('近译：锁定失败，请重试。'); }
-    });
     cleanup.push(() => { document.removeEventListener('keydown', shortcut, true); disposePage(); reading?.dispose(); disposeSelection(); serviceStatus.dispose(); });
   }
   const unload = (event: PageTransitionEvent) => {

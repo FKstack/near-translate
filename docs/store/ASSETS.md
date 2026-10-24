@@ -2,6 +2,8 @@
 
 核对日期：2026-10-23。用于 Chrome Web Store 与 Microsoft Edge Add-ons 的简体中文首发条目。图片展示阅读、原文与译文对照、语境查词、PDF 选区翻译和 API Key 口令保护；不宣传扫描件 OCR、全文 PDF 翻译或未上线的能力。
 
+当前源码已取消日常口令和锁定步骤。`05-key-protection-1280x800.png` 是旧版界面记录，不再适合用于新版商店宣传；新版提交应重拍设置截图。以下文件指纹与验收叙述保留为 v0.11.1 的历史记录。
+
 ## 官方规格
 
 | 素材 | Chrome Web Store | Microsoft Edge Add-ons | 本次文件 |

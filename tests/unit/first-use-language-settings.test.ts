@@ -28,7 +28,6 @@ vi.mock('wxt/browser', () => ({ browser: {
 const KEY = 'settings:v1';
 let settings: typeof import('../../src/platform/settings');
 let baselineRevision = 7;
-const PASSPHRASE = 'test-only-long-passphrase-2026';
 function profiles() {
   return {
     deepseek: { model: 'saved-deepseek-model', baseUrl: getProvider('deepseek').baseUrl, jsonMode: true, apiKey: 'private-deepseek-fixture' },
@@ -57,7 +56,6 @@ function selected(source: Record<string, unknown>, keys?: string | string[] | nu
 }
 async function migrateModelFixture(provider: 'deepseek' | 'openai' = 'deepseek'): Promise<void> {
   store.value = existing(provider);
-  await settings.createKeyVault(PASSPHRASE);
   baselineRevision = (await settings.readSettings()).connectionRevision;
   store.set.mockClear();
 }
@@ -113,14 +111,14 @@ describe('first-use engine selection', () => {
 
   it.each([
     { name: 'an existing empty settings record', value: {}, key: '' },
-    { name: 'legacy v1 settings with an unmigrated Key', value: { schemaVersion: 1, model: 'saved-model', apiKey: 'private-legacy-fixture' }, key: '' },
+    { name: 'legacy v1 settings with a saved Key', value: { schemaVersion: 1, model: 'saved-model', apiKey: 'private-legacy-fixture' }, key: 'private-legacy-fixture' },
     { name: 'an explicitly selected model without a Key', value: { translationEngine: 'model', apiKey: '' }, key: '' },
-    { name: 'a saved model profile with an unmigrated Key', value: existing('openai'), key: '' },
+    { name: 'a saved model profile with a Key', value: existing('openai'), key: 'private-openai-fixture' },
   ])('preserves $name instead of silently switching its engine', async ({ value, key }) => {
     store.value = structuredClone(value);
     const before = structuredClone(store.value);
     expect(await settings.readSettings()).toMatchObject({ translationEngine: 'model', apiKey: key });
-    expect(await settings.publicSettings()).toMatchObject({ hasApiKey: false });
+    expect(await settings.publicSettings()).toMatchObject({ hasApiKey: Boolean(key) });
     expect(store.value).toEqual(before); expect(store.set).not.toHaveBeenCalled();
   });
 
@@ -237,7 +235,7 @@ describe('safe one-click free translation activation', () => {
     await migrateModelFixture('openai');
     const before = structuredClone(store.value);
     store.set.mockRejectedValueOnce(new Error('Storage fixture failure'));
-    await expect(settings.enableFreeTranslation()).rejects.toThrow(/密钥库操作失败/);
+    await expect(settings.enableFreeTranslation()).rejects.toThrow(/本地配置操作失败/);
     expect(store.value).toEqual(before);
     await settings.enableFreeTranslation();
     expect(await settings.readSettings()).toMatchObject({ translationEngine: 'deepl-web', apiKey: 'private-openai-fixture' });

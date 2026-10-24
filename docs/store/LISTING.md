@@ -1,13 +1,13 @@
-# 商店文案：近译 v0.11.2
+# 商店文案：近译（当前源码草稿）
 
-准备日期：2026-10-24。以下为提交草稿，不表示已通过审核或已在商店上线。功能依据当前 `v0.11.2` 商店版代码；上传前须完成该版本安装包验收。第三方翻译服务的可用性、费用和数据政策由相应服务决定。当前优先提交 Microsoft Edge，Chrome 暂缓至发布者有 Google 开发者账号。
+准备日期：2026-10-25。以下为当前源码的提交草稿，不表示已通过审核或已在商店上线。上传前须按最终版本重新构建、验收并填写实际安装包版本；旧版密钥库验收不能代替当前保存方式的验证。第三方翻译服务的可用性、费用和数据政策由相应服务决定。当前优先提交 Microsoft Edge，Chrome 暂缓至发布者有 Google 开发者账号。
 
 ## 共用资料
 
 | 字段 | 内容 |
 | --- | --- |
 | 当前包内名称 | 近译 · 阅读与翻译 |
-| 版本 | 0.11.2 |
+| 版本 | 按最终验收的候选安装包填写 |
 | 建议分类 | Productivity / 生产力；以控制台实际提供的分类为准 |
 | 主页 | https://github.com/FKstack/near-translate |
 | 支持 | https://github.com/FKstack/near-translate/issues |
@@ -51,7 +51,7 @@
 可启用实验性 DeepL 免费翻译，无需 API Key，但可能限流或发生服务调整；也可配置 DeepSeek、OpenAI、Gemini、Qwen 等兼容 API，或连接已部署的 Ollama。普通翻译提供 16 种源／目标语言选项，源语言可自动识别。自带模型服务可能需要相应账号、API Key 和付费额度，扩展不包含这些费用，也不保证翻译速度或结果。
 
 【数据去向清楚】
-本地阅读与文档转换不上传文档到近译服务器。点击翻译时，所选文字或相应正文直接发送到你选择的服务；模型模式开启上下文后还会发送有限的相邻文字。可选连接加速开启时，可能提前向 DeepL 发送不含正文的连接准备请求。API Key 使用独立口令加密保存在本机，浏览器重启后解锁使用；口令无法找回，免费翻译不要求解锁密钥库。原文、译文和 PDF 不作为历史记录持久保存。近译没有自有翻译中转、广告或遥测，第三方服务仍按各自政策处理收到的数据。
+本地阅读与文档转换不上传文档到近译服务器。点击翻译时，所选文字或相应正文直接发送到你选择的服务；模型模式开启上下文后还会发送有限的相邻文字。可选连接加速开启时，可能提前向 DeepL 发送不含正文的连接准备请求。API Key 保存在扩展私有本机存储中，填入保存后即可使用，换标签页和浏览器重启不需要解锁；设置页不回显已保存的 Key。原文、译文和 PDF 不作为历史记录持久保存。近译没有自有翻译中转、广告或遥测，第三方服务仍按各自政策处理收到的数据。
 
 安装后，固定近译到工具栏，打开一篇文章，点击“阅读当前网页”即可开始。需要翻译时，在“翻译设置”启用服务并按提示授权，然后点击“翻译正文”或选区旁的“译”。
 
@@ -95,7 +95,7 @@ CHOOSE A TRANSLATION SERVICE
 Try the experimental free DeepL service without an API key, or configure a compatible API such as DeepSeek, OpenAI, Gemini, Qwen, or a deployed Ollama instance. Standard translation offers 16 source and target language options, with automatic source detection. The experimental service may be rate-limited or change. Optional model services may require a separate account, API key, and paid credit; these costs are not included. Translation speed, availability, and accuracy depend on the selected service.
 
 KNOW WHERE YOUR DATA GOES
-Local reading and document conversion do not upload documents to a Near Translate server. When you request translation, the selected text or relevant article paragraphs go directly to your chosen service. Optional model context adds limited surrounding text. If you enable connection acceleration, a content-free preparation request may contact DeepL before translation. API keys are encrypted locally with a separate passphrase and require unlocking after a browser restart. The passphrase cannot be recovered; free translation does not require unlocking the vault. Source text, translations, and PDFs are not saved as a persistent reading history. Near Translate has no translation relay server, advertising, or telemetry. Third-party services apply their own data policies.
+Local reading and document conversion do not upload documents to a Near Translate server. When you request translation, the selected text or relevant article paragraphs go directly to your chosen service. Optional model context adds limited surrounding text. If you enable connection acceleration, a content-free preparation request may contact DeepL before translation. API keys are saved in private extension storage on the device and can be used after saving, across tabs and browser restarts. There is no routine passphrase or unlock step. Saved keys are not displayed in the settings form. Source text, translations, and PDFs are not saved as a persistent reading history. Near Translate has no translation relay server, advertising, or telemetry. Third-party services apply their own data policies.
 
 GET STARTED
 Pin the extension, open an article, and choose the reader button in the popup. To translate, enable your service in settings, grant the requested permissions, then translate the article or selected text.

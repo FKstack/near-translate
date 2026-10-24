@@ -2,14 +2,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const state = vi.hoisted(() => ({
   settings: vi.fn(), query: vi.fn(), runtimeSend: vi.fn(), tabSend: vi.fn(),
-  contains: vi.fn(), registered: vi.fn(), register: vi.fn(), update: vi.fn(), unregister: vi.fn(),
+  contains: vi.fn(), registered: vi.fn(), register: vi.fn(), update: vi.fn(), unregister: vi.fn(), execute: vi.fn(),
 }));
 vi.mock('wxt/browser', () => ({ browser: {
   runtime: { sendMessage: state.runtimeSend },
   tabs: { query: state.query, sendMessage: state.tabSend },
   permissions: { contains: state.contains },
   scripting: { getRegisteredContentScripts: state.registered, registerContentScripts: state.register,
-    updateContentScripts: state.update, unregisterContentScripts: state.unregister },
+    updateContentScripts: state.update, unregisterContentScripts: state.unregister, executeScript: state.execute },
 } }));
 vi.mock('../../src/platform/settings', () => ({
   publicSettings: state.settings, WEB_ORIGINS: ['http://*/*', 'https://*/*'],
@@ -22,13 +22,14 @@ const message = { type: 'settings-changed', settings };
 
 beforeEach(() => {
   vi.useFakeTimers();
-  vi.clearAllMocks();
+  vi.resetAllMocks();
   state.settings.mockResolvedValue(settings);
   state.query.mockResolvedValue([{ id: 1 }, { id: 2 }, {}]);
   state.runtimeSend.mockResolvedValue(undefined);
   state.tabSend.mockResolvedValue(undefined);
   state.contains.mockResolvedValue(false); state.registered.mockResolvedValue([]);
   state.register.mockResolvedValue(undefined); state.update.mockResolvedValue(undefined); state.unregister.mockResolvedValue(undefined);
+  state.execute.mockResolvedValue([]);
 });
 
 describe('optional metadata preparation registration', () => {
@@ -127,6 +128,133 @@ describe('best-effort settings broadcasts', () => {
     reject(new Error('Receiver eventually closed'));
     await vi.advanceTimersByTimeAsync(0);
     expect(vi.getTimerCount()).toBe(0);
+  });
+});
+
+describe('settings recovery for already open webpages', () => {
+  beforeEach(() => {
+    state.query.mockResolvedValue([{ id: 7, url: 'https://article.example/reading' }]);
+    state.tabSend.mockRejectedValue(new Error('No receiving end'));
+    state.contains.mockResolvedValue(true);
+  });
+
+  it('inserts the ordinary content entry once on an authorized webpage without resending an old settings snapshot', async () => {
+    await broadcastPublicSettings();
+    expect(state.contains).toHaveBeenCalledExactlyOnceWith({ origins: ['https://article.example/*'] });
+    expect(state.execute).toHaveBeenCalledExactlyOnceWith({
+      target: { tabId: 7, allFrames: true }, files: ['/content-scripts/selection.js'],
+    });
+    expect(state.tabSend).toHaveBeenCalledExactlyOnceWith(7, message);
+    expect(state.runtimeSend).toHaveBeenCalledExactlyOnceWith(message);
+    expect(state.settings).toHaveBeenCalledTimes(2);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('keeps an existing receiver and never injects another entry', async () => {
+    state.tabSend.mockResolvedValue(undefined);
+    await broadcastPublicSettings();
+    expect(state.execute).not.toHaveBeenCalled(); expect(state.contains).not.toHaveBeenCalled();
+  });
+
+  it.each([{ enabled: false }, { webAccess: false }])('does not inject when settings disable the webpage UI: %j', async change => {
+    state.settings.mockResolvedValue({ ...settings, ...change });
+    await broadcastPublicSettings();
+    expect(state.execute).not.toHaveBeenCalled(); expect(state.contains).not.toHaveBeenCalled();
+  });
+
+  it.each([{ enabled: false }, { webAccess: false }])('rechecks current capabilities when settings change during a failed notification: %j', async change => {
+    state.settings.mockResolvedValueOnce(settings).mockResolvedValue({ ...settings, ...change });
+    await broadcastPublicSettings();
+    expect(state.execute).not.toHaveBeenCalled(); expect(state.contains).not.toHaveBeenCalled();
+  });
+
+  it('does not inject without an existing grant for the actual tab origin', async () => {
+    state.contains.mockResolvedValue(false);
+    await broadcastPublicSettings();
+    expect(state.contains).toHaveBeenCalledExactlyOnceWith({ origins: ['https://article.example/*'] });
+    expect(state.execute).not.toHaveBeenCalled();
+  });
+
+  it('skips missing URLs, browser pages, local files, extension pages and browser-managed stores', async () => {
+    const urls = [undefined, 'edge://settings', 'chrome://newtab', 'file:///article.html',
+      'chrome-extension://example/options.html', 'https://chromewebstore.google.com/detail/example',
+      'https://chrome.google.com/webstore/detail/example', 'https://microsoftedge.microsoft.com/addons/detail/example',
+      'https://addons.mozilla.org/firefox/addon/example', 'invalid url'];
+    state.query.mockResolvedValue(urls.map((url, index) => ({ id: index + 1, url })));
+    await broadcastPublicSettings();
+    expect(state.tabSend).toHaveBeenCalledTimes(urls.length);
+    expect(state.execute).not.toHaveBeenCalled(); expect(state.contains).not.toHaveBeenCalled();
+  });
+
+  it('coalesces concurrent save notifications while the same tab is being recovered', async () => {
+    let inserted!: () => void;
+    state.execute.mockImplementation(() => new Promise<void>(resolve => { inserted = resolve; }));
+    const first = broadcastPublicSettings();
+    await vi.advanceTimersByTimeAsync(0);
+    await broadcastPublicSettings();
+    expect(state.execute).toHaveBeenCalledTimes(1);
+    inserted(); await first;
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('does not inject after a slow receiver finally rejects beyond the save deadline', async () => {
+    let reject!: (error: Error) => void;
+    state.tabSend.mockImplementation(() => new Promise((_, fail) => { reject = fail; }));
+    const pending = broadcastPublicSettings();
+    await vi.advanceTimersByTimeAsync(1_500); await pending;
+    reject(new Error('The old receiver finally closed'));
+    await vi.advanceTimersByTimeAsync(0);
+    expect(state.execute).not.toHaveBeenCalled(); expect(state.contains).not.toHaveBeenCalled();
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('bounds permission checks and ignores a grant returned after the deadline', async () => {
+    let grant!: (allowed: boolean) => void;
+    state.contains.mockImplementation(() => new Promise<boolean>(resolve => { grant = resolve; }));
+    const pending = broadcastPublicSettings();
+    await vi.advanceTimersByTimeAsync(1_500); await pending;
+    grant(true); await vi.advanceTimersByTimeAsync(0);
+    expect(state.execute).not.toHaveBeenCalled(); expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it.each(['rejection', 'synchronous throw'] as const)('consumes an unavailable scripting API %s without delaying a settings save', async failure => {
+    state.execute.mockImplementation(() => {
+      if (failure === 'synchronous throw') throw new Error('Scripting is unavailable');
+      return Promise.reject(new Error('The tab closed'));
+    });
+    const before = Date.now();
+    await expect(broadcastPublicSettings()).resolves.toBeUndefined();
+    expect(Date.now()).toBe(before); expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('bounds a nonresponding injection and consumes its late rejection', async () => {
+    let reject!: (error: Error) => void;
+    state.execute.mockImplementation(() => new Promise((_, fail) => { reject = fail; }));
+    const pending = broadcastPublicSettings();
+    await vi.advanceTimersByTimeAsync(1_500); await pending;
+    reject(new Error('The frozen tab closed')); await vi.advanceTimersByTimeAsync(0);
+    expect(state.execute).toHaveBeenCalledTimes(1); expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('bounds tab enumeration while still notifying extension pages and ignores a late tab list', async () => {
+    let listed!: (tabs: Array<{ id: number; url: string }>) => void;
+    state.query.mockImplementation(() => new Promise(resolve => { listed = resolve; }));
+    const pending = broadcastPublicSettings();
+    await vi.advanceTimersByTimeAsync(1_500); await pending;
+    expect(state.runtimeSend).toHaveBeenCalledExactlyOnceWith(message);
+    listed([{ id: 7, url: 'https://article.example/reading' }]); await vi.advanceTimersByTimeAsync(0);
+    expect(state.tabSend).not.toHaveBeenCalled(); expect(state.execute).not.toHaveBeenCalled();
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it.each(['rejection', 'synchronous throw'] as const)('still notifies extension pages when tab enumeration fails with a %s', async failure => {
+    state.query.mockImplementation(() => {
+      if (failure === 'synchronous throw') throw new Error('Query unavailable');
+      return Promise.reject(new Error('Query unavailable'));
+    });
+    await expect(broadcastPublicSettings()).resolves.toBeUndefined();
+    expect(state.runtimeSend).toHaveBeenCalledExactlyOnceWith(message);
+    expect(state.execute).not.toHaveBeenCalled(); expect(vi.getTimerCount()).toBe(0);
   });
 });
 

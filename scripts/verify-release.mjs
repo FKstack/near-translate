@@ -1,0 +1,20 @@
+import { readFileSync } from 'node:fs';
+import { assertNoNewerRelease, assertReleaseVersion, run } from './lib/release-tools.mjs';
+
+const tag = process.env.RELEASE_TAG;
+const repository = process.env.GITHUB_REPOSITORY;
+if (!tag || !repository) throw new Error('RELEASE_TAG and GITHUB_REPOSITORY are required.');
+const { version } = JSON.parse(readFileSync('package.json', 'utf8'));
+assertReleaseVersion(tag, version);
+const lock = JSON.parse(readFileSync('package-lock.json', 'utf8'));
+if (lock.version !== version || lock.packages?.['']?.version !== version) throw new Error('Package lock version does not match the Release.');
+const head = run('git', ['rev-parse', 'HEAD']).stdout;
+const tagHead = run('git', ['rev-parse', `refs/tags/${tag}^{commit}`]).stdout;
+if (head !== tagHead) throw new Error('Build checkout must be the exact Release tag commit.');
+run('git', ['fetch', 'origin', 'main']);
+run('git', ['merge-base', '--is-ancestor', head, 'origin/main']);
+const release = JSON.parse(run('gh', ['release', 'view', tag, '--repo', repository, '--json', 'tagName,isDraft,isPrerelease,url']).stdout);
+if (release.tagName !== tag || release.isDraft || release.isPrerelease) throw new Error('Publish only an already published stable GitHub Release.');
+const stableTags = run('gh', ['api', '--paginate', `repos/${repository}/releases?per_page=100`, '--jq', '.[] | select(.draft == false and .prerelease == false) | .tag_name']).stdout.split('\n').filter(Boolean);
+assertNoNewerRelease(version, stableTags);
+console.log(`Verified ${release.url}: version ${version}, commit ${head}, included in main.`);

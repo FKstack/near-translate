@@ -4,10 +4,10 @@
 
 | 目录 | 内容 | 入口 |
 | --- | --- | --- |
-| `guides/` | 安装、隐私与发布准备 | [安装和使用](guides/INSTALL.md) · [隐私说明](guides/PRIVACY.md) · [上传 GitHub](guides/GITHUB_PUBLISH.md) |
-| `releases/` | 发行说明、安装包与升级方法 | [v0.11.1](releases/v0.11.1.md) · [v0.11.0](releases/v0.11.0.md) |
+| `guides/` | 安装、隐私与发布准备 | [安装和使用](guides/INSTALL.md) · [篡改猴版](guides/USERSCRIPT.md) · [隐私说明](guides/PRIVACY.md) · [上传 GitHub](guides/GITHUB_PUBLISH.md) |
+| `releases/` | 发行说明、安装包与升级方法 | [v0.11.4](releases/v0.11.4.md) · [v0.11.1](releases/v0.11.1.md) · [v0.11.0](releases/v0.11.0.md) |
 | `store/` | 商店介绍、图片规格、权限与隐私披露 | [商店文案](store/LISTING.md) · [Edge 审核资料](store/EDGE_REVIEW.md) · [Edge 隐私](store/PRIVACY_EDGE.md) |
-| `development/` | 模块职责、开发约定与质量核验 | [架构与实施记录](development/ARCHITECTURE.md) · [验证记录](development/VALIDATION.md) · [翻译质量样例](development/QUALITY_SAMPLES.md) |
+| `development/` | 模块职责、开发约定与质量核验 | [架构与实施记录](development/ARCHITECTURE.md) · [发布工作流](development/RELEASE_WORKFLOW.md) · [验证记录](development/VALIDATION.md) · [翻译质量样例](development/QUALITY_SAMPLES.md) |
 | `reports/` | 竞品研究、功能设计、性能分析及历次验收 | [性能记录](reports/PERFORMANCE.md) · [轻量化与内存审计](reports/LIGHTWEIGHT_AUDIT_2026-10-23.md) |
 | `design/` | 图标、界面设计、可编辑母版与视觉样例 | [品牌图标](design/near-translate/DESIGN.md) · [扩展页面](design/near-translate/EXTENSION_UI.md) |
 | `evidence/` | 测量摘要、安装哈希、截图和研究证据 | [证据说明](evidence/README.md) |

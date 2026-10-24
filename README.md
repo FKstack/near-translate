@@ -7,7 +7,7 @@
 <p align="center">网页双语、语境查词与专注阅读，连成一个顺畅的阅读过程。</p>
 <p align="center">适用于 Chrome / Edge 的开源阅读翻译扩展 · MIT</p>
 
-**[下载 v0.11.2](https://github.com/FKstack/near-translate/releases/tag/v0.11.2)** · [开始使用](#开始使用) · [阅读体验](#让一篇外文更容易读下去) · [使用指南](docs/guides/INSTALL.md) · [参与改进](CONTRIBUTING.md)
+**[下载 v0.11.4](https://github.com/FKstack/near-translate/releases/tag/v0.11.4)** · [开始使用](#开始使用) · [篡改猴版](docs/guides/USERSCRIPT.md) · [阅读体验](#让一篇外文更容易读下去) · [使用指南](docs/guides/INSTALL.md) · [参与改进](CONTRIBUTING.md)
 
 读英文技术文章时，遇到生词就地查，遇到长句看拆解，需要整篇理解时打开双语对照。近译把这些帮助放在你正在读的地方，让你接着读下去。
 
@@ -57,14 +57,22 @@
 
 ## 开始使用
 
+### 通过篡改猴安装网页阅读版
+
+仓库也提供 Tampermonkey（篡改猴）版本，保留网页双语翻译、划词与阅读模式，已发布到 [Greasy Fork](https://greasyfork.org/zh-CN/scripts/601973)，也可通过 GitHub Pages 安装。PDF 阅读器和文档转换继续使用下面的扩展版；同一网站请只启用一种近译安装方式。
+
+打开 [Greasy Fork 安装页](https://greasyfork.org/zh-CN/scripts/601973)点击安装，或选择 [GitHub 分发安装页](https://fkstack.github.io/near-translate/userscript/)；模型配置见[在线使用指南](https://fkstack.github.io/near-translate/userscript/guide.html)。模型设置位于专用设置页，文章页刷新或新开后需单独解锁模型 Key。
+
+从 0.11.4 起，主动使用阅读或翻译时发现新版会提示更新；取消后下次使用再提醒。想每次都自己决定，需在篡改猴中关闭近译的内建自动更新。旧版需先手动升级一次；检查缓存和 Greasy Fork 同步可能造成延迟。[更新说明](docs/guides/USERSCRIPT.md#更新提醒与安装) · [维护者发布流程](docs/development/RELEASE_WORKFLOW.md)
+
 ### 1. 安装到 Chrome 或 Edge
 
-从 [v0.11.2 Release](https://github.com/FKstack/near-translate/releases/tag/v0.11.2) 下载对应安装包，无需安装 Node.js 或构建源码：
+从 [v0.11.4 Release](https://github.com/FKstack/near-translate/releases/tag/v0.11.4) 下载对应安装包，无需安装 Node.js 或构建源码：
 
 | 浏览器 | 下载 ZIP | 扩展管理页 |
 | --- | --- | --- |
-| Chrome | [near-translate-chrome-v0.11.2.zip](https://github.com/FKstack/near-translate/releases/download/v0.11.2/near-translate-chrome-v0.11.2.zip) | `chrome://extensions` |
-| Edge | [near-translate-edge-v0.11.2.zip](https://github.com/FKstack/near-translate/releases/download/v0.11.2/near-translate-edge-v0.11.2.zip) | `edge://extensions` |
+| Chrome | [near-translate-chrome-v0.11.4.zip](https://github.com/FKstack/near-translate/releases/download/v0.11.4/near-translate-chrome-v0.11.4.zip) | `chrome://extensions` |
+| Edge | [near-translate-edge-v0.11.4.zip](https://github.com/FKstack/near-translate/releases/download/v0.11.4/near-translate-edge-v0.11.4.zip) | `edge://extensions` |
 
 1. 将 ZIP **解压到长期保留的固定文件夹**。
 2. 打开对应扩展管理页，开启「开发者模式」，点击「加载已解压的扩展程序」。

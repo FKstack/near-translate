@@ -33,7 +33,7 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
-浏览器测试使用隔离 profile 与模拟 API；不要将测试代码指向个人浏览器 profile 或真实 Key。CI 执行 Git 候选检查、文档链接检查、类型检查、单元测试、模块边界和 Chrome / Edge 构建，浏览器 E2E 需在本地另行运行。`npm run zip` / `npm run zip:edge` 可生成本地安装 ZIP；`package:release` 是需要完整验证证据的发布辅助步骤。
+浏览器测试使用隔离 profile 与模拟 API；不要将测试代码指向个人浏览器 profile 或真实 Key。CI 执行 Git 候选检查、文档链接检查、类型检查、单元测试、模块边界和 Chrome / Edge 构建；发布工作流还会验证两种篡改猴构建的浏览器交互。扩展浏览器 E2E 需在本地另行运行。涉及篡改猴时，运行 `npm run test:userscript` 和 `npm run test:greasyfork`。`npm run zip` / `npm run zip:edge` 可生成本地安装 ZIP；`package:release` 是需要完整验证证据的发布辅助步骤。
 
 `check:repo` 检查已跟踪文件和未被忽略的候选文件，不暂存或上传文件。其凭证检查覆盖常见格式，提交前仍应查看自己的差异。保留 `third_party/` 中的字体源和许可证；`public/pdfjs/`、`public/fonts/`、`public/licenses/` 由构建脚本生成，不提交 Git。
 
@@ -46,6 +46,12 @@ npm run test:e2e
 - 不提交 `.env`、Key、私有文本/PDF、浏览器 profile、依赖、构建产物和测试报告。
 
 功能问题请提供扩展版本、浏览器版本、复现步骤和脱敏后的错误信息。涉及凭证泄露的问题不要在公开 Issue 中附上秘密内容；如 Key 已泄露，先在对应服务控制台撤销或轮换。
+
+## 完成功能并发布
+
+在 `codex/` 功能分支开发，完成验证并明确暂存此次要发布的文件，再使用 `npm run feature:release` 提交、推送、创建 PR 和 squash 合并。`main` 使用线性历史；合并后自动发布 GitHub Release，随后构建原扩展安装包和篡改猴分发源。命令参数、版本说明格式、重试方法及 Greasy Fork 同步限制见 [发布工作流](docs/development/RELEASE_WORKFLOW.md)。
+
+Release 说明优先使用与版本匹配的 `docs/releases/v<版本号>.md`；它应描述用户可见的变化、升级步骤和已知限制。不要在说明中把模拟测试写成真实服务实测，也不要将 Pages 部署完成等同于 Greasy Fork 已同步或用户已安装。
 
 ## 历史性能工具
 

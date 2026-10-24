@@ -19,6 +19,11 @@
 | 命令 | 内容 |
 | --- | --- |
 | `npm run assets:pdf` | 从锁定依赖准备离线 PDF、字体与许可证资源 |
+| `npm run build:userscript` | 构建独立的篡改猴安装脚本、版本检查文件与 GitHub Pages 安装/设置页；不准备 PDF 资源 |
+| `npm run build:greasyfork` | 构建供 Greasy Fork 同步的可阅读脚本及上架说明 |
+| `npm run test:userscript` | 构建脚本并在独立 Chromium 验证网页、划词、阅读与设置入口；GM API 和翻译响应使用测试实现 |
+| `npm run test:greasyfork` | 对 Greasy Fork 构建执行同一组隔离浏览器验证 |
+| `npm run feature:release -- --bump patch --title "feat: 功能说明" --notes-file docs/releases/v<版本号>.md` | 提交已暂存功能、推送、创建 PR 并等待检查后 squash 合并；完整参数见发布工作流 |
 | `npm run check:boundaries` | 检查源码依赖边界 |
 | `npm run check:repo` | 检查待上传文件中的本地产物、超大文件和常见凭证形态 |
 | `npm run analyze:size` | 分析当前构建的文件大小 |
@@ -27,6 +32,8 @@
 | `npm run package:release` | 校验与当前版本匹配的测试证据和 ZIP，生成发行文件 |
 
 `prepare-e2e.mjs` 由 `npm run test:e2e` 的前置步骤调用。文档位置和贡献流程见 [文档导航](../docs/README.md) 与 [贡献指南](../CONTRIBUTING.md)。
+
+`build-userscript.mjs` 通过现有 Vite 把 `src/userscript/main.tsx` 打成单个 IIFE，仅在这个构建中将 `wxt/browser` 精确替换为篡改猴适配层。构建拒绝拆分 chunk、非样式资源以及 PDF/文档转换/扩展运行时依赖，CSS 与许可证内联到 `.user.js`。GitHub 版不加载外部 JavaScript；Greasy Fork 版将允许的固定版本库作为带校验的 `@require`，业务代码保持可阅读并检查 2 MB 上限。输出 `.output/userscript/` 和 `.output/greasyfork/` 用于安装包 artifact，`.output/userscript-site/` 用于 Pages。公开更新地址和授权范围见[篡改猴版指南](../docs/guides/USERSCRIPT.md)，功能提交、线性合并、Release 与分发见[发布工作流](../docs/development/RELEASE_WORKFLOW.md)。
 
 运行内存测量前，将 `NEAR_BROWSER_EXECUTABLE` 设为支持加载未打包扩展的测试浏览器绝对路径。工具会创建独立配置目录，不使用日常浏览器配置。
 

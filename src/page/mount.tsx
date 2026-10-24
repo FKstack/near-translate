@@ -7,6 +7,7 @@ import { PageTranslationRenderer } from './render';
 import { collectPageSegments, segmentIsCurrent, selectPageTranslationRoot } from './segments';
 import { PageTranslationSession, type PageSessionState } from './session';
 import { snapshotViewportPriorities } from './viewport';
+import { beforeUserAction, type BeforeUse } from '../shared/before-use';
 
 /** Document-scoped owner of the bar, inserted text, observer and translation session. */
 export function mountPageTranslator(options: {
@@ -14,6 +15,7 @@ export function mountPageTranslator(options: {
   onRead?: (translations: ReadonlyMap<string, string>) => void;
   /** Shares one explicit action with the composition root's popup and keyboard entry points. */
   onReadingAction?: (action: () => void) => void;
+  beforeUse?: BeforeUse;
 } = {}): () => void {
   const host = document.createElement('near-page-translate');
   host.setAttribute('data-near-page-ui', '');
@@ -61,9 +63,13 @@ export function mountPageTranslator(options: {
   function render(): void {
     if (disposed) return;
     react.render(available() ? <PageBar state={state} notice={notice} hasTranslations={state.total > 0}
-      onTranslate={start} onStop={stop} onRestore={() => restore(false)} onRetry={retry} onSettings={openSettings}
-      onRead={options.onRead ? read : undefined} onContinue={retry} serviceStatus={serviceStatus} /> : null);
+      onTranslate={userStart} onStop={stop} onRestore={() => restore(false)} onRetry={userRetry} onSettings={openSettings}
+      onRead={options.onRead ? userRead : undefined} onContinue={userRetry} serviceStatus={serviceStatus} /> : null);
   }
+
+  function userStart(): void { beforeUserAction(options.beforeUse, start); }
+  function userRetry(): void { beforeUserAction(options.beforeUse, retry); }
+  function userRead(): void { beforeUserAction(options.beforeUse, read); }
 
   function disconnectObserver(): void {
     observer.disconnect();
@@ -220,7 +226,7 @@ export function mountPageTranslator(options: {
   window.addEventListener('popstate', onNavigation);
   window.addEventListener('hashchange', onNavigation);
   browser.runtime.onMessage.addListener(onSettings);
-  options.onReadingAction?.(read);
+  options.onReadingAction?.(userRead);
   const stopServiceStatus = options.serviceStatus?.subscribe(next => { serviceStatus = next; render(); });
   void browser.runtime.sendMessage({ type: 'get-settings' }).then((value: PublicSettings) => {
     if (!disposed && !settingsReady) applySettings(value);

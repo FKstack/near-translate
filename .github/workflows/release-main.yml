@@ -1,0 +1,44 @@
+name: Release main
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# GITHUB_TOKEN-created releases do not dispatch release workflows. The publish
+# job below calls the same reusable pipeline used by human-published releases.
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: release-main
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      release_tag: ${{ steps.release.outputs.release_tag }}
+      release_sha: ${{ steps.release.outputs.release_sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Create or reuse the main Release
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/release-main.mjs
+
+  publish:
+    needs: release
+    uses: ./.github/workflows/publish-userscript.yml
+    with:
+      release_tag: ${{ needs.release.outputs.release_tag }}

@@ -4,15 +4,15 @@ import { OpenAICompatibleProvider } from '../providers/openai-compatible';
 import { DeepLWebProvider } from '../providers/deepl-web';
 import { RequestScheduler, RequestSchedulingFailure } from '../providers/request-scheduler';
 import { connectionSettings, publicSettings, readSettings, restrictStorageAccess, saveSettings, enableFreeTranslation,
-  keyVaultStatus, createKeyVault, changeKeyVaultPassphrase } from '../platform/settings';
-import { KeyVaultError, parseEncryptedKeyVault, unlockEncryptedKeyVault } from '../platform/key-vault';
+  importLegacyKeys, CONNECTION_SETTINGS_KEY } from '../platform/settings';
+import { KeyVaultError } from '../platform/key-vault';
 import { readReadingPreferences, saveReadingPreferences } from '../platform/reading-preferences';
 import { FreeTranslationCheck } from '../platform/free-translation-check';
 import { completionEndpoint, getProvider } from '../shared/api-config';
 import { DEEPL_WEB_ENDPOINT } from '../shared/translation-engine';
 import { DEEPL_WEB_SCHEDULING } from '../shared/translation-policy';
 import { readLanguagePair, supportsWordDetails } from '../shared/languages';
-import { KEY_VAULT_SESSION_KEY, KEY_VAULT_STORAGE_KEY } from '../shared/key-vault';
+import { KEY_VAULT_STORAGE_KEY } from '../shared/key-vault';
 import { REQUEST_TIMEOUT_MS, TRANSLATION_PORT, type TranslationServerMessage, type TranslationError } from '../shared/contracts';
 import { browser, emitRuntimeMessage, observeLocalStorage, registerRuntimeHandlers, type UserscriptPort } from './browser';
 import { createGMFetch } from './transport';
@@ -21,7 +21,7 @@ import { isSettingsPage } from './locations';
 const SETTINGS_KEY = 'settings:v1';
 const COOLDOWN_KEY = 'deepl-web:cooldown-until:v1';
 const record = (value: unknown): value is Record<string, unknown> => Boolean(value) && typeof value === 'object' && !Array.isArray(value);
-const changedError: TranslationError = { code: 'CONFIG', message: '翻译配置或密钥库已更改，请使用当前设置重新翻译。', retryable: false };
+const changedError: TranslationError = { code: 'CONFIG', message: '翻译配置已更改，请使用当前设置重新翻译。', retryable: false };
 
 /** Install one sandbox-owned service for this document. No service handles are exposed to the host page. */
 export async function installRuntime(options: { onOpenSettings: () => void }): Promise<() => void> {
@@ -75,33 +75,17 @@ export async function installRuntime(options: { onOpenSettings: () => void }): P
     return task;
   }
   async function persistSettingsOperation<T>(operation: () => Promise<T>): Promise<T> {
-    if (typeof location === 'undefined' || !isSettingsPage(location.href)) throw new KeyVaultError('请在近译的专用设置页修改服务或密钥库。');
+    if (typeof location === 'undefined' || !isSettingsPage(location.href)) throw new KeyVaultError('请在近译的专用设置页修改翻译配置。');
     if (typeof navigator === 'undefined' || typeof navigator.locks?.request !== 'function') {
       throw new KeyVaultError('当前设置页无法安全协调多标签写入，请使用支持 Web Locks 的新版浏览器。');
     }
-    // All persistent connection/vault writers share this canonical settings origin.
-    // Ordinary article pages only unlock their private in-memory session below.
+    // Settings pages serialize writes; article pages can only read the configuration.
     return navigator.locks.request('near-translate:userscript:settings:v1', { mode: 'exclusive' }, async () => {
       if (disposed || !isSettingsPage(location.href)) throw new KeyVaultError('设置页已离开，请重新打开近译设置。');
       return operation();
     });
   }
-  async function unlockPage(passphrase: string) {
-    if (!globalThis.crypto?.subtle) throw new KeyVaultError('当前网页不支持安全解锁，请在 HTTPS 网页解锁模型 Key。本地阅读与免费翻译仍可使用。');
-    const vaultState = await keyVaultStatus();
-    if (vaultState.migrationRequired) throw new KeyVaultError('请先在近译专用设置页完成密钥库迁移。');
-    const saved = (await browser.storage.local.get(KEY_VAULT_STORAGE_KEY))[KEY_VAULT_STORAGE_KEY];
-    if (saved === undefined) throw new KeyVaultError('请先在近译专用设置页创建密钥库。');
-    const vault = parseEncryptedKeyVault(saved);
-    const { sessionKey } = await unlockEncryptedKeyVault(vault, passphrase);
-    // A rotation or credential write during PBKDF2 invalidates the result, without overwriting it.
-    const current = (await browser.storage.local.get(KEY_VAULT_STORAGE_KEY))[KEY_VAULT_STORAGE_KEY];
-    if (JSON.stringify(parseEncryptedKeyVault(current)) !== JSON.stringify(vault)) throw new KeyVaultError('密钥库已在另一页面更改，请重新解锁。');
-    await browser.storage.session.set({ [KEY_VAULT_SESSION_KEY]: { version: 1, salt: vault.kdf.salt, key: sessionKey } });
-    return keyVaultStatus();
-  }
-
-  const removeStorageWatch = observeLocalStorage([SETTINGS_KEY, KEY_VAULT_STORAGE_KEY, COOLDOWN_KEY], (changes, remote) => {
+  const removeStorageWatch = observeLocalStorage([CONNECTION_SETTINGS_KEY, SETTINGS_KEY, KEY_VAULT_STORAGE_KEY, COOLDOWN_KEY], (changes, remote) => {
     if (disposed) return;
     if (Object.hasOwn(changes, COOLDOWN_KEY)) {
       const until = changes[COOLDOWN_KEY]?.newValue;
@@ -115,16 +99,13 @@ export async function installRuntime(options: { onOpenSettings: () => void }): P
       publishStatus(); return;
     }
     cancelAll();
-    // A remote configuration or credential change never reuses this page's old session.
-    if (remote) void browser.storage.session.remove(KEY_VAULT_SESSION_KEY).then(publishSettings);
-    else publishSettings();
+    publishSettings();
   });
 
   async function request(message: unknown): Promise<unknown> {
     if (disposed || !record(message)) return { ok: false };
     if (message.type === 'get-settings') return publicSettings();
     if (message.type === 'get-connection-settings') { await settingsQueue; return connectionSettings(); }
-    if (message.type === 'get-key-vault-status') { await settingsQueue; return { ok: true, status: await keyVaultStatus() }; }
     if (message.type === 'get-translation-status') return { ok: true, status: await status() };
     if (message.type === 'open-options') { options.onOpenSettings(); return { ok: true }; }
     if (message.type === 'get-reading-preferences') return { ok: true, preferences: await readReadingPreferences() };
@@ -153,32 +134,17 @@ export async function installRuntime(options: { onOpenSettings: () => void }): P
         return { ok: false, error: error instanceof KeyVaultError ? error.message : '保存设置失败，请重试。' };
       }
     });
-    if (['create-key-vault', 'unlock-key-vault', 'lock-key-vault', 'change-key-vault-passphrase'].includes(String(message.type))) {
-      return serialize(async () => {
-        cancelAll();
-        try {
-          let vault;
-          if (message.type === 'lock-key-vault') {
-            await browser.storage.session.remove(KEY_VAULT_SESSION_KEY);
-            vault = await keyVaultStatus();
-          }
-          else if (message.type === 'change-key-vault-passphrase') {
-            if (typeof message.currentPassphrase !== 'string' || typeof message.newPassphrase !== 'string') throw new KeyVaultError('请输入当前口令和新口令。');
-            vault = await persistSettingsOperation(() => changeKeyVaultPassphrase(message.currentPassphrase as string, message.newPassphrase as string));
-          } else {
-            if (typeof message.passphrase !== 'string') throw new KeyVaultError('请输入密钥库口令。');
-            vault = message.type === 'create-key-vault' ? await persistSettingsOperation(() => createKeyVault(message.passphrase as string)) : await unlockPage(message.passphrase);
-          }
-          publishSettings(); return { ok: true, status: vault, settings: await connectionSettings() };
-        } catch (error) {
-          publishSettings();
-          const refresh = await Promise.allSettled([keyVaultStatus(), connectionSettings()]);
-          return { ok: false, error: error instanceof KeyVaultError ? error.message : '密钥库操作失败，请重试。',
-            ...(refresh[0].status === 'fulfilled' ? { status: refresh[0].value } : {}),
-            ...(refresh[1].status === 'fulfilled' ? { settings: refresh[1].value } : {}) };
-        }
-      });
-    }
+    if (message.type === 'import-legacy-keys') return serialize(async () => {
+      cancelAll();
+      try {
+        if (typeof message.passphrase !== 'string') throw new KeyVaultError('请输入旧版口令。');
+        const settings = await persistSettingsOperation(() => importLegacyKeys(message.passphrase as string));
+        publishSettings(); return { ok: true, settings };
+      } catch (error) {
+        publishSettings();
+        return { ok: false, error: error instanceof KeyVaultError ? error.message : '导入失败，旧版数据仍保留。' };
+      }
+    });
     return { ok: false };
   }
 
@@ -214,8 +180,8 @@ export async function installRuntime(options: { onOpenSettings: () => void }): P
         if (input.kind === 'word' && !supportsWordDetails(input)) input.kind = 'text';
         const isDeepL = settings.translationEngine === 'deepl-web';
         if (!settings.enabled) throw new TranslationFailure('CONFIG', '翻译已暂停，请在设置中启用。');
-        if (!isDeepL && settings.keyVaultLocked) throw new TranslationFailure('CONFIG', '密钥库已锁定，请从篡改猴菜单解锁本页模型 Key。');
-        if (!isDeepL && !settings.apiKey && getProvider(settings.provider).requiresApiKey) throw new TranslationFailure('CONFIG', '请先在近译设置中保存 API Key，并从篡改猴菜单解锁本页。');
+        if (!isDeepL && settings.apiKeyMigrationRequired) throw new TranslationFailure('CONFIG', '请在翻译设置中重新填写 API Key，或导入旧版配置。');
+        if (!isDeepL && !settings.apiKey && getProvider(settings.provider).requiresApiKey) throw new TranslationFailure('CONFIG', '请先在翻译设置中填写并保存 API Key。');
         if (isDeepL || !settings.includeContext) delete input.context;
         if (input.task === 'sentence-analysis' && (isDeepL || !settings.sentenceAnalysisEnabled)) throw new TranslationFailure('CONFIG', '当前翻译方式未开启长难句拆解。');
         const provider = isDeepL ? deepl : new OpenAICompatibleProvider({ apiKey: settings.apiKey, model: settings.model,

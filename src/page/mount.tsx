@@ -132,6 +132,11 @@ export function mountPageTranslator(options: {
 
   function start(): void {
     if (!available() || disposed) return;
+    if (settings?.apiKeyMigrationRequired) {
+      notice = '请在翻译设置中重新填写 API Key，或导入旧版配置。';
+      render();
+      return;
+    }
     if (!settings?.hasApiKey && settings?.requiresApiKey !== false) {
       notice = '请在翻译设置中选择 DeepL 免费翻译，或填写 API Key。';
       render();

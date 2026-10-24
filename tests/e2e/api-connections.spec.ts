@@ -2,6 +2,7 @@ import { test, expect, chromium, type BrowserContext, type Page, type Worker } f
 import { mkdtemp, realpath, rm } from 'node:fs/promises';
 import { relative, resolve } from 'node:path';
 import type { ConnectionSettings, EditableSettings, PublicSettings, TranslationServerMessage } from '../../src/shared/contracts';
+import { createEncryptedKeyVault } from '../../src/platform/key-vault';
 
 type CapturedRequest = { url: string; authorization: string | null; body: Record<string, unknown>; credentials?: string; redirect?: string };
 type TestState = { requests: CapturedRequest[]; slowNext: boolean; aborts: number };
@@ -34,8 +35,8 @@ async function seedConnection(settings: Partial<EditableSettings>, surface = opt
   expect(result.ok).toBe(true);
 }
 
-async function translateFromOptions(): Promise<TranslationServerMessage[]> {
-  return options.evaluate(() => new Promise<TranslationServerMessage[]>((resolve, reject) => {
+async function translateFromOptions(surface = options): Promise<TranslationServerMessage[]> {
+  return surface.evaluate(() => new Promise<TranslationServerMessage[]>((resolve, reject) => {
     const port = (globalThis as unknown as { chrome: ExtensionApi }).chrome.runtime.connect({ name: 'near-translate:v1' });
     const messages: TranslationServerMessage[] = [];
     (globalThis as unknown as { __nearConnectionMessages: TranslationServerMessage[] }).__nearConnectionMessages = messages;
@@ -52,11 +53,6 @@ async function translateFromOptions(): Promise<TranslationServerMessage[]> {
 
 async function capturedRequests(): Promise<CapturedRequest[]> {
   return worker.evaluate(() => (globalThis as unknown as { __nearConnectionsTest: TestState }).__nearConnectionsTest.requests);
-}
-
-async function vaultMessage(message: object): Promise<{ ok: boolean; status?: { locked: boolean }; error?: string }> {
-  return options.evaluate(message => (globalThis as unknown as { chrome: ExtensionApi }).chrome.runtime
-    .sendMessage(message), message) as Promise<{ ok: boolean; status?: { locked: boolean }; error?: string }>;
 }
 
 async function saveForm(): Promise<void> {
@@ -123,9 +119,6 @@ test.beforeAll(async () => {
   });
   options = await context.newPage();
   await options.goto(`chrome-extension://${extensionId}/options.html`);
-  const vault = await options.evaluate(() => (globalThis as unknown as { chrome: ExtensionApi }).chrome.runtime
-    .sendMessage({ type: 'create-key-vault', passphrase: 'test-only-long-passphrase-2026' })) as { ok: boolean };
-  expect(vault.ok).toBe(true);
 });
 
 test.beforeEach(async () => {
@@ -193,31 +186,98 @@ test('provider selection restores isolated profiles and never returns saved keys
   expect(publicProjection).not.toHaveProperty('baseUrl');
 });
 
-test('encrypted keys stay unavailable after locking until the correct passphrase unlocks the vault', async () => {
+test('saved keys work after reload and in new pages while content cannot read private storage', async () => {
   const persistent = await options.evaluate(() => (globalThis as unknown as {
     chrome: { storage: { local: { get(keys: null): Promise<Record<string, unknown>> } } };
   }).chrome.storage.local.get(null));
-  expect(JSON.stringify(persistent)).not.toMatch(/fake-test-(?:deepseek|openai)-key/);
-  expect(persistent['key-vault:v1']).toMatchObject({ version: 1, cipher: { name: 'AES-GCM' } });
-  const locked = await vaultMessage({ type: 'lock-key-vault' });
-  expect(locked).toMatchObject({ ok: true, status: { locked: true } });
-  try {
-    const settings = await readConnection();
-    expect(settings).toMatchObject({ hasApiKey: false, keyVaultLocked: true, vault: { configured: true, locked: true } });
-    expect(JSON.stringify(settings)).not.toContain('fake-test-deepseek-key');
-    expect((await translateFromOptions()).at(-1)).toMatchObject({ type: 'error', error: { code: 'CONFIG', retryable: false } });
-    expect(await capturedRequests()).toEqual([]);
-    const rejected = await vaultMessage({ type: 'unlock-key-vault', passphrase: 'incorrect-test-only-passphrase-2026' });
-    expect(rejected.ok).toBe(false);
-    expect(rejected.error).not.toMatch(/fake-test-deepseek-key|incorrect-test-only-passphrase-2026/);
-    expect((await readConnection()).vault?.locked).toBe(true);
-    expect(await capturedRequests()).toEqual([]);
-  } finally {
-    const unlocked = await vaultMessage({ type: 'unlock-key-vault', passphrase: 'test-only-long-passphrase-2026' });
-    expect(unlocked).toMatchObject({ ok: true, status: { locked: false } });
-  }
+  expect(persistent['connection-settings:v2']).toBeTruthy();
+  expect(JSON.stringify(persistent['connection-settings:v2'])).toContain('fake-test-deepseek-key');
+  expect(persistent).not.toHaveProperty('key-vault:v1');
+  await expect(options.getByLabel('密钥库口令', { exact: true })).toHaveCount(0);
+  await options.reload();
+  expect(await readConnection()).toMatchObject({ hasApiKey: true, keyVaultLocked: false });
+  await options.screenshot({ path: resolve('.output/extension-settings-simple.png'), fullPage: true });
   expect((await translateFromOptions()).at(-1)).toMatchObject({ type: 'result' });
   expect((await capturedRequests()).at(-1)?.authorization).toBe('Bearer fake-test-deepseek-key');
+
+  const second = await context.newPage();
+  const article = await context.newPage();
+  const debug = await context.newCDPSession(article);
+  const worlds: Array<{ id: number; origin: string; name: string }> = [];
+  debug.on('Runtime.executionContextCreated', ({ context }) => { worlds.push(context); });
+  await debug.send('Runtime.enable');
+  const fixtureUrl = 'http://127.0.0.1:4177/private-settings-boundary';
+  await context.route(fixtureUrl, route => route.fulfill({ contentType: 'text/html', body: '<!doctype html><html lang="en"><body><article><h1>Private settings test</h1><p>This isolated article contains no API credential.</p></article></body></html>' }));
+  try {
+    await second.goto(`chrome-extension://${extensionId}/options.html`);
+    await expect(second.getByLabel('DeepSeek API Key', { exact: true })).toHaveValue('');
+    expect((await translateFromOptions(second)).at(-1)).toMatchObject({ type: 'result' });
+    expect((await capturedRequests()).at(-1)?.authorization).toBe('Bearer fake-test-deepseek-key');
+    await article.goto(fixtureUrl);
+    await expect(article.locator('near-translate')).toHaveCount(1);
+    expect(await article.content()).not.toContain('fake-test-deepseek-key');
+    const findWorld = () => worlds.find(world => world.origin === `chrome-extension://${extensionId}` || world.name === extensionId);
+    await expect.poll(findWorld).toBeTruthy();
+    const read = await debug.send('Runtime.evaluate', { contextId: findWorld()!.id, awaitPromise: true, returnByValue: true,
+      expression: `(async () => {
+        let storageReadable = false;
+        try { await chrome.storage.local.get('connection-settings:v2'); storageReadable = true; } catch {}
+        const settings = await chrome.runtime.sendMessage({ type: 'get-settings' });
+        return { storageReadable, settings };
+      })()` });
+    expect(read.exceptionDetails).toBeUndefined();
+    expect(read.result.value).toMatchObject({ storageReadable: false, settings: { hasApiKey: true, keyVaultLocked: false } });
+    expect(JSON.stringify(read.result.value)).not.toContain('fake-test-deepseek-key');
+  } finally {
+    await debug.detach(); await second.close(); await article.close(); await context.unroute(fixtureUrl);
+  }
+});
+
+test('saving a Key enables an already open article without reloading it', async () => {
+  await worker.evaluate(async () => {
+    const global = globalThis as unknown as {
+      chrome: { scripting: { unregisterContentScripts(options: { ids: string[] }): Promise<void> } };
+    };
+    await global.chrome.scripting.unregisterContentScripts({ ids: ['near-translate-selection'] });
+  });
+  const fixtureUrl = 'http://127.0.0.1:4177/already-open-article';
+  await context.route(fixtureUrl, route => route.fulfill({ contentType: 'text/html', body:
+    '<!doctype html><html lang="en"><body><article><p id="already-open">This article was already open before the user saved a new API Key.</p></article></body></html>' }));
+  const article = await context.newPage();
+  try {
+    await article.goto(fixtureUrl);
+    await expect(article.locator('near-translate')).toHaveCount(0);
+    await article.evaluate(() => { (globalThis as unknown as { __nearDocumentMarker: string }).__nearDocumentMarker = 'same-open-document'; });
+    await options.getByLabel('DeepSeek API Key', { exact: true }).fill('fake-test-injected-key');
+    await saveForm();
+    await expect(article.locator('near-translate')).toHaveCount(1);
+    expect(await article.evaluate(() => (globalThis as unknown as { __nearDocumentMarker: string }).__nearDocumentMarker)).toBe('same-open-document');
+    await article.locator('#already-open').evaluate(element => {
+      const range = document.createRange(); range.selectNodeContents(element);
+      const selection = document.getSelection(); selection?.removeAllRanges(); selection?.addRange(range);
+      const rect = element.getBoundingClientRect();
+      element.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, composed: true, clientX: rect.right - 4, clientY: rect.bottom - 4 }));
+    });
+    await article.getByRole('button', { name: '翻译选中文字' }).click();
+    await expect(article.locator('.nt-text')).toHaveText('模拟接口翻译成功。');
+    expect((await capturedRequests()).at(-1)).toMatchObject({
+      url: 'https://api.deepseek.com/chat/completions', authorization: 'Bearer fake-test-injected-key',
+    });
+    expect(await article.content()).not.toContain('fake-test-injected-key');
+  } finally {
+    await article.close();
+    await context.unroute(fixtureUrl);
+  }
+});
+
+test('a required-key model can be saved disabled before a Key is configured', async () => {
+  await options.getByLabel('API 服务商', { exact: true }).selectOption('qwen');
+  await expect(options.getByLabel('通义千问（百炼） API Key', { exact: true })).toHaveValue('');
+  await options.getByLabel('启用翻译', { exact: true }).uncheck();
+  await saveForm();
+  expect(await readConnection()).toMatchObject({ provider: 'qwen', enabled: false, hasApiKey: false, requiresApiKey: true });
+  expect((await translateFromOptions()).at(-1)).toMatchObject({ type: 'error', error: { code: 'CONFIG' } });
+  expect(await capturedRequests()).toHaveLength(0);
 });
 
 test('an anonymous custom local endpoint translates through the background with its chosen model', async () => {
@@ -305,7 +365,7 @@ for (const action of ['delete-key', 'disable-translation'] as const) {
     });
     // Verify the refusal actually reaches the form, despite the E2E manifest's granted hosts.
     await options.getByRole('button', { name: '保存设置', exact: true }).click();
-    await expect(options.getByRole('alert')).toContainText('未获得此 API 地址的访问权限');
+    await expect(options.getByRole('alert')).toContainText('未获得翻译所需权限');
     expect(await options.evaluate(() => (globalThis as unknown as { __nearDeniedPermissionCalls: number }).__nearDeniedPermissionCalls)).toBe(1);
     expect(await readConnection()).toMatchObject({ enabled: true, hasApiKey: true });
 
@@ -318,3 +378,39 @@ for (const action of ['delete-key', 'disable-translation'] as const) {
     expect(await capturedRequests()).toHaveLength(0);
   });
 }
+
+test('an old authenticated Ollama Key can be discarded without its old passphrase', async () => {
+  const { vault } = await createEncryptedKeyVault('fixture-only-forgotten-old-passphrase', {
+    ollama: { baseUrl: 'http://localhost:11434/v1', apiKey: 'fake-test-legacy-ollama-auth' },
+  });
+  await options.evaluate(async vault => {
+    const global = globalThis as unknown as {
+      chrome: { storage: { local: { set(data: Record<string, unknown>): Promise<void>; remove(key: string): Promise<void> } } };
+    };
+    await global.chrome.storage.local.set({
+      'key-vault:v1': vault,
+      'settings:v1': {
+        schemaVersion: 3, translationEngine: 'model', enabled: true, includeContext: true, sentenceAnalysisEnabled: false,
+        provider: 'ollama', baseUrl: 'http://localhost:11434/v1', model: 'legacy-ollama-model', jsonMode: false,
+        profiles: { ollama: { baseUrl: 'http://localhost:11434/v1', model: 'legacy-ollama-model', jsonMode: false } },
+      },
+    });
+    await global.chrome.storage.local.remove('connection-settings:v2');
+  }, vault);
+  await options.reload();
+  await expect(options.getByLabel('API 服务商', { exact: true })).toHaveValue('ollama');
+  expect(await readConnection()).toMatchObject({ hasApiKey: false, requiresApiKey: false, apiKeyMigrationRequired: true, legacyKeyProviders: ['ollama'] });
+  expect((await translateFromOptions()).at(-1)).toMatchObject({ type: 'error', error: { code: 'CONFIG' } });
+  expect(await capturedRequests()).toHaveLength(0);
+  await options.getByRole('button', { name: '删除已保存的 Key', exact: true }).click();
+  await saveForm();
+  expect(await readConnection()).toMatchObject({ hasApiKey: false, apiKeyMigrationRequired: false, legacyKeyProviders: [] });
+  expect((await translateFromOptions()).at(-1)).toMatchObject({ type: 'result' });
+  expect((await capturedRequests()).at(-1)).toMatchObject({
+    url: 'http://localhost:11434/v1/chat/completions', authorization: null, body: { model: 'legacy-ollama-model' },
+  });
+  const preserved = await options.evaluate(() => (globalThis as unknown as {
+    chrome: { storage: { local: { get(key: string): Promise<Record<string, unknown>> } } };
+  }).chrome.storage.local.get('key-vault:v1'));
+  expect(preserved['key-vault:v1']).toEqual(vault);
+});

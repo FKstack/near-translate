@@ -32,7 +32,6 @@ function respond(index: number, payload: unknown, status = 200) {
 }
 async function install() { cleanup = await runtime.installRuntime({ onOpenSettings: vi.fn() }); }
 async function configureModel() {
-  expect(await api.browser.runtime.sendMessage({ type: 'create-key-vault', passphrase: PASS })).toMatchObject({ ok: true });
   expect(await api.browser.runtime.sendMessage({ type: 'save-settings', settings: {
     translationEngine: 'model', enabled: true, includeContext: false, sentenceAnalysisEnabled: true,
     provider: 'deepseek', baseUrl: 'https://api.deepseek.com', model: 'deepseek-chat', apiKey: KEY, jsonMode: true,
@@ -101,12 +100,13 @@ describe('userscript sandbox storage and runtime', () => {
     client.dispose();
   });
 
-  it('encrypts model keys, streams SSE, and returns only projections to UI consumers', async () => {
+  it('saves model keys privately without a passphrase and streams SSE while public messages omit them', async () => {
     await install(); await configureModel();
     const publicValue = await api.browser.runtime.sendMessage({ type: 'get-settings' });
     const connectionValue = await api.browser.runtime.sendMessage({ type: 'get-connection-settings' });
     expect(publicValue).toMatchObject({ hasApiKey: true, translationEngine: 'model' });
-    expect(JSON.stringify([publicValue, connectionValue, [...persisted]])).not.toContain(KEY);
+    expect(JSON.stringify([publicValue, connectionValue])).not.toContain(KEY);
+    expect(JSON.stringify([...persisted])).toContain(KEY);
     expect([...persisted.keys()].some(key => key.includes(KEY_VAULT_SESSION_KEY))).toBe(false);
     const { TranslationClient } = await import('../../src/platform/translation-client');
     const events: TranslationServerMessage[] = [];
@@ -140,7 +140,7 @@ describe('userscript sandbox storage and runtime', () => {
     await settle(); expect(events.some(event => event.type === 'result')).toBe(false);
   });
 
-  it('cancels requests, locks this page, and broadcasts safe settings after a remote configuration change', async () => {
+  it('cancels requests and broadcasts fresh usable settings after a remote configuration change', async () => {
     await install(); await configureModel();
     const broadcasts: unknown[] = [];
     api.browser.runtime.onMessage.addListener((message, sender) => {
@@ -152,10 +152,10 @@ describe('userscript sandbox storage and runtime', () => {
     const client = new TranslationClient(event => events.push(event));
     client.start({ kind: 'text', text: 'Hello' });
     await until(() => requests.length === 1);
-    const saved = persisted.get(PREFIX + 'settings:v1') as Record<string, unknown>;
-    write(PREFIX + 'settings:v1', { ...saved, connectionRevision: 999 }, true);
+    const saved = persisted.get(PREFIX + 'connection-settings:v2') as { settings: Record<string, unknown> };
+    write(PREFIX + 'connection-settings:v2', { ...saved, settings: { ...saved.settings, connectionRevision: 999 } }, true);
     await until(() => requests[0]!.abort.mock.calls.length > 0);
-    expect(await api.browser.runtime.sendMessage({ type: 'get-key-vault-status' })).toMatchObject({ ok: true, status: { locked: true } });
+    expect(await api.browser.runtime.sendMessage({ type: 'get-settings' })).toMatchObject({ hasApiKey: true, apiKeyMigrationRequired: false });
     expect(events.some(event => event.type === 'error' && event.error.code === 'CONFIG')).toBe(true);
     await settle(); expect(broadcasts.some(message => (message as { type?: string }).type === 'settings-changed')).toBe(true);
     expect(JSON.stringify(broadcasts)).not.toContain(KEY);
@@ -214,37 +214,45 @@ describe('userscript sandbox storage and runtime', () => {
     expect(requests).toHaveLength(0); client.dispose();
   });
 
-  it('refreshes the public key capability when a page is explicitly unlocked', async () => {
+  it('uses a saved Key in a new article document without unlocking or changing storage', async () => {
     await install(); await configureModel();
     const snapshot = JSON.stringify([...persisted]);
-    const revision = (persisted.get(PREFIX + 'settings:v1') as Record<string, unknown>).connectionRevision;
-    vi.stubGlobal('location', { href: 'https://article.example/article' });
-    expect(await api.browser.runtime.sendMessage({ type: 'lock-key-vault' })).toMatchObject({ ok: true });
-    expect(await api.browser.runtime.sendMessage({ type: 'get-settings' })).toMatchObject({ hasApiKey: false, keyVaultLocked: true });
-    const events: unknown[] = [];
-    api.browser.runtime.onMessage.addListener(message => { events.push(message); });
-    expect(await api.browser.runtime.sendMessage({ type: 'unlock-key-vault', passphrase: PASS })).toMatchObject({ ok: true });
-    await settle();
-    expect(events).toContainEqual(expect.objectContaining({ type: 'settings-changed', settings: expect.objectContaining({ hasApiKey: true, keyVaultLocked: false }) }));
-    expect(JSON.stringify(events)).not.toContain(KEY);
+    cleanup?.(); await settle(); vi.resetModules();
+    vi.stubGlobal('location', { href: 'http://article.example/another' });
+    api = await import('../../src/userscript/browser'); shim.browser = api.browser;
+    runtime = await import('../../src/userscript/runtime'); await install();
+    const publicValue = await api.browser.runtime.sendMessage({ type: 'get-settings' });
+    expect(publicValue).toMatchObject({ hasApiKey: true, apiKeyMigrationRequired: false });
+    expect(JSON.stringify(publicValue)).not.toContain(KEY);
+    const { TranslationClient } = await import('../../src/platform/translation-client');
+    const events: TranslationServerMessage[] = [];
+    const client = new TranslationClient(event => events.push(event));
+    client.start({ kind: 'text', text: 'A newly opened article.' });
+    await until(() => requests.length === 1);
+    expect(requests[0]!.details.headers.authorization).toBe('Bearer ' + KEY);
     expect(JSON.stringify([...persisted])).toEqual(snapshot);
-    expect((persisted.get(PREFIX + 'settings:v1') as Record<string, unknown>).connectionRevision).toEqual(revision);
+    client.dispose();
   });
 
-  it('limits persistent configuration and vault mutations to the canonical settings page with Web Locks', async () => {
+  it('limits saves and legacy import to the canonical settings page with Web Locks', async () => {
     await install();
     vi.stubGlobal('location', { href: 'https://article.example/near-translate/userscript/settings.html' });
-    expect(await api.browser.runtime.sendMessage({ type: 'create-key-vault', passphrase: PASS })).toMatchObject({ ok: false, error: expect.stringContaining('专用设置页') });
+    for (const message of [{ type: 'save-settings', settings: {} }, { type: 'import-legacy-keys', passphrase: PASS }]) {
+      expect(await api.browser.runtime.sendMessage(message)).toMatchObject({ ok: false, error: expect.stringContaining('专用设置页') });
+    }
     expect(await api.browser.runtime.sendMessage({ type: 'enable-free-translation' })).toMatchObject({ ok: false });
-    expect(persisted.size).toEqual(0);
+    expect(persisted.size).toBe(0);
     vi.stubGlobal('location', { href: 'https://fkstack.github.io/near-translate/userscript/settings.html' });
-    vi.stubGlobal('navigator', {});
-    expect(await api.browser.runtime.sendMessage({ type: 'create-key-vault', passphrase: PASS })).toMatchObject({ ok: false, error: expect.stringContaining('Web Locks') });
-    expect(persisted.size).toEqual(0);
+    vi.stubGlobal('navigator', { locks: undefined });
+    for (const message of [{ type: 'save-settings', settings: {} }, { type: 'import-legacy-keys', passphrase: PASS }]) {
+      expect(await api.browser.runtime.sendMessage(message)).toMatchObject({ ok: false, error: expect.stringContaining('Web Locks') });
+    }
+    expect(persisted.size).toBe(0);
+    for (const type of ['create-key-vault','unlock-key-vault','lock-key-vault','change-key-vault-passphrase']) {
+      expect(await api.browser.runtime.sendMessage({ type, passphrase: PASS })).toEqual({ ok: false });
+    }
   });
-});
 
-describe('userscript provider-bound network adapter', () => {
   it.each([undefined, { scriptHandler: 'Violentmonkey', version: '99.0' }, { scriptHandler: 'Tampermonkey', version: '5.3.9' },
     { scriptHandler: 'Tampermonkey', version: '5.4.0beta' }, { scriptHandler: 'Tampermonkey', version: 'invalid' }])(
     'requires a verified Tampermonkey version before sending a network request (%j)', async info => {

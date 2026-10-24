@@ -1,431 +1,299 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { ProviderId } from '../../src/shared/contracts';
-import { getProvider } from '../../src/shared/api-config';
-import { KEY_VAULT_SESSION_KEY, KEY_VAULT_STORAGE_KEY } from '../../src/shared/key-vault';
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { EncryptedKeyVault } from '../../src/shared/key-vault';
+import { KEY_VAULT_STORAGE_KEY } from '../../src/shared/key-vault';
+import { createEncryptedKeyVault } from '../../src/platform/key-vault';
 
-const state = vi.hoisted(() => ({
-  local: {} as Record<string, unknown>, session: {} as Record<string, unknown>,
-  localGet: vi.fn(), localSet: vi.fn(), localRemove: vi.fn(), sessionGet: vi.fn(), sessionSet: vi.fn(), sessionRemove: vi.fn(),
-  localAccess: vi.fn(), sessionAccess: vi.fn(), contains: vi.fn(), request: vi.fn(), fetch: vi.fn(),
-}));
-vi.mock('wxt/browser', () => ({ browser: {
-  storage: {
-    local: { get: state.localGet, set: state.localSet, remove: state.localRemove, setAccessLevel: state.localAccess },
-    session: { get: state.sessionGet, set: state.sessionSet, remove: state.sessionRemove, setAccessLevel: state.sessionAccess },
-  },
-  permissions: { contains: state.contains, request: state.request },
-} }));
-
-const KEY = 'settings:v1';
-const PASS = 'test-only vault passphrase 2026';
-const NEW_PASS = 'test-only replacement passphrase 2026';
-const DEEPSEEK_KEY = 'test-only-deepseek-key-fixture';
-const OPENAI_KEY = 'test-only-openai-key-fixture';
-let api: typeof import('../../src/platform/settings');
-const profile = (provider: ProviderId, apiKey = '') => ({
-  model: getProvider(provider).model || 'test-model', baseUrl: getProvider(provider).baseUrl,
-  jsonMode: getProvider(provider).jsonMode, apiKey,
+const fixture = vi.hoisted(() => {
+  const data = new Map<string, unknown>();
+  return { data, browser: {
+    storage: { local: {
+      get: vi.fn(async (query: string | string[]) => Object.fromEntries((Array.isArray(query) ? query : [query])
+        .filter(key => data.has(key)).map(key => [key, structuredClone(data.get(key))]))),
+      set: vi.fn(async (values: Record<string, unknown>) => { for (const [key, value] of Object.entries(values)) data.set(key, structuredClone(value)); }),
+      remove: vi.fn(async (key: string) => { data.delete(key); }),
+      setAccessLevel: vi.fn(async () => {}),
+    }, session: { setAccessLevel: vi.fn(async () => {}) } },
+    permissions: { contains: vi.fn(async (query: { permissions?: string[] }) => !query.permissions?.length) },
+  } };
 });
-const existing = () => ({
-  schemaVersion: 2, translationEngine: 'model', enabled: true, includeContext: false, sentenceAnalysisEnabled: true,
-  sourceLanguage: 'en', targetLanguage: 'zh-Hans', provider: 'deepseek', connectionRevision: 7,
-  ...profile('deepseek', DEEPSEEK_KEY),
-  profiles: { deepseek: profile('deepseek', DEEPSEEK_KEY), openai: profile('openai', OPENAI_KEY) },
+vi.mock('wxt/browser', () => ({ browser: fixture.browser }));
+const LEGACY = 'settings:v1';
+const KEY = 'fixture-only-saved-api-key';
+const REPLACEMENT = 'fixture-only-replacement-api-key';
+const PASS = 'fixture-only previous vault passphrase';
+const legacyConfig = {
+  schemaVersion: 3, translationEngine: 'model', enabled: true, includeContext: false, sentenceAnalysisEnabled: true,
+  provider: 'deepseek', baseUrl: 'https://api.deepseek.com', model: 'deepseek-chat', jsonMode: true, connectionRevision: 3,
+  profiles: { deepseek: { baseUrl: 'https://api.deepseek.com', model: 'deepseek-chat', jsonMode: true },
+    openai: { baseUrl: 'https://api.openai.com/v1', model: 'gpt-fixture', jsonMode: true } },
+};
+const modelInput = { translationEngine: 'model', enabled: true, includeContext: false, sentenceAnalysisEnabled: true,
+  provider: 'deepseek', baseUrl: 'https://api.deepseek.com', model: 'deepseek-chat', apiKey: KEY, jsonMode: true };
+let vault: EncryptedKeyVault;
+let rotatedVault: EncryptedKeyVault;
+let store: typeof import('../../src/platform/connection-settings');
+beforeAll(async () => {
+  const credentials = { deepseek: { baseUrl: 'https://api.deepseek.com', apiKey: 'fixture-only-encrypted-old-key' },
+    openai: { baseUrl: 'https://api.openai.com/v1', apiKey: 'fixture-only-encrypted-openai-key' } };
+  vault = (await createEncryptedKeyVault(PASS, credentials)).vault;
+  rotatedVault = (await createEncryptedKeyVault(PASS, credentials)).vault;
 });
-const form = (provider: ProviderId = 'deepseek', apiKey = '') => ({
-  translationEngine: 'model', enabled: true, includeContext: false, sentenceAnalysisEnabled: true,
-  provider, ...profile(provider, apiKey),
-});
-const readArea = (area: Record<string, unknown>, query: string | string[] | null) => structuredClone(query === null ? area
-  : Object.fromEntries((Array.isArray(query) ? query : [query]).filter(key => Object.hasOwn(area, key)).map(key => [key, area[key]])));
-function writeArea(area: Record<string, unknown>, value: Record<string, unknown>) { Object.assign(area, structuredClone(value)); }
-const persisted = () => state.local[KEY] as Record<string, unknown>;
-async function configured() { await api.createKeyVault(PASS); return api.readSettings(); }
-
 beforeEach(async () => {
-  vi.resetModules(); vi.clearAllMocks();
-  state.local = { [KEY]: existing() }; state.session = {};
-  state.localGet.mockImplementation(async query => readArea(state.local, query));
-  state.localSet.mockImplementation(async value => writeArea(state.local, value));
-  state.localRemove.mockImplementation(async key => { for (const name of Array.isArray(key) ? key : [key]) delete state.local[name]; });
-  state.sessionGet.mockImplementation(async query => readArea(state.session, query));
-  state.sessionSet.mockImplementation(async value => writeArea(state.session, value));
-  state.sessionRemove.mockImplementation(async key => { for (const name of Array.isArray(key) ? key : [key]) delete state.session[name]; });
-  state.localAccess.mockResolvedValue(undefined); state.sessionAccess.mockResolvedValue(undefined);
-  state.contains.mockResolvedValue(true); state.request.mockResolvedValue(false);
-  state.fetch.mockRejectedValue(new Error('Unexpected fetch in settings test'));
-  vi.stubGlobal('fetch', state.fetch);
-  api = await import('../../src/platform/settings');
+  fixture.data.clear();
+  vi.clearAllMocks();
+  vi.resetModules();
+  store = await import('../../src/platform/connection-settings');
 });
-afterEach(() => {
-  expect(state.fetch).not.toHaveBeenCalled();
-  expect(state.request).not.toHaveBeenCalled();
-  vi.unstubAllGlobals();
-});
+function legacy() {
+  fixture.data.set(LEGACY, structuredClone(legacyConfig));
+  fixture.data.set(KEY_VAULT_STORAGE_KEY, structuredClone(vault));
+}
+async function settle() { for (let index = 0; index < 30; index++) await Promise.resolve(); }
 
-describe('vault migration and storage boundaries', () => {
-  it('leaves legacy keys untouched but unavailable until a passphrase is supplied', async () => {
-    const before = structuredClone(state.local);
-    expect(await api.readSettings()).toMatchObject({ schemaVersion: 2, apiKey: '', keyVaultLocked: true });
-    expect(await api.keyVaultStatus()).toEqual({ configured: false, locked: true, migrationRequired: true,
-      savedProviders: ['deepseek', 'openai'] });
-    expect(await api.publicSettings()).toMatchObject({ hasApiKey: false, keyVaultLocked: true });
-    expect(await api.connectionSettings()).toMatchObject({ profiles: { deepseek: { hasApiKey: true }, openai: { hasApiKey: true } } });
-    expect(state.local).toEqual(before);
-    expect(state.localSet).not.toHaveBeenCalled();
-    expect(state.localAccess).toHaveBeenCalledWith({ accessLevel: 'TRUSTED_CONTEXTS' });
-    expect(state.sessionAccess).toHaveBeenCalledWith({ accessLevel: 'TRUSTED_CONTEXTS' });
+describe('private connection settings without unlock sessions', () => {
+  it('starts with free translation and restricts extension storage to trusted contexts', async () => {
+    expect(await store.publicSettings()).toMatchObject({ enabled: true, translationEngine: 'deepl-web', hasApiKey: false,
+      keyVaultLocked: false, apiKeyMigrationRequired: false });
+    expect(fixture.browser.storage.local.setAccessLevel).toHaveBeenCalledWith({ accessLevel: 'TRUSTED_CONTEXTS' });
+    expect(fixture.browser.storage.session.setAccessLevel).toHaveBeenCalledWith({ accessLevel: 'TRUSTED_CONTEXTS' });
+    expect(fixture.browser.storage.local.set).not.toHaveBeenCalled();
   });
 
-  it('migrates every provider, validates ciphertext, then removes all local plaintext copies', async () => {
-    const result = await api.createKeyVault(PASS);
-    expect(result).toEqual({ configured: true, locked: false, migrationRequired: false, savedProviders: ['deepseek', 'openai'] });
-    expect(await api.readSettings()).toMatchObject({ apiKey: DEEPSEEK_KEY, connectionRevision: 8,
-      profiles: { deepseek: { apiKey: DEEPSEEK_KEY }, openai: { apiKey: OPENAI_KEY } } });
-    expect(persisted().schemaVersion).toBe(3);
-    expect(persisted()).not.toHaveProperty('apiKey');
-    expect(persisted()).not.toHaveProperty('keyVaultLocked');
-    expect((persisted().profiles as Record<string, unknown>).deepseek).not.toHaveProperty('apiKey');
-    const disk = JSON.stringify(state.local);
-    expect(disk).not.toContain(DEEPSEEK_KEY); expect(disk).not.toContain(OPENAI_KEY); expect(disk).not.toContain(PASS);
-    const unlocked = state.session[KEY_VAULT_SESSION_KEY] as { key: string };
-    expect(disk).not.toContain(unlocked.key);
-    expect(JSON.stringify(state.session)).not.toContain(DEEPSEEK_KEY);
-    expect(state.localSet.mock.calls[0]![0]).toHaveProperty(KEY_VAULT_STORAGE_KEY);
-    expect(state.localSet.mock.calls[1]![0]).toHaveProperty(KEY);
+  it('saves once without a passphrase and a fresh document can use the Key immediately', async () => {
+    await store.saveSettings(modelInput, true);
+    expect(fixture.browser.storage.local.set).toHaveBeenCalledTimes(1);
+    expect(Object.keys(fixture.browser.storage.local.set.mock.calls[0]![0])).toEqual([store.CONNECTION_SETTINGS_KEY]);
+    expect(fixture.data.has(KEY_VAULT_STORAGE_KEY)).toBe(false);
+    expect(await store.readSettings()).toMatchObject({ apiKey: KEY, keyVaultLocked: false });
+    vi.resetModules();
+    const fresh = await import('../../src/platform/connection-settings');
+    expect(await fresh.readSettings()).toMatchObject({ apiKey: KEY, keyVaultLocked: false });
+    expect(await fresh.publicSettings()).toMatchObject({ hasApiKey: true, apiKeyMigrationRequired: false });
   });
 
-  it('migrates an old flattened DeepSeek v1 setting without copying to a different host', async () => {
-    state.local[KEY] = { schemaVersion: 1, enabled: true, includeContext: true, model: 'old-model', apiKey: DEEPSEEK_KEY };
-    await configured();
-    expect(await api.readSettings()).toMatchObject({ provider: 'deepseek', apiKey: DEEPSEEK_KEY, model: 'old-model' });
+  it('returns capability markers instead of secrets or old encrypted data', async () => {
+    legacy();
+    await store.saveSettings(modelInput, true);
+    const snapshots = [await store.publicSettings(), await store.connectionSettings()];
+    expect(JSON.stringify(snapshots)).not.toContain(KEY);
+    expect(JSON.stringify(snapshots)).not.toContain(vault.ciphertext);
+    expect(JSON.stringify(snapshots)).not.toContain('apiKey"');
+    expect(snapshots[1]).toMatchObject({ profiles: { deepseek: { hasApiKey: true } }, legacyKeyProviders: ['openai'] });
   });
 
-  it('rejects conflicting flattened/profile credentials instead of silently losing one', async () => {
-    (persisted().profiles as Record<string, unknown>).deepseek = profile('deepseek', 'test-only-conflicting-fixture');
-    const before = structuredClone(state.local);
-    await expect(api.createKeyVault(PASS)).rejects.toThrow(/不一致/);
-    expect(state.local).toEqual(before);
-    expect(state.localSet).not.toHaveBeenCalled();
+  it('keeps provider keys separate and does not send a saved Key to a changed endpoint', async () => {
+    await store.saveSettings(modelInput, true);
+    await store.saveSettings({ ...modelInput, provider: 'openai', baseUrl: 'https://api.openai.com/v1', model: 'gpt-fixture', apiKey: 'fixture-only-openai-key' }, true);
+    await store.saveSettings({ ...modelInput, apiKey: '' }, true);
+    expect((await store.readSettings()).apiKey).toBe(KEY);
+    await store.saveSettings({ ...modelInput, baseUrl: 'https://other.example/v1', apiKey: '' }, true);
+    expect(await store.readSettings()).toMatchObject({ baseUrl: 'https://other.example/v1', apiKey: '' });
+    expect((await store.connectionSettings()).profiles.openai?.hasApiKey).toBe(true);
   });
 
-  it.each([
-    () => { persisted().baseUrl = 'http://remote.example'; },
-    () => { persisted().provider = 'unknown'; },
-    () => { (persisted().profiles as Record<string, unknown>).unknown = { baseUrl: 'https://unknown.example', apiKey: 'test-only-unknown' }; },
-  ])('does not delete unsafe or unknown old credentials %#', async mutate => {
-    mutate(); const before = structuredClone(state.local);
-    await expect(api.createKeyVault(PASS)).rejects.toThrow(/旧|已有/);
-    expect(state.local).toEqual(before);
+  it('enabling free translation preserves stored model profiles and keys', async () => {
+    await store.saveSettings(modelInput, true);
+    await store.enableFreeTranslation();
+    expect(await store.publicSettings()).toMatchObject({ translationEngine: 'deepl-web', requiresApiKey: false });
+    await store.saveSettings({ ...modelInput, apiKey: '' }, true);
+    expect((await store.readSettings()).apiKey).toBe(KEY);
   });
 
-  it('does not expose storage exception strings and retains legacy data on write failure', async () => {
-    const before = structuredClone(state.local);
-    state.localSet.mockRejectedValueOnce(new Error('test-only-private-browser-error-' + DEEPSEEK_KEY));
-    const error = await api.createKeyVault(PASS).catch(error => error as Error) as Error;
-    expect(error.message).not.toContain(DEEPSEEK_KEY);
-    expect(error.message).not.toContain('private-browser-error');
-    expect(state.local).toEqual(before);
-    await configured(); // A failed mutation must not poison the queue.
-    expect((await api.readSettings()).apiKey).toBe(DEEPSEEK_KEY);
+  it('recognises old encrypted keys without pretending they are unlocked or usable', async () => {
+    legacy();
+    expect(await store.connectionSettings()).toMatchObject({ model: 'deepseek-chat', keyVaultLocked: false,
+      hasApiKey: false, apiKeyMigrationRequired: true, legacyKeyMigrationAvailable: true,
+      legacyKeyProviders: ['deepseek', 'openai'], profiles: { deepseek: { hasApiKey: false } } });
+    expect(await store.readSettings()).toMatchObject({ apiKey: '', apiKeyMigrationRequired: true });
+    expect(fixture.browser.storage.local.set).not.toHaveBeenCalled();
   });
 
-  it('keeps verified ciphertext plus legacy data if cleanup fails and unlock resumes safely', async () => {
-    const before = structuredClone(persisted());
-    state.localSet.mockImplementation(async value => {
-      if (Object.hasOwn(value, KEY)) throw new Error('test-only-cleanup-failure');
-      writeArea(state.local, value);
-    });
-    await expect(api.createKeyVault(PASS)).rejects.toThrow(/失败/);
-    expect(persisted()).toEqual(before);
-    expect(state.local).toHaveProperty(KEY_VAULT_STORAGE_KEY);
-    expect(await api.keyVaultStatus()).toMatchObject({ configured: true, locked: true, migrationRequired: true });
-    expect((await api.readSettings()).apiKey).toBe('');
-    state.localSet.mockImplementation(async value => writeArea(state.local, value));
-    await api.unlockKeyVault(PASS);
-    expect((await api.readSettings()).apiKey).toBe(DEEPSEEK_KEY);
-    expect(JSON.stringify(state.local)).not.toContain(DEEPSEEK_KEY);
+  it('imports with the old passphrase once and never changes the old recovery records', async () => {
+    legacy();
+    const original = structuredClone([...fixture.data]);
+    const snapshot = await store.importLegacyKeys(PASS);
+    expect(snapshot).toMatchObject({ hasApiKey: true, keyVaultLocked: false, apiKeyMigrationRequired: false,
+      legacyKeyMigrationAvailable: false, legacyKeyProviders: [] });
+    expect((await store.readSettings()).apiKey).toBe('fixture-only-encrypted-old-key');
+    for (const [key, value] of original) expect(fixture.data.get(key)).toEqual(value);
+    expect(fixture.browser.storage.local.remove).not.toHaveBeenCalled();
+    expect(JSON.stringify(fixture.data.get(store.CONNECTION_SETTINGS_KEY))).not.toContain(PASS);
   });
 
-  it('rolls back unverified ciphertext while preserving every legacy credential', async () => {
-    const before = structuredClone(state.local);
-    state.localSet.mockImplementation(async value => {
-      const altered = structuredClone(value);
-      if (Object.hasOwn(altered, KEY_VAULT_STORAGE_KEY)) {
-        const vault = altered[KEY_VAULT_STORAGE_KEY] as { ciphertext: string };
-        const bytes = Buffer.from(vault.ciphertext, 'base64'); bytes[0] = bytes[0]! ^ 1;
-        vault.ciphertext = bytes.toString('base64');
-      }
-      writeArea(state.local, altered);
-    });
-    await expect(api.createKeyVault(PASS)).rejects.toThrow(/验证失败/);
-    expect(state.local).toEqual(before);
-    state.localSet.mockImplementation(async value => writeArea(state.local, value));
-    await configured();
-    expect((await api.readSettings()).profiles.openai?.apiKey).toBe(OPENAI_KEY);
+  it('rejects a wrong old passphrase without writing or removing any saved data', async () => {
+    legacy();
+    const original = structuredClone([...fixture.data]);
+    await expect(store.importLegacyKeys('fixture-only deliberately wrong passphrase')).rejects.toThrow(/口令/);
+    expect([...fixture.data]).toEqual(original);
+    expect(fixture.browser.storage.local.set).not.toHaveBeenCalled();
+    expect(fixture.browser.storage.local.remove).not.toHaveBeenCalled();
   });
 
-  it('requires read-back confirmation that every legacy plaintext field was removed', async () => {
-    state.localSet.mockImplementation(async value => {
-      if (!Object.hasOwn(value, KEY)) writeArea(state.local, value);
-    });
-    await expect(api.createKeyVault(PASS)).rejects.toThrow(/清理尚未确认/);
-    expect(state.session).not.toHaveProperty(KEY_VAULT_SESSION_KEY);
-    expect(persisted().apiKey).toBe(DEEPSEEK_KEY);
-    state.localSet.mockImplementation(async value => writeArea(state.local, value));
-    await api.unlockKeyVault(PASS);
-    expect((await api.keyVaultStatus()).migrationRequired).toBe(false);
-    expect(JSON.stringify(state.local)).not.toContain(DEEPSEEK_KEY);
+  it('old import cannot overwrite a newly entered key or resurrect an explicitly deleted key', async () => {
+    legacy();
+    await store.saveSettings({ ...modelInput, apiKey: REPLACEMENT }, true);
+    await store.importLegacyKeys(PASS);
+    expect((await store.readSettings()).apiKey).toBe(REPLACEMENT);
+    await store.saveSettings({ ...modelInput, apiKey: '' }, false);
+    await store.importLegacyKeys(PASS);
+    expect((await store.readSettings()).apiKey).toBe('');
+    expect((await store.connectionSettings()).legacyKeyProviders).not.toContain('deepseek');
   });
 
-  it('refuses cleanup if a legacy credential no longer matches the encrypted copy', async () => {
-    state.localSet.mockImplementation(async value => {
-      if (Object.hasOwn(value, KEY)) throw new Error('test-only-cleanup-failure');
-      writeArea(state.local, value);
-    });
-    await api.createKeyVault(PASS).catch(() => undefined);
-    const raw = persisted(); raw.apiKey = 'test-only-new-legacy-conflict';
-    (raw.profiles as Record<string, unknown>).deepseek = profile('deepseek', String(raw.apiKey));
-    state.localSet.mockImplementation(async value => writeArea(state.local, value));
-    const before = structuredClone(state.local);
-    await expect(api.unlockKeyVault(PASS)).rejects.toThrow(/不一致/);
-    expect(state.local).toEqual(before);
+  it('a concurrent page key replacement during old-key derivation remains authoritative', async () => {
+    legacy();
+    const importing = store.importLegacyKeys(PASS);
+    await settle();
+    vi.resetModules();
+    const otherPage = await import('../../src/platform/connection-settings');
+    await otherPage.saveSettings({ ...modelInput, apiKey: REPLACEMENT }, true);
+    await importing;
+    expect((await otherPage.readSettings()).apiKey).toBe(REPLACEMENT);
   });
 
-  it('preserves the old plaintext awaiting migration when enabling free translation', async () => {
-    const original = existing();
-    await api.enableFreeTranslation();
-    expect(persisted()).toMatchObject({ translationEngine: 'deepl-web', enabled: true, apiKey: original.apiKey, profiles: original.profiles });
-    expect((await api.readSettings()).apiKey).toBe('');
-    expect(await api.publicSettings()).toMatchObject({ requiresApiKey: false, hasApiKey: false });
-    await configured();
-    expect(JSON.stringify(state.local)).not.toContain(DEEPSEEK_KEY);
-    expect(await api.readSettings()).toMatchObject({ translationEngine: 'deepl-web', apiKey: DEEPSEEK_KEY });
+  it('a concurrently changed old vault invalidates an import instead of overwriting it', async () => {
+    legacy();
+    const importing = store.importLegacyKeys(PASS);
+    await settle();
+    fixture.data.set(KEY_VAULT_STORAGE_KEY, structuredClone(rotatedVault));
+    await expect(importing).rejects.toThrow(/另一页面更改/);
+    expect(fixture.data.has(store.CONNECTION_SETTINGS_KEY)).toBe(false);
+    expect(fixture.data.get(KEY_VAULT_STORAGE_KEY)).toEqual(rotatedVault);
   });
 
-  it('requires a vault before new credentials are accepted on a fresh install', async () => {
-    state.local = {};
-    expect(await api.readSettings()).toMatchObject({ translationEngine: 'deepl-web', apiKey: '' });
-    expect(await api.keyVaultStatus()).toEqual({ configured: false, locked: false, migrationRequired: false, savedProviders: [] });
-    await expect(api.saveSettings(form('deepseek', DEEPSEEK_KEY), true)).rejects.toThrow(/创建密钥库/);
-    expect(state.localSet).not.toHaveBeenCalled();
-    await configured();
-    await api.saveSettings(form('deepseek', DEEPSEEK_KEY), true);
-    expect((await api.readSettings()).apiKey).toBe(DEEPSEEK_KEY);
+  it('imports plaintext legacy records without inventing a new password', async () => {
+    fixture.data.set(LEGACY, { ...legacyConfig, apiKey: KEY });
+    await store.importLegacyKeys('');
+    expect((await store.readSettings()).apiKey).toBe(KEY);
+    expect(fixture.data.get(LEGACY)).toMatchObject({ apiKey: KEY });
   });
 
-  it('never includes API Keys, passphrases, session material or ciphertext in settings projections', async () => {
-    await configured();
-    const publicValue = await api.publicSettings(); const trustedValue = await api.connectionSettings();
-    expect(publicValue).not.toHaveProperty('profiles'); expect(publicValue).not.toHaveProperty('baseUrl'); expect(publicValue).not.toHaveProperty('vault');
-    const text = JSON.stringify([publicValue, trustedValue]);
-    for (const secret of [DEEPSEEK_KEY, OPENAI_KEY, PASS,
-      (state.session[KEY_VAULT_SESSION_KEY] as { key: string }).key,
-      (state.local[KEY_VAULT_STORAGE_KEY] as { ciphertext: string }).ciphertext]) expect(text).not.toContain(secret);
-  });
-});
-
-describe('locking, session lifetime and rotation', () => {
-  beforeEach(async () => { await configured(); });
-
-  it('marks saved credentials as locked, retains trusted saved markers and does not erase ciphertext', async () => {
-    const encrypted = structuredClone(state.local[KEY_VAULT_STORAGE_KEY]);
-    const revision = (await api.readSettings()).connectionRevision;
-    await api.lockKeyVault();
-    expect(state.session).not.toHaveProperty(KEY_VAULT_SESSION_KEY);
-    expect(state.local[KEY_VAULT_STORAGE_KEY]).toEqual(encrypted);
-    expect(await api.readSettings()).toMatchObject({ apiKey: '', keyVaultLocked: true, connectionRevision: revision + 1 });
-    expect(await api.connectionSettings()).toMatchObject({ hasApiKey: false, vault: { locked: true }, profiles: { deepseek: { hasApiKey: true } } });
-    await api.unlockKeyVault(PASS);
-    expect(await api.readSettings()).toMatchObject({ apiKey: DEEPSEEK_KEY, keyVaultLocked: false, connectionRevision: revision + 2 });
+  it('uses validated plaintext legacy keys immediately without writes and copies them on save', async () => {
+    fixture.data.set(LEGACY, { ...legacyConfig, apiKey: KEY });
+    expect(await store.readSettings()).toMatchObject({ apiKey: KEY, apiKeyMigrationRequired: false });
+    expect(await store.connectionSettings()).toMatchObject({ hasApiKey: true, legacyKeyMigrationAvailable: false });
+    expect(fixture.browser.storage.local.set).not.toHaveBeenCalled();
+    await store.saveSettings({ ...modelInput, apiKey: '' }, true);
+    expect(fixture.data.get(store.CONNECTION_SETTINGS_KEY)).toMatchObject({ credentials: { deepseek: { apiKey: KEY } } });
+    await store.saveSettings({ ...modelInput, apiKey: '' }, false);
+    expect((await store.readSettings()).apiKey).toBe('');
+    expect(fixture.data.get(LEGACY)).toMatchObject({ apiKey: KEY });
   });
 
-  it('survives service-worker restart using only trusted session material', async () => {
-    const before = structuredClone(state.local);
-    vi.resetModules(); api = await import('../../src/platform/settings');
-    expect((await api.readSettings()).apiKey).toBe(DEEPSEEK_KEY);
-    expect(state.local).toEqual(before);
+  it('keeps malformed or conflicting plaintext recoverable while allowing a replacement Key', async () => {
+    fixture.data.set(LEGACY, { ...legacyConfig, apiKey: KEY, profiles: { deepseek: { ...legacyConfig.profiles.deepseek, apiKey: REPLACEMENT } } });
+    expect((await store.readSettings()).apiKey).toBe('');
+    const original = structuredClone(fixture.data.get(LEGACY));
+    await store.saveSettings({ ...modelInput, apiKey: 'fixture-only-new-key' }, true);
+    expect((await store.readSettings()).apiKey).toBe('fixture-only-new-key');
+    expect(fixture.data.get(LEGACY)).toEqual(original);
   });
 
-  it('locks after browser session reset and unlocks all retained providers using the same passphrase', async () => {
-    state.session = {}; vi.resetModules(); api = await import('../../src/platform/settings');
-    expect(await api.readSettings()).toMatchObject({ apiKey: '', keyVaultLocked: true });
-    await api.unlockKeyVault(PASS);
-    expect((await api.readSettings()).profiles.openai?.apiKey).toBe(OPENAI_KEY);
+  it('requires import for an old authenticated optional local provider instead of dropping its credential', async () => {
+    const optionalVault = (await createEncryptedKeyVault(PASS, {
+      ollama: { baseUrl: 'http://localhost:11434/v1', apiKey: KEY },
+    })).vault;
+    fixture.data.set(LEGACY, { ...legacyConfig, provider: 'ollama', baseUrl: 'http://localhost:11434/v1', model: 'local-fixture',
+      profiles: { ollama: { baseUrl: 'http://localhost:11434/v1', model: 'local-fixture', jsonMode: true } } });
+    fixture.data.set(KEY_VAULT_STORAGE_KEY, optionalVault);
+    expect(await store.readSettings()).toMatchObject({ provider: 'ollama', apiKey: '', apiKeyMigrationRequired: true });
+    expect(await store.publicSettings()).toMatchObject({ requiresApiKey: false, apiKeyMigrationRequired: true });
   });
 
-  it('rejects forged, stale and malformed session material without exposing a credential', async () => {
-    for (const value of [
-      { version: 1, key: Buffer.alloc(32, 9).toString('base64'), salt: 'wrong' },
-      { ...(state.session[KEY_VAULT_SESSION_KEY] as object), key: Buffer.alloc(32, 9).toString('base64') },
-      { ...(state.session[KEY_VAULT_SESSION_KEY] as object), key: 'AB==' },
-    ]) {
-      state.session[KEY_VAULT_SESSION_KEY] = value;
-      expect((await api.readSettings()).apiKey).toBe('');
-      expect((await api.keyVaultStatus()).locked).toBe(true);
-    }
+  it('rejects old-key import when the current provider endpoint was changed', async () => {
+    legacy();
+    await store.saveSettings({ ...modelInput, provider: 'openai', baseUrl: 'https://api.openai.com/v1', model: 'gpt-fixture', apiKey: '' }, true);
+    const saved = fixture.data.get(store.CONNECTION_SETTINGS_KEY) as { settings: { profiles: { deepseek: { baseUrl: string } } } };
+    saved.settings.profiles.deepseek.baseUrl = 'https://new.example/v1';
+    fixture.data.set(store.CONNECTION_SETTINGS_KEY, saved);
+    await expect(store.importLegacyKeys(PASS)).rejects.toThrow(/服务地址/);
+    expect(fixture.data.get(KEY_VAULT_STORAGE_KEY)).toEqual(vault);
   });
 
-  it('allows non-secret preferences and DeepL setup while locked, without rewriting the vault', async () => {
-    await api.lockKeyVault(); const encrypted = structuredClone(state.local[KEY_VAULT_STORAGE_KEY]);
-    await api.saveSettings({ ...form(), model: 'changed-model', includeContext: true, sentenceAnalysisEnabled: false, targetLanguage: 'ja' }, true);
-    expect(await api.readSettings()).toMatchObject({ model: 'changed-model', includeContext: true, sentenceAnalysisEnabled: false, targetLanguage: 'ja', apiKey: '' });
-    await api.enableFreeTranslation();
-    expect((await api.readSettings()).translationEngine).toBe('deepl-web');
-    expect(await api.publicSettings()).toMatchObject({ requiresApiKey: false, keyVaultLocked: false });
-    expect(state.local[KEY_VAULT_STORAGE_KEY]).toEqual(encrypted);
-    expect(JSON.stringify(state.local)).not.toContain(DEEPSEEK_KEY);
+  it.each(['http://remote.example/v1', 'https://api.example/v1?api_key=bad', 'https://user:pass@api.example/v1'])('rejects unsafe or credential-bearing service URL %s', async baseUrl => {
+    await expect(store.saveSettings({ ...modelInput, baseUrl }, true)).rejects.toThrow(/HTTPS/);
+    expect(fixture.browser.storage.local.set).not.toHaveBeenCalled();
   });
 
-  it.each([
-    { input: () => ({ ...form(), apiKey: 'test-only-replacement-key' }), keep: true },
-    { input: () => form(), keep: false },
-    { input: () => ({ ...form(), baseUrl: 'https://gateway.example/v1' }), keep: true },
-  ])('rejects locked credential mutation %#', async ({ input, keep }) => {
-    await api.lockKeyVault(); const before = structuredClone(state.local);
-    await expect(api.saveSettings(input(), keep)).rejects.toThrow(/锁定/);
-    expect(state.local).toEqual(before);
+  it('retains model choices when a stale hidden model form switches to free translation', async () => {
+    await store.saveSettings(modelInput, true);
+    const before = await store.readSettings();
+    await store.saveSettings({ ...modelInput, translationEngine: 'deepl-web', provider: 'custom', baseUrl: '', model: '', apiKey: '',
+      includeContext: true, sentenceAnalysisEnabled: false }, false);
+    expect((await store.readSettings()).profiles).toEqual(before.profiles);
+    expect(await store.publicSettings()).toMatchObject({ requiresApiKey: false, includeContext: false, sentenceAnalysisEnabled: false });
+    expect(await store.connectionSettings()).toMatchObject({ includeContext: true, sentenceAnalysisEnabled: false });
+    await store.saveSettings({ ...modelInput, apiKey: '' }, true);
+    expect((await store.readSettings()).apiKey).toBe(KEY);
   });
 
-  it('rejects a wrong passphrase without unlocking or changing persisted data', async () => {
-    await api.lockKeyVault(); const before = structuredClone(state.local);
-    await expect(api.unlockKeyVault('test-only incorrect passphrase')).rejects.toThrow(/口令/);
-    expect(state.local).toEqual(before);
-    expect((await api.readSettings()).apiKey).toBe('');
-  });
-
-  it('changes passphrase with fresh salt/IV and keeps every provider credential', async () => {
-    const old = structuredClone(state.local[KEY_VAULT_STORAGE_KEY]) as { kdf: { salt: string }; cipher: { iv: string } };
-    await api.changeKeyVaultPassphrase(PASS, NEW_PASS);
-    const updated = state.local[KEY_VAULT_STORAGE_KEY] as typeof old;
-    expect(updated.kdf.salt).not.toBe(old.kdf.salt); expect(updated.cipher.iv).not.toBe(old.cipher.iv);
-    await api.lockKeyVault();
-    await expect(api.unlockKeyVault(PASS)).rejects.toThrow(/口令/);
-    await api.unlockKeyVault(NEW_PASS);
-    expect((await api.readSettings()).profiles.openai?.apiKey).toBe(OPENAI_KEY);
-    expect(JSON.stringify(state.local)).not.toContain(NEW_PASS);
-  });
-
-  it('restores the previous encrypted vault when a rotation fails verification', async () => {
-    const old = structuredClone(state.local[KEY_VAULT_STORAGE_KEY]);
-    let corruptNextVault = true;
-    state.localSet.mockImplementation(async value => {
-      const altered = structuredClone(value);
-      if (Object.hasOwn(altered, KEY_VAULT_STORAGE_KEY) && corruptNextVault) {
-        corruptNextVault = false;
-        (altered[KEY_VAULT_STORAGE_KEY] as { ciphertext: string }).ciphertext = Buffer.alloc(20).toString('base64');
-      }
-      writeArea(state.local, altered);
-    });
-    await expect(api.changeKeyVaultPassphrase(PASS, NEW_PASS)).rejects.toThrow(/验证失败/);
-    expect(state.local[KEY_VAULT_STORAGE_KEY]).toEqual(old);
-    await api.lockKeyVault(); await api.unlockKeyVault(PASS);
-    expect((await api.readSettings()).apiKey).toBe(DEEPSEEK_KEY);
-  });
-
-  it('reports when a new passphrase is saved but session restoration fails', async () => {
-    state.sessionSet.mockRejectedValueOnce(new Error('test-only-session-quota-error'));
-    await expect(api.changeKeyVaultPassphrase(PASS, NEW_PASS)).rejects.toThrow(/新口令已生效/);
-    expect((await api.keyVaultStatus()).locked).toBe(true);
-    await api.unlockKeyVault(NEW_PASS);
-    expect((await api.readSettings()).apiKey).toBe(DEEPSEEK_KEY);
-  });
-
-  it('reports the new passphrase after a post-rotation metadata failure', async () => {
-    state.localSet.mockImplementationOnce(async value => writeArea(state.local, value));
-    state.localSet.mockRejectedValueOnce(new Error('test-only-metadata-write-error'));
-    await expect(api.changeKeyVaultPassphrase(PASS, NEW_PASS)).rejects.toThrow(/新口令已生效/);
-    expect((await api.keyVaultStatus()).locked).toBe(true);
-    await api.unlockKeyVault(NEW_PASS);
-    expect((await api.readSettings()).profiles.openai?.apiKey).toBe(OPENAI_KEY);
-  });
-
-  it('rejects malformed on-disk vaults without treating them as a fresh vault', async () => {
-    const encrypted = state.local[KEY_VAULT_STORAGE_KEY] as { kdf: { iterations: number } };
-    encrypted.kdf.iterations = 1;
-    await expect(api.keyVaultStatus()).rejects.toThrow(/损坏/);
-    await expect(api.createKeyVault(PASS)).rejects.toThrow(/损坏/);
-    expect((state.local[KEY_VAULT_STORAGE_KEY] as typeof encrypted).kdf.iterations).toBe(1);
-  });
-});
-
-describe('profile compatibility and serialized writes', () => {
-  beforeEach(async () => { await configured(); });
-
-  it('preserves profiles, context and analysis choices through a stale hidden DeepL form', async () => {
-    const before = await api.readSettings();
-    await api.saveSettings({ ...form('custom'), translationEngine: 'deepl-web', model: '', baseUrl: '', apiKey: '', includeContext: true, sentenceAnalysisEnabled: false }, false);
-    const free = await api.readSettings();
-    expect(free.profiles).toEqual(before.profiles);
-    expect(free.apiKey).toBe(DEEPSEEK_KEY);
-    expect(await api.publicSettings()).toMatchObject({ includeContext: false, sentenceAnalysisEnabled: false, requiresApiKey: false });
-    expect(await api.connectionSettings()).toMatchObject({ includeContext: true, sentenceAnalysisEnabled: false });
-    await api.saveSettings(form('openai'), true);
-    expect((await api.readSettings()).apiKey).toBe(OPENAI_KEY);
-    expect(JSON.stringify(state.local)).not.toContain(OPENAI_KEY);
-  });
-
-  it('serializes simultaneous provider saves and retains every credential', async () => {
+  it('serializes simultaneous provider saves without dropping either credential', async () => {
+    await store.saveSettings(modelInput, true);
     await Promise.all([
-      api.saveSettings(form('openai', 'test-only-new-openai-key'), true),
-      api.saveSettings({ ...form('gemini', 'test-only-gemini-key'), model: 'fixture-model' }, true),
+      store.saveSettings({ ...modelInput, provider: 'openai', baseUrl: 'https://api.openai.com/v1', model: 'gpt-fixture', apiKey: 'fixture-only-openai-key' }, true),
+      store.saveSettings({ ...modelInput, provider: 'gemini', baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai', model: 'gemini-fixture', apiKey: 'fixture-only-gemini-key' }, true),
     ]);
-    const runtime = await api.readSettings();
-    expect(runtime.provider).toBe('gemini');
-    expect(runtime.profiles.deepseek?.apiKey).toBe(DEEPSEEK_KEY);
-    expect(runtime.profiles.openai?.apiKey).toBe('test-only-new-openai-key');
-    expect(runtime.profiles.gemini?.apiKey).toBe('test-only-gemini-key');
-    expect(JSON.stringify(state.local)).not.toContain('test-only-new-openai-key');
+    expect(await store.readSettings()).toMatchObject({ provider: 'gemini', profiles: {
+      deepseek: { apiKey: KEY }, openai: { apiKey: 'fixture-only-openai-key' }, gemini: { apiKey: 'fixture-only-gemini-key' },
+    } });
   });
 
-  it('normalizes equivalent addresses and detaches a key from a changed address', async () => {
-    await api.saveSettings({ ...form(), baseUrl: 'https://api.deepseek.com/chat/completions/' }, true);
-    expect((await api.readSettings()).apiKey).toBe(DEEPSEEK_KEY);
-    await api.saveSettings({ ...form(), baseUrl: 'https://gateway.example/v1' }, true);
-    expect((await api.readSettings()).apiKey).toBe('');
-    expect((await api.readSettings()).profiles.openai?.apiKey).toBe(OPENAI_KEY);
-    await api.lockKeyVault(); await api.unlockKeyVault(PASS);
-    expect((await api.readSettings()).apiKey).toBe('');
+  it('normalizes equivalent endpoints and keeps older callers compatible', async () => {
+    await store.saveSettings({ ...modelInput, baseUrl: 'https://api.deepseek.com/chat/completions/' }, true);
+    const before = await store.readSettings();
+    expect(before.baseUrl).toBe('https://api.deepseek.com');
+    await store.saveSettings({ enabled: true, includeContext: true, sentenceAnalysisEnabled: false, model: before.model, apiKey: '' }, true);
+    expect(await store.readSettings()).toMatchObject({ apiKey: KEY, provider: 'deepseek', baseUrl: before.baseUrl, connectionRevision: before.connectionRevision });
+    await store.saveSettings({ enabled: true, includeContext: true, sentenceAnalysisEnabled: false, model: 'changed-model', apiKey: '' }, true);
+    expect((await store.readSettings()).connectionRevision).toBe(before.connectionRevision + 1);
   });
 
-  it('deletes only the selected credential and never resurrects it when switching engines', async () => {
-    await api.saveSettings(form('openai'), false);
-    expect((await api.readSettings()).apiKey).toBe('');
-    expect((await api.keyVaultStatus()).savedProviders).toEqual(['deepseek']);
-    await api.enableFreeTranslation(); await api.saveSettings(form('deepseek'), true);
-    expect((await api.readSettings()).apiKey).toBe(DEEPSEEK_KEY);
-    await api.saveSettings(form('openai'), true);
-    expect((await api.readSettings()).apiKey).toBe('');
+  it('hides private storage exception details and recovers its save queue after failure', async () => {
+    legacy();
+    const original = structuredClone([...fixture.data]);
+    fixture.browser.storage.local.set.mockRejectedValueOnce(new Error('private-storage-detail-' + KEY));
+    const error = await store.saveSettings(modelInput, true).catch(reason => reason as Error) as Error;
+    expect(error.message).not.toContain(KEY);
+    expect(error.message).not.toContain('private-storage-detail');
+    expect([...fixture.data]).toEqual(original);
+    await store.saveSettings(modelInput, true);
+    expect((await store.readSettings()).apiKey).toBe(KEY);
   });
 
-  it('preserves provider/address options for older settings callers and advances only connection revisions', async () => {
-    await api.saveSettings({ ...form('custom', 'test-only-custom-key'), model: 'vendor/model:latest', baseUrl: 'https://gateway.example/v1' }, true);
-    const before = await api.readSettings();
-    await api.saveSettings({ enabled: true, includeContext: true, model: before.model, apiKey: '', sentenceAnalysisEnabled: false }, true);
-    expect(await api.readSettings()).toMatchObject({ provider: 'custom', baseUrl: before.baseUrl, apiKey: 'test-only-custom-key',
-      connectionRevision: before.connectionRevision, sentenceAnalysisEnabled: false });
-    await api.saveSettings({ enabled: true, includeContext: true, model: 'new-model', apiKey: '', sentenceAnalysisEnabled: false }, true);
-    expect((await api.readSettings()).connectionRevision).toBe(before.connectionRevision + 1);
+  it('requires read-back confirmation of a new record without changing the old records', async () => {
+    legacy();
+    fixture.browser.storage.local.set.mockResolvedValueOnce(undefined);
+    await expect(store.saveSettings(modelInput, true)).rejects.toThrow(/保存尚未确认/);
+    expect(fixture.data.get(LEGACY)).toEqual(legacyConfig);
+    expect(fixture.data.get(KEY_VAULT_STORAGE_KEY)).toEqual(vault);
+  });
+
+  it('does not erase or overwrite conflicting plaintext legacy records', async () => {
+    fixture.data.set(LEGACY, { ...legacyConfig, apiKey: KEY, profiles: { deepseek: { ...legacyConfig.profiles.deepseek, apiKey: REPLACEMENT } } });
+    const before = structuredClone([...fixture.data]);
+    await expect(store.importLegacyKeys('')).rejects.toThrow(/不一致/);
+    expect([...fixture.data]).toEqual(before);
   });
 
   it.each([
     { sentenceAnalysisEnabled: 'yes' }, { translationEngine: null }, { provider: 'unknown' }, { jsonMode: 'yes' },
     { model: 'bad\nmodel' }, { apiKey: 'bad\nkey' }, { apiKey: 'x'.repeat(4097) }, { baseUrl: 'http://remote.example' },
     { sourceLanguage: null }, { targetLanguage: 'unknown' },
-  ])('rejects invalid settings %# without writing secrets or poisoning the queue', async invalid => {
-    const before = structuredClone(state.local);
-    await expect(api.saveSettings({ ...form(), ...invalid }, true)).rejects.toThrow();
-    expect(state.local).toEqual(before);
-    await api.saveSettings(form(), true);
-    expect((await api.readSettings()).apiKey).toBe(DEEPSEEK_KEY);
+  ])('rejects invalid configuration %# without modifying saved keys', async invalid => {
+    await store.saveSettings(modelInput, true);
+    const before = structuredClone([...fixture.data]);
+    await expect(store.saveSettings({ ...modelInput, ...invalid }, true)).rejects.toThrow();
+    expect([...fixture.data]).toEqual(before);
+    await store.saveSettings({ ...modelInput, apiKey: '' }, true);
+    expect((await store.readSettings()).apiKey).toBe(KEY);
   });
 
-  it('retains unrelated local data and does not persist unknown fields from a settings message', async () => {
-    state.local['reading-preferences:v1'] = { theme: 'paper' };
-    await api.saveSettings({ ...form(), apiKey: '', injectedSecret: 'test-only-should-not-persist', profiles: { unknown: { apiKey: 'test-only-bypass' } } }, true);
-    expect(state.local['reading-preferences:v1']).toEqual({ theme: 'paper' });
-    expect(JSON.stringify(state.local)).not.toContain('test-only-should-not-persist');
-    expect(JSON.stringify(state.local)).not.toContain('test-only-bypass');
-    expect(persisted()).not.toHaveProperty('apiKey');
+  it('preserves unrelated preferences and projects away unknown fields from messages', async () => {
+    fixture.data.set('reading-preferences:v1', { theme: 'paper' });
+    await store.saveSettings({ ...modelInput, injectedSecret: 'fixture-ignored-secret', profiles: { unknown: { apiKey: 'fixture-ignored-key' } } }, true);
+    expect(fixture.data.get('reading-preferences:v1')).toEqual({ theme: 'paper' });
+    expect(JSON.stringify([...fixture.data])).not.toContain('fixture-ignored-secret');
+    expect(JSON.stringify([...fixture.data])).not.toContain('fixture-ignored-key');
+    expect(fixture.browser.storage.local.remove).not.toHaveBeenCalled();
   });
 });

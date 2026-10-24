@@ -60,7 +60,7 @@ export interface EditableSettings extends LanguageOptions {
 export type ProviderId = 'deepseek' | 'openai' | 'gemini' | 'qwen' | 'moonshot' | 'siliconflow' | 'openrouter' | 'ollama' | 'custom';
 export interface ApiProfile { model: string; apiKey: string; baseUrl: string; jsonMode: boolean }
 export interface PublicApiProfile { model: string; hasApiKey: boolean; baseUrl: string; jsonMode: boolean }
-export interface StoredSettings extends EditableSettings { schemaVersion: 2; translationEngine: TranslationEngine; connectionRevision: number; profiles: Partial<Record<ProviderId, ApiProfile>>; keyVaultLocked?: boolean }
+export interface StoredSettings extends EditableSettings { schemaVersion: 2; translationEngine: TranslationEngine; connectionRevision: number; profiles: Partial<Record<ProviderId, ApiProfile>>; keyVaultLocked?: boolean; apiKeyMigrationRequired?: boolean }
 export interface PublicSettings extends LanguageOptions {
   translationEngine?: TranslationEngine;
   enabled: boolean;
@@ -70,6 +70,8 @@ export interface PublicSettings extends LanguageOptions {
   hasApiKey: boolean;
   /** Capability only; vault details and secrets stay in trusted extension contexts. */
   keyVaultLocked?: boolean;
+  /** A saved legacy encrypted key can be imported once or replaced in settings. */
+  apiKeyMigrationRequired?: boolean;
   webAccess: boolean;
   provider?: ProviderId;
   requiresApiKey?: boolean;
@@ -79,6 +81,8 @@ export interface PublicSettings extends LanguageOptions {
 /** Only returned to trusted extension pages; never contains API keys. */
 export interface ConnectionSettings extends PublicSettings {
   vault?: KeyVaultStatus;
+  legacyKeyProviders?: ProviderId[];
+  legacyKeyMigrationAvailable?: boolean;
   /** Optional browser permission, not a stored model preference. */
   networkPreparationAccess?: boolean;
   provider: ProviderId;

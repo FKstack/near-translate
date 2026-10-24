@@ -5,11 +5,13 @@ import { resolve } from 'node:path';
 export const FIXTURE_ORIGIN = 'http://127.0.0.1:4178';
 export const SETTINGS_URL = 'https://fkstack.github.io/near-translate/userscript/settings.html';
 export const DEEPL_ENDPOINT = 'https://oneshot-free.www.deepl.com/v1/translate';
+export const MODEL_ENDPOINT = 'https://api.deepseek.com/chat/completions';
+export const OLLAMA_ENDPOINT = 'http://localhost:11434/v1/chat/completions';
 export const SELECTED_TEXT = 'Concurrency does not imply parallelism.';
 export const SELECTED_TRANSLATION = '并发不意味着并行。';
 export const INERT_TRANSLATION = '<img src=x onerror="window.translationExecuted=true">译文保持纯文本。';
 
-type MockRequest = { url: string; method: string; anonymous?: boolean; data: string; body: { text: string[]; target_lang: string } };
+type MockRequest = { url: string; method: string; anonymous?: boolean; headers?: Record<string, string>; data: string; body: { text: string[]; target_lang: string } };
 export type HarnessState = { requests: MockRequest[]; rejected: string[]; tabs: string[]; menus: Map<number, { title: string; callback: () => unknown }>;
   metadataRequests: Array<{ url: string; anonymous?: boolean; redirect?: string; method?: string }>;
   storage: Map<string, unknown>; settingsRoot?: ShadowRoot; remoteWrite(key: string, value: unknown): void };
@@ -21,7 +23,7 @@ interface UpdateFixture { installedVersion?: string; availableVersion?: string; 
  * userscript manager does. No GM function, private store, or runtime test hook
  * is installed on window. Playwright alone retains this remote state handle.
  */
-export async function installUserscript(page: Page, settingsPage = false, update: UpdateFixture = {}): Promise<JSHandle<HarnessState>> {
+export async function installUserscript(page: Page, settingsPage = false, update: UpdateFixture = {}, initialStorage: Record<string, unknown> = {}): Promise<JSHandle<HarnessState>> {
   const greasyfork = process.env.NEAR_USERSCRIPT_DISTRIBUTION === 'greasyfork';
   const application = await readFile(resolve(greasyfork ? '.output/greasyfork/near-translate.user.js' : '.output/userscript/near-translate.user.js'), 'utf8');
   // The manager evaluates @require before the application in the same sandbox.
@@ -33,7 +35,7 @@ export async function installUserscript(page: Page, settingsPage = false, update
   const source = `${library}\n${application}`;
   const fixture = await readFile(new URL('./fixture.html', import.meta.url), 'utf8');
   const settings = settingsPage ? await readFile(resolve(greasyfork ? '.output/greasyfork/settings.html' : '.output/userscript-site/userscript/settings.html'), 'utf8') : '';
-  await page.context().route('**/*', route => {
+  await page.route('**/*', route => {
     const url = route.request().url();
     if (url === `${FIXTURE_ORIGIN}/article`) return route.fulfill({ contentType: 'text/html; charset=utf-8', body: fixture });
     if (settingsPage && url === SETTINGS_URL) return route.fulfill({ contentType: 'text/html; charset=utf-8', body: settings });
@@ -43,11 +45,11 @@ export async function installUserscript(page: Page, settingsPage = false, update
   const metadataUrl = greasyfork
     ? 'https://update.greasyfork.org/scripts/601973/%E8%BF%91%E8%AF%91%20%C2%B7%20%E7%BD%91%E9%A1%B5%E9%98%85%E8%AF%BB%E4%B8%8E%E7%BF%BB%E8%AF%91.meta.js'
     : 'https://fkstack.github.io/near-translate/userscript/near-translate.meta.js';
-  return page.evaluateHandle(({ source, endpoint, selected, translated, inert, settingsPage, update, metadataUrl }) => {
-    type XhrOptions = { url: string; method?: string; data?: string; anonymous?: boolean; redirect?: string;
+  return page.evaluateHandle(({ source, endpoint, modelEndpoint, ollamaEndpoint, selected, translated, inert, settingsPage, update, metadataUrl, initialStorage }) => {
+    type XhrOptions = { url: string; method?: string; data?: string; anonymous?: boolean; redirect?: string; headers?: Record<string, string>;
       onload?: (response: object) => void; onerror?: (response: object) => void; onabort?: (response: object) => void };
     type ValueListener = (key: string, previous: unknown, next: unknown, remote: boolean) => void;
-    const values = new Map<string, unknown>();
+    const values = new Map<string, unknown>(Object.entries(structuredClone(initialStorage)));
     const listeners = new Map<number, { key: string; callback: ValueListener }>();
     const state: HarnessState = { requests: [], rejected: [], metadataRequests: [], tabs: [], menus: new Map(), storage: values,
       remoteWrite(key, value) {
@@ -98,6 +100,14 @@ export async function installUserscript(page: Page, settingsPage = false, update
               responseText: `// ==UserScript==\n// @version ${update.availableVersion ?? update.installedVersion ?? '0.0.0-test'}\n// ==/UserScript==\n` });
             return;
           }
+          if ((options.url === modelEndpoint || options.url === ollamaEndpoint) && options.method === 'POST') {
+            const data = options.data ?? '';
+            const body = JSON.parse(data) as { text: string[]; target_lang: string };
+            state.requests.push({ url: options.url, method: options.method, anonymous: options.anonymous, headers: options.headers, data, body });
+            options.onload?.({ status: 200, statusText: 'OK', responseHeaders: 'Content-Type: text/event-stream\r\n', finalUrl: options.url,
+              responseText: `data: ${JSON.stringify({ choices: [{ delta: { content: translated } }] })}\n\ndata: [DONE]\n\n` });
+            return;
+          }
           if (options.url !== endpoint || options.method !== 'POST') {
             state.rejected.push(options.url);
             options.onerror?.({ error: 'Unexpected remote request in isolated userscript E2E.' });
@@ -117,7 +127,7 @@ export async function installUserscript(page: Page, settingsPage = false, update
     };
     new Function(...Object.keys(grants), source)(...Object.values(grants));
     return state;
-  }, { source, endpoint: DEEPL_ENDPOINT, selected: SELECTED_TEXT, translated: SELECTED_TRANSLATION, inert: INERT_TRANSLATION, settingsPage, update, metadataUrl });
+  }, { source, endpoint: DEEPL_ENDPOINT, modelEndpoint: MODEL_ENDPOINT, ollamaEndpoint: OLLAMA_ENDPOINT, selected: SELECTED_TEXT, translated: SELECTED_TRANSLATION, inert: INERT_TRANSLATION, settingsPage, update, metadataUrl, initialStorage });
 }
 
 /** Native DOM interactions held behind the test's remote closed-root handle. */
@@ -141,9 +151,9 @@ export async function settingsField(state: JSHandle<HarnessState>, label: string
 
 export async function settingsClick(state: JSHandle<HarnessState>, text: string): Promise<void> {
   await state.evaluate((state, text) => {
-    const button = [...state.settingsRoot?.querySelectorAll('button') ?? []].find(element => element.textContent?.trim() === text);
-    if (!button || button.disabled) throw new Error(`Missing enabled settings button: ${text}`);
-    button.click();
+    const button = [...state.settingsRoot?.querySelectorAll('button,summary') ?? []].find(element => element.textContent?.trim() === text);
+    if (!button || (button instanceof HTMLButtonElement && button.disabled)) throw new Error(`Missing enabled settings button: ${text}`);
+    (button as HTMLElement).click();
   }, text);
 }
 

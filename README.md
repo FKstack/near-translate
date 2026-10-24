@@ -7,7 +7,7 @@
 <p align="center">网页双语、语境查词与专注阅读，连成一个顺畅的阅读过程。</p>
 <p align="center">适用于 Chrome / Edge 的开源阅读翻译扩展 · MIT</p>
 
-**[下载 v0.11.4](https://github.com/FKstack/near-translate/releases/tag/v0.11.4)** · [开始使用](#开始使用) · [篡改猴版](docs/guides/USERSCRIPT.md) · [阅读体验](#让一篇外文更容易读下去) · [使用指南](docs/guides/INSTALL.md) · [参与改进](CONTRIBUTING.md)
+**[下载 v0.11.4](https://github.com/FKstack/near-translate/releases/tag/v0.11.4)** · [项目主页](https://fkstack.github.io/near-translate/) · [开始使用](#开始使用) · [篡改猴版](docs/guides/USERSCRIPT.md) · [阅读体验](#让一篇外文更容易读下去) · [使用指南](docs/guides/INSTALL.md) · [参与改进](CONTRIBUTING.md)
 
 读英文技术文章时，遇到生词就地查，遇到长句看拆解，需要整篇理解时打开双语对照。近译把这些帮助放在你正在读的地方，让你接着读下去。
 

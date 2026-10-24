@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 import { build } from 'vite';
 import { marked } from 'marked';
+import { buildProjectSite } from './lib/project-site.mjs';
 import { assembleUserscript, OPENCC_REQUIRE_URL, READABILITY_REQUIRE_URL, USERSCRIPT_NAME, userscriptGuidePage, userscriptInstallPage, userscriptSettingsPage } from './lib/userscript-build.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
@@ -116,6 +117,5 @@ await writeFile(path.join(siteScripts, 'index.html'), installPage);
 await writeFile(path.join(siteScripts, 'settings.html'), userscriptSettingsPage());
 const guideSource = await readFile(path.join(root, 'docs/guides/USERSCRIPT.md'), 'utf8');
 await writeFile(path.join(siteScripts, 'guide.html'), userscriptGuidePage(await marked.parse(guideSource)));
-await writeFile(path.join(siteDir, 'index.html'), installPage.replaceAll('href="./', 'href="./userscript/'));
-await writeFile(path.join(siteDir, '.nojekyll'), '');
+await buildProjectSite(siteDir);
 console.log(`Userscript ${version}: ${Math.ceil(Buffer.byteLength(userScript) / 1024)} KiB; standalone .user.js + .meta.js in .output/userscript; Pages site in .output/userscript-site.`);

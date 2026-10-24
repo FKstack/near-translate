@@ -12,6 +12,7 @@ export async function buildProjectSite(outDir) {
     ['public/brand/near-translate.svg', 'assets/near-translate.svg'],
     ['docs/assets/readme/reader-bilingual.png', 'assets/reader-bilingual.png'],
     ['docs/assets/readme/word-context.png', 'assets/word-context.png'],
+    ['docs/assets/store/v0.11.1/04-pdf-selection-1280x800.png', 'assets/pdf-selection.png'],
   ];
   // Read every input before touching the output, so a missing source cannot
   // leave a partially copied homepage in a previously successful build.

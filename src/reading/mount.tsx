@@ -9,6 +9,7 @@ import { readingStyles } from './styles';
 import { ReadingTranslation } from './translation';
 import type { ReadingArticle } from './types';
 import { readLanguagePair, languageFromTag } from '../shared/languages';
+import { beforeUserAction, type BeforeUse } from '../shared/before-use';
 
 export interface ReadingModeController {
   open(translations?: ReadonlyMap<string, string>): void;
@@ -29,7 +30,7 @@ interface ReadingLayoutAnchor {
 interface ReadingAppearanceSnapshot { style: ReadingStyle; savedStyle: ReadingStyle | null }
 
 /** One document owns a reversible reading surface, source references and all reader requests. */
-export function createReadingMode(options: { onSelectionPortal?: (portal?: HTMLElement) => void; serviceStatus?: TranslationStatusSource } = {}): ReadingModeController {
+export function createReadingMode(options: { onSelectionPortal?: (portal?: HTMLElement) => void; serviceStatus?: TranslationStatusSource; beforeUse?: BeforeUse } = {}): ReadingModeController {
   let disposed = false;
   let host: HTMLElement | undefined;
   let dialog: HTMLDialogElement | undefined;
@@ -77,7 +78,7 @@ export function createReadingMode(options: { onSelectionPortal?: (portal?: HTMLE
     if (!article) {
       react.render(<section className="nr-failure" role="alert"><span className="nr-failure-brand">近译 · 阅读</span>
         <h1>这页暂时无法进入阅读模式</h1><p>{extractionError}</p><p>请打开文章详情页，或等待正文加载完成后重试。</p>
-        <button type="button" onClick={() => close()}>返回原网页</button><button type="button" onClick={() => { close(); open(); }}>重新提取正文</button></section>);
+        <button type="button" onClick={() => close()}>返回原网页</button><button type="button" onClick={() => beforeUserAction(options.beforeUse, () => { close(); open(); })}>重新提取正文</button></section>);
       return;
     }
     react.render(<ReadingView article={article} preferences={preferences}
@@ -86,8 +87,8 @@ export function createReadingMode(options: { onSelectionPortal?: (portal?: HTMLE
       articleRef={attachArticle} scrollRef={attachScroll} onPreferences={updatePreferences}
       preferencesStatus={preferencesStatus} onRetryPreferences={retryPreferences} onResetPreferences={resetPreferences}
       onUndoPreferences={undoPreferences} canUndoPreferences={!!previousAppearance} onLayoutCommit={onLayoutCommit}
-      onClose={() => close()} onTranslate={startTranslation} onStop={() => translation?.stop()}
-      onRetry={() => { notice = ''; translation?.retry(); render(); }}
+      onClose={() => close()} onTranslate={() => beforeUserAction(options.beforeUse, startTranslation)} onStop={() => translation?.stop()}
+      onRetry={() => beforeUserAction(options.beforeUse, () => { if (disposed || !dialog) return; notice = ''; translation?.retry(); render(); })}
       serviceStatus={serviceStatus} onSettings={() => { void browser.runtime.sendMessage({ type: 'open-options' }).catch(() => {}); }}
       onHeading={goToHeading} onReturnToSource={returnToSource} />);
   }

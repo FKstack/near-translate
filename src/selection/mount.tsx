@@ -7,12 +7,14 @@ import { canAnalyzeSentence } from '../core/sentence-analysis';
 import { selectionError } from './helpers';
 import { takeSelectionSnapshot, type SelectionSnapshot } from './snapshot';
 import { readLanguagePair, supportsSentenceAnalysis } from '../shared/languages';
+import { beforeUserAction, type BeforeUse } from '../shared/before-use';
 
 export interface MountSelectionOptions {
   source: 'web' | 'pdf';
   root?: HTMLElement | Document;
   /** Composition root may move this owned overlay into an active reading dialog. */
   onHost?: (host: HTMLElement, close: () => void) => void;
+  beforeUse?: BeforeUse;
 }
 /** Shared composition root for ordinary page content and the extension's PDF text layer. */
 export function mountSelectionTranslator(options: MountSelectionOptions): () => void {
@@ -57,7 +59,7 @@ export function mountSelectionTranslator(options: MountSelectionOptions): () => 
       shadow.appendChild(container);
       react = createRoot(container);
     }
-    react.render(<Translator view={view} source={options.source} onTranslate={translate} onClose={close} onRetry={translate} onRetryAnalysis={() => startAnalysis(true)}
+    react.render(<Translator view={view} source={options.source} onTranslate={userTranslate} onClose={close} onRetry={userTranslate} onRetryAnalysis={() => beforeUserAction(options.beforeUse, () => startAnalysis(true))}
       onSettings={() => { void browser.runtime.sendMessage({ type: 'open-options' }).catch(() => undefined); }} />);
   };
   const client = new TranslationClient((event: TranslationServerMessage) => {
@@ -142,6 +144,8 @@ export function mountSelectionTranslator(options: MountSelectionOptions): () => 
     if (!error) activeRequest = client.start(effectiveInput);
     render();
   }
+
+  function userTranslate(): void { beforeUserAction(options.beforeUse, translate); }
 
   const isOwnEvent = (event: Event): boolean => event.composedPath().includes(host);
   const sameSelection = (a: SelectionSnapshot, b: SelectionSnapshot): boolean => a.signature === b.signature &&

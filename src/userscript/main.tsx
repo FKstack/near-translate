@@ -6,6 +6,9 @@ import { browser } from './browser';
 import { installRuntime } from './runtime';
 import { mountSettings } from './Settings';
 import { SETTINGS_URL, isSettingsPage } from './locations';
+import { createUserscriptUpdater, type UserscriptDistribution } from './update';
+
+declare const __NEAR_DISTRIBUTION__: UserscriptDistribution;
 
 declare const GM_registerMenuCommand: (name: string, action: () => void | Promise<void>) => string | number;
 declare const GM_unregisterMenuCommand: (id: string | number) => void;
@@ -25,17 +28,18 @@ async function main(): Promise<void> {
 
   if (settingsPage) cleanup.push(mountSettings());
   else {
+    const { beforeUse } = createUserscriptUpdater(typeof __NEAR_DISTRIBUTION__ === 'undefined' ? 'github' : __NEAR_DISTRIBUTION__);
     const serviceStatus = new TranslationServiceStatusClient();
     let selectionHost: HTMLElement | undefined;
     let closeSelection = () => {};
-    const disposeSelection = mountSelectionTranslator({ source: 'web', onHost(host, close) { selectionHost = host; closeSelection = close; } });
+    const disposeSelection = mountSelectionTranslator({ source: 'web', beforeUse, onHost(host, close) { selectionHost = host; closeSelection = close; } });
     let reading: ReadingModeController | undefined;
-    const getReading = () => reading ??= createReadingMode({ serviceStatus, onSelectionPortal(portal) {
+    const getReading = () => reading ??= createReadingMode({ serviceStatus, beforeUse, onSelectionPortal(portal) {
       closeSelection();
       if (selectionHost) (portal ?? document.documentElement).append(selectionHost);
     } });
     let openReading = () => getReading().open();
-    const disposePage = mountPageTranslator({ serviceStatus, onRead: translations => getReading().open(translations), onReadingAction: action => { openReading = action; } });
+    const disposePage = mountPageTranslator({ serviceStatus, beforeUse, onRead: translations => getReading().open(translations), onReadingAction: action => { openReading = action; } });
     const shortcut = (event: KeyboardEvent) => {
       if (!event.altKey || !event.shiftKey || event.code !== 'KeyR') return;
       event.preventDefault(); openReading();

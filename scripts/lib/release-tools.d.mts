@@ -1,0 +1,12 @@
+export function parseVersion(version: string): number[];
+export function compareVersions(left: string, right: string): number;
+export function bumpVersion(version: string, bump?: string): string;
+export function versionFromTag(tag: string): string;
+export function assertReleaseVersion(tag: string, version: string): void;
+export function assertNoNewerRelease(version: string, releasedTags: string[]): void;
+export function nextReleaseVersion(version: string, head: string, tags: Record<string, string>): string;
+export function parseFeatureOptions(args: string[]): { bump: string; all: boolean; dryRun: boolean; title: string; notesFile: string };
+export function githubRepository(remote: string): string;
+export function run(command: string, args: string[], options?: { cwd?: string; allowFailure?: boolean; inherit?: boolean; env?: NodeJS.ProcessEnv }): { status: number | null; stdout: string; stderr: string };
+export function updatePackageVersion(root: string, version: string): void;
+export function githubPushArgs(remote: string, refspec: string): string[];

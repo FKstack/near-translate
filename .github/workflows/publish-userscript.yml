@@ -1,47 +1,69 @@
 name: Publish userscript
 
-# Publish explicit userscript release tags, including from a feature branch.
-# Ordinary branch pushes and pull requests never publish an update.
 on:
-  push:
-    tags:
-      - 'userscript-v*'
+  release:
+    types: [published]
+  workflow_call:
+    inputs:
+      release_tag:
+        description: Already published stable Release tag
+        required: true
+        type: string
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Existing stable Release tag to rebuild and republish (vX.Y.Z)
+        required: true
+        type: string
 
 permissions:
-  contents: read
+  contents: write
+  pages: write
+  id-token: write
 
 concurrency:
   group: github-pages
   cancel-in-progress: false
 
+env:
+  RELEASE_TAG: ${{ inputs.release_tag || github.event.release.tag_name }}
+  GH_TOKEN: ${{ github.token }}
+
 jobs:
   build:
+    if: github.event_name != 'release' || !github.event.release.prerelease
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-    permissions:
-      contents: read
-      pages: read
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-      - name: Verify release tag matches package version
-        if: github.ref_type == 'tag'
-        run: node --input-type=module -e "import fs from 'node:fs'; const version = JSON.parse(fs.readFileSync('package.json', 'utf8')).version; if (process.env.GITHUB_REF_NAME !== 'userscript-v' + version) throw new Error('Release tag must match package.json version');"
+        with:
+          ref: ${{ inputs.release_tag || github.event.release.tag_name }}
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: npm
+      - name: Verify Release, source commit and package versions
+        run: node scripts/verify-release.mjs
       - run: npm ci
       - run: npm run check:repo
       - run: npm run check:docs
       - run: npm run typecheck
       - run: npm test
       - run: npm run check:boundaries
+      - name: Build and package the original Chrome extension
+        run: npm run zip
+      - name: Build and package the original Edge extension
+        run: npm run zip:edge
       - run: npm run build:userscript
       - run: npm run build:greasyfork
       - run: npx playwright install --with-deps chromium
       - run: npx playwright test -c playwright.userscript.config.ts
       - run: npx playwright test -c playwright.greasyfork.config.ts
+      - name: Prepare versioned Release assets and checksums
+        run: node scripts/prepare-release-assets.mjs
+      - name: Attach all tested distributions to the existing Release
+        run: gh release upload "$RELEASE_TAG" .output/release-assets/* --clobber
       - uses: actions/configure-pages@v5
       - name: Upload installable userscript
         uses: actions/upload-artifact@v4
@@ -55,20 +77,57 @@ jobs:
           name: near-translate-greasyfork
           path: .output/greasyfork/
           if-no-files-found: error
+      - name: Upload complete Release distributions
+        uses: actions/upload-artifact@v4
+        with:
+          name: near-translate-release-assets
+          path: .output/release-assets/
+          if-no-files-found: error
       - uses: actions/upload-pages-artifact@v4
         with:
           path: .output/userscript-site
 
   deploy:
     needs: build
-    permissions:
-      pages: write
-      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.release_tag || github.event.release.tag_name }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Prevent an older queued publication from replacing a newer Release
+        run: node scripts/verify-release.mjs
+      - uses: actions/download-artifact@v4
+        with:
+          name: near-translate-userscript
+          path: .output/userscript
+      - uses: actions/download-artifact@v4
+        with:
+          name: near-translate-greasyfork
+          path: .output/greasyfork
       - name: Deploy userscript installation and update files
         id: deployment
         uses: actions/deploy-pages@v4
+      - name: Verify that public update sources match the tested files
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: node scripts/verify-published-userscript.mjs
+      - name: Report Greasy Fork synchronization status
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          {
+            echo "## Publication deployed"
+            echo
+            echo "Release: $RELEASE_TAG"
+            echo "Pages: $PAGE_URL"
+            echo
+            echo 'Greasy Fork polls its configured Pages source automatically. Deployment updates that source; Greasy Fork may still be showing the previous version until its next synchronization.'
+            echo 'Verify the published script and synchronization status: https://greasyfork.org/scripts/601973'
+          } >> "$GITHUB_STEP_SUMMARY"

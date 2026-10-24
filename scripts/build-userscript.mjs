@@ -19,7 +19,7 @@ const result = await build({
   envDir: false,
   publicDir: false,
   mode: 'production',
-  define: { 'process.env.NODE_ENV': '"production"' },
+  define: { 'process.env.NODE_ENV': '"production"', __NEAR_DISTRIBUTION__: JSON.stringify(distribution) },
   resolve: { alias: [
     ...(greasyfork ? [{ find: /^@mozilla\/readability$/, replacement: path.join(root, 'src/userscript/greasyfork-readability.ts') }] : []),
     { find: /^wxt\/browser$/, replacement: path.join(root, 'src/userscript/browser.ts') },

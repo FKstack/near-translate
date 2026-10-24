@@ -11,14 +11,17 @@ export const INERT_TRANSLATION = '<img src=x onerror="window.translationExecuted
 
 type MockRequest = { url: string; method: string; anonymous?: boolean; data: string; body: { text: string[]; target_lang: string } };
 export type HarnessState = { requests: MockRequest[]; rejected: string[]; tabs: string[]; menus: Map<number, { title: string; callback: () => unknown }>;
+  metadataRequests: Array<{ url: string; anonymous?: boolean; redirect?: string; method?: string }>;
   storage: Map<string, unknown>; settingsRoot?: ShadowRoot; remoteWrite(key: string, value: unknown): void };
+
+interface UpdateFixture { installedVersion?: string; availableVersion?: string; metadataFailure?: boolean }
 
 /**
  * Execute the real release bundle with grants in a function closure, as a
  * userscript manager does. No GM function, private store, or runtime test hook
  * is installed on window. Playwright alone retains this remote state handle.
  */
-export async function installUserscript(page: Page, settingsPage = false): Promise<JSHandle<HarnessState>> {
+export async function installUserscript(page: Page, settingsPage = false, update: UpdateFixture = {}): Promise<JSHandle<HarnessState>> {
   const greasyfork = process.env.NEAR_USERSCRIPT_DISTRIBUTION === 'greasyfork';
   const application = await readFile(resolve(greasyfork ? '.output/greasyfork/near-translate.user.js' : '.output/userscript/near-translate.user.js'), 'utf8');
   // The manager evaluates @require before the application in the same sandbox.
@@ -37,13 +40,16 @@ export async function installUserscript(page: Page, settingsPage = false): Promi
     return route.abort('blockedbyclient');
   });
   await page.goto(settingsPage ? SETTINGS_URL : `${FIXTURE_ORIGIN}/article`);
-  return page.evaluateHandle(({ source, endpoint, selected, translated, inert, settingsPage }) => {
-    type XhrOptions = { url: string; method?: string; data?: string; anonymous?: boolean;
+  const metadataUrl = greasyfork
+    ? 'https://update.greasyfork.org/scripts/601973/%E8%BF%91%E8%AF%91%20%C2%B7%20%E7%BD%91%E9%A1%B5%E9%98%85%E8%AF%BB%E4%B8%8E%E7%BF%BB%E8%AF%91.meta.js'
+    : 'https://fkstack.github.io/near-translate/userscript/near-translate.meta.js';
+  return page.evaluateHandle(({ source, endpoint, selected, translated, inert, settingsPage, update, metadataUrl }) => {
+    type XhrOptions = { url: string; method?: string; data?: string; anonymous?: boolean; redirect?: string;
       onload?: (response: object) => void; onerror?: (response: object) => void; onabort?: (response: object) => void };
     type ValueListener = (key: string, previous: unknown, next: unknown, remote: boolean) => void;
     const values = new Map<string, unknown>();
     const listeners = new Map<number, { key: string; callback: ValueListener }>();
-    const state: HarnessState = { requests: [], rejected: [], tabs: [], menus: new Map(), storage: values,
+    const state: HarnessState = { requests: [], rejected: [], metadataRequests: [], tabs: [], menus: new Map(), storage: values,
       remoteWrite(key, value) {
         const previous = values.get(key);
         values.set(key, copy(value));
@@ -85,6 +91,13 @@ export async function installUserscript(page: Page, settingsPage = false): Promi
         const timer = setTimeout(() => {
           if (done) return;
           done = true;
+          if (options.url === metadataUrl && options.method === 'GET') {
+            state.metadataRequests.push({ url: options.url, anonymous: options.anonymous, redirect: options.redirect, method: options.method });
+            if (update.metadataFailure) options.onerror?.({ error: 'Simulated metadata network failure.' });
+            else options.onload?.({ status: 200, finalUrl: metadataUrl,
+              responseText: `// ==UserScript==\n// @version ${update.availableVersion ?? update.installedVersion ?? '0.0.0-test'}\n// ==/UserScript==\n` });
+            return;
+          }
           if (options.url !== endpoint || options.method !== 'POST') {
             state.rejected.push(options.url);
             options.onerror?.({ error: 'Unexpected remote request in isolated userscript E2E.' });
@@ -100,11 +113,11 @@ export async function installUserscript(page: Page, settingsPage = false): Promi
         }, 35);
         return { abort() { if (done) return; done = true; clearTimeout(timer); options.onabort?.({}); } };
       },
-      GM_info: { script: { version: '0.0.0-test' }, scriptHandler: 'Tampermonkey', version: '5.4.0' },
+      GM_info: { script: { version: update.installedVersion ?? '0.0.0-test' }, scriptHandler: 'Tampermonkey', version: '5.4.0' },
     };
     new Function(...Object.keys(grants), source)(...Object.values(grants));
     return state;
-  }, { source, endpoint: DEEPL_ENDPOINT, selected: SELECTED_TEXT, translated: SELECTED_TRANSLATION, inert: INERT_TRANSLATION, settingsPage });
+  }, { source, endpoint: DEEPL_ENDPOINT, selected: SELECTED_TEXT, translated: SELECTED_TRANSLATION, inert: INERT_TRANSLATION, settingsPage, update, metadataUrl });
 }
 
 /** Native DOM interactions held behind the test's remote closed-root handle. */

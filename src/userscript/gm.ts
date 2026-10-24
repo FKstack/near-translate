@@ -7,6 +7,7 @@ export interface GMResponse {
   responseText?: string;
   response?: unknown;
   finalUrl?: string;
+  loaded?: number;
 }
 
 export interface GMRequest {
@@ -28,6 +29,12 @@ export interface GMRequest {
   onabort(): void;
 }
 
+/** Metadata is the only anonymous GET made by the update notifier. */
+export interface GMMetadataRequest extends Omit<GMRequest, 'method' | 'data' | 'responseType'> {
+  method: 'GET';
+  responseType: 'text';
+}
+
 declare global {
   const GM_info: { scriptHandler?: string; version?: string; script?: { version?: string } };
   function GM_getValue<T = unknown>(key: string, fallback?: T): T;
@@ -36,7 +43,7 @@ declare global {
   function GM_listValues(): string[];
   function GM_addValueChangeListener(key: string, listener: (name: string, oldValue: unknown, newValue: unknown, remote: boolean) => void): number;
   function GM_removeValueChangeListener(id: number): void;
-  function GM_xmlhttpRequest(details: GMRequest): { abort(): void };
+  function GM_xmlhttpRequest(details: GMRequest | GMMetadataRequest): { abort(): void };
   function GM_registerMenuCommand(name: string, callback: () => void): string | number;
   function GM_unregisterMenuCommand(id: string | number): void;
   function GM_openInTab(url: string, options?: { active?: boolean; insert?: boolean; setParent?: boolean }): unknown;

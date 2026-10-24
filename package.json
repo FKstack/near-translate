@@ -1,6 +1,6 @@
 {
   "name": "near-translate",
-  "version": "0.11.3",
+  "version": "0.11.4",
   "private": true,
   "description": "Browser page, selection and PDF translation with configurable model APIs",
   "license": "MIT",
@@ -16,6 +16,7 @@
     "zip": "npm run assets:pdf && wxt zip",
     "zip:edge": "npm run assets:pdf && wxt zip -b edge",
     "package:release": "node scripts/package-release.mjs",
+    "feature:release": "node scripts/feature-release.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "pretest:e2e": "node scripts/prepare-e2e.mjs",

@@ -1,13 +1,13 @@
 # 近译篡改猴版：安装、更新与发布
 
-篡改猴版提供网页双语翻译、划词翻译与阅读模式，复用近译的阅读、翻译界面和模型配置。原来的 Chrome / Edge 扩展继续保留；PDF 阅读器和文档转换仍使用扩展版。两种安装方式的设置分别保存，不会自动迁移。
+篡改猴版提供网页双语翻译、划词翻译与阅读模式，复用近译的阅读、翻译界面和模型配置。原来的 Chrome / Edge 扩展继续保留；PDF 阅读器和文档转换仍使用扩展版。扩展版与篡改猴版的设置分别保存，不会自动迁移。
 
-本功能分支提供可构建的脚本和 GitHub Pages 发布流程。安装、设置和[完整使用指南](https://fkstack.github.io/near-translate/userscript/guide.html)一同发布，更新文件使用固定地址。
+篡改猴版由本仓库的 `src/userscript/main.tsx` 及共用的网页、划词和阅读模块构建。安装文件是可直接执行的 JavaScript 成品，不是仓库内的 TypeScript / React 源文件。GitHub Release 对应的提交决定发布内容；只修改或推送功能分支不会改变用户已安装的脚本。安装、设置和[完整使用指南](https://fkstack.github.io/near-translate/userscript/guide.html)一同发布，更新文件使用固定地址。
 
 ## 安装
 
 1. 安装 [Tampermonkey（篡改猴）](https://www.tampermonkey.net/) **5.4 或更新版本**，按它的提示允许浏览器运行用户脚本。Chrome / Edge 的要求见 [Tampermonkey 官方说明](https://www.tampermonkey.net/faq.php#Q209)。网络请求会校验管理器及版本，以保证匿名请求和拒绝重定向得到支持；旧版管理器仍可本地阅读，但不能发送翻译请求。
-2. 打开[近译篡改猴安装页](https://fkstack.github.io/near-translate/userscript/)，点击「安装近译」；也可直接打开 [near-translate.user.js](https://fkstack.github.io/near-translate/userscript/near-translate.user.js)。
+2. 打开 [Greasy Fork 上的近译](https://greasyfork.org/zh-CN/scripts/601973)，点击安装；也可选择 [GitHub 分发安装页](https://fkstack.github.io/near-translate/userscript/)。后续更新沿用所选渠道。
 3. 在篡改猴的安装页核对名称、源地址和权限后确认安装。
 4. 刷新需要阅读的文章页。从页面上的近译入口进入阅读模式或翻译网页；选中文字可显示划词翻译入口。
 
@@ -41,9 +41,20 @@ npm run test:greasyfork
 - 脚本：`https://fkstack.github.io/near-translate/greasyfork/near-translate.user.js`
 - 说明：`https://fkstack.github.io/near-translate/greasyfork/description.md`
 
-在 Greasy Fork 以作者账号发布公开脚本后，可在「同步」设置中使用上述源并选择自动同步。不要把压缩的 GitHub 版或 TypeScript 源文件用作 Greasy Fork 同步源。通过 Greasy Fork 安装的版本由其改写更新地址并从 Greasy Fork 更新，源站同步不会把用户引导到另一个安装渠道。
+公开脚本为 [近译 · 网页阅读与翻译](https://greasyfork.org/zh-CN/scripts/601973)，已使用上述脚本与说明源配置平台自动同步。Release 发布流程构建并部署这些源，Greasy Fork 再按平台的同步时机拉取；两者之间可能有延迟。维护者可在 Greasy Fork 的「同步」页手动同步并核对公开版本。不要把压缩的 GitHub 版或 TypeScript 源文件用作同步源。通过 Greasy Fork 安装的版本由其改写更新地址并从 Greasy Fork 更新。
 
-## 自动更新
+## 更新提醒与安装
+
+从 0.11.4 起，主动翻译网页、划词翻译、重试翻译或进入阅读模式时，脚本会检查是否有新版；单纯加载网页不会发起版本检查。发现新版后弹出确认框：
+
+- 取消：继续使用当前版本；下次主动使用近译时再次提醒，不会永久忽略这个版本。
+- 确定：打开当前安装渠道的脚本安装页，暂停本次操作。请在篡改猴中确认更新，再刷新文章页使用新版。
+
+版本信息跨页面缓存，每个安装渠道至多每天联网检查一次；失败也会缓存，网络不可用时继续使用当前功能。因此新版本发布或 Greasy Fork 完成同步后，提醒可能还需等待缓存到期。Greasy Fork 安装只检查 Greasy Fork 的版本，GitHub 安装只检查 Pages 的版本，不会因为两个渠道的同步时间不同而引导用户换渠道。每日检查上限遵循 [Greasy Fork 脚本规则](https://greasyfork.org/zh-CN/help/code-rules)。
+
+**要每次升级都由自己选择，请在篡改猴中单独关闭近译的内建自动更新。** 近译的确认框不能阻止管理器自行安装更新；保留管理器自动更新时，它可能先完成升级。0.11.3 及更早的脚本没有此提醒功能，需先从原安装渠道手动更新一次，升级到 0.11.4 或更高版本后才会生效。
+
+### 篡改猴的内建更新
 
 篡改猴读取脚本头部的三个字段：
 
@@ -53,7 +64,7 @@ npm run test:greasyfork
 | `@updateURL` | `https://fkstack.github.io/near-translate/userscript/near-translate.meta.js` |
 | `@downloadURL` | `https://fkstack.github.io/near-translate/userscript/near-translate.user.js` |
 
-篡改猴按照自身设置的周期检查版本，发现更高版本后从下载地址获取脚本；安装或权限变化时按其提示处理。用户也可以在篡改猴管理面板手动检查更新。具体行为见 [Tampermonkey 更新字段说明](https://www.tampermonkey.net/documentation.php?q=update_url)。
+上表是 GitHub 安装渠道的字段。Greasy Fork 会将更新与下载地址改写为它自身的地址。篡改猴按照自身设置的周期检查版本，发现更高版本后从下载地址获取脚本；安装或权限变化时按其提示处理。用户也可以在篡改猴管理面板手动检查更新。具体行为见 [Tampermonkey 更新字段说明](https://www.tampermonkey.net/documentation.php?q=update_url)。
 
 发布时必须提高 `package.json` 的版本（例如 `npm version patch --no-git-tag-version`，同时更新 lockfile），再一起发布 `.meta.js` 与 `.user.js`。只替换文件而不提高版本，不会向已安装用户提供版本升级。固定的脚本名称、命名空间与更新地址应保持稳定。
 
@@ -74,27 +85,17 @@ npm run build:userscript
 
 本地安装可在篡改猴管理面板新建脚本，将 `.user.js` 全部内容粘贴进去保存。该构建仍指向正式 Pages 更新地址；需要锁定本地开发版时，在篡改猴中单独关闭该脚本的更新检查。自动更新的最终核验应使用正式 HTTPS 分发地址。
 
-原扩展的 `npm run build`、`npm run build:edge` 和打包命令保持可用。CI 同时构建两个扩展及篡改猴脚本，并把脚本作为 `near-translate-userscript` artifact 提供下载；CI 本身不会发布更新。
+原扩展的 `npm run build`、`npm run build:edge` 和打包命令保持可用。普通 CI 同时构建两个扩展及篡改猴脚本，并把脚本作为 `near-translate-userscript` artifact 提供下载；用户分发由 Release 发布工作流执行。
 
 `npm run test:userscript` 构建脚本并在独立 Chromium 中验证阅读、网页翻译、划词和设置入口；运行前用 `npx playwright install chromium` 准备测试浏览器。测试使用模拟的 GM API 与翻译响应，不访问个人浏览器配置或真实模型账户；篡改猴实际安装、网络授权和自动更新仍应在发布后的 HTTPS 地址做一次人工核验。
 
-## 首次启用 GitHub 分发
+## 维护者发布流程
 
-1. 提交并推送已审阅的功能分支；首版使用 `codex/feature-tampermonkey`。标签触发的工作流从标签所指向的提交读取，不要求先合并到默认分支。
-2. 仓库 **Settings → Pages → Build and deployment → Source** 选择 **GitHub Actions**；将 `github-pages` environment 的部署规则设为允许 `userscript-v*` 标签。后续从默认分支手动发布时，也可允许 `main` 分支。若另有审批规则，由维护者在 GitHub 完成审批。
-3. 核对 `package.json` 和 `package-lock.json` 的版本一致，完成验证后，从该提交创建并推送 `userscript-v<版本号>` 标签。首版为 `userscript-v0.11.2`：
+完成新特性后，通过 [功能分支发布流程](../development/RELEASE_WORKFLOW.md)提交、推送、创建 PR 并 squash 合并到 `main`。主分支保持线性历史；合并后自动创建 `v<版本号>` GitHub Release 和版本说明，再构建、验证并部署 GitHub Pages 分发源。原来的 Chrome / Edge 扩展继续构建并提供 ZIP。
 
-   ```sh
-   git tag userscript-v0.11.2
-   git push origin userscript-v0.11.2
-   ```
+普通功能分支 push 或 PR 不发布用户更新；`main` 合并后的 Release 才开始发行构建。历史 `userscript-v*` 标签保留，但不再作为新版本的发布入口。GitHub Release 已创建、Pages 已部署、Greasy Fork 已同步、用户已确认安装是不同阶段，维护者应分别核对。GitHub Actions 不保存 Greasy Fork 账号凭证；当前使用已配置的平台自动同步，不保证 Release 发布后立即更新 Greasy Fork。
 
-4. 标签推送触发 **Actions → Publish userscript**。工作流要求标签中的版本严格等于 `package.json` 的版本，并完成仓库检查、文档检查、类型检查、单元测试、模块边界检查、脚本构建和篡改猴浏览器测试后，上传站点并通过 `github-pages` environment 发布。
-5. 确认安装页、设置页、完整指南、`.user.js` 和 `.meta.js` 均可通过上面的固定地址访问，再在篡改猴安装页核对版本并完成一次安装/手动更新验证。
-
-后续更新重复「提高版本及 lockfile → 验证并提交 → 创建并推送对应的新发布标签」。普通分支 push 与 pull request 不会发布站点；推送 `userscript-v*` 标签会触发发布。已发布标签保持不变，修复后使用更高版本的新标签。
-
-工作流也保留手动触发支持。工作流文件进入默认分支后，GitHub 才会显示 **Run workflow** 入口；手动运行仍须选择 environment 允许部署的发布引用。当前标签发布流程无需该入口。
+仓库 **Settings → Pages → Build and deployment → Source** 选择 **GitHub Actions**；`github-pages` environment 需允许新的 `v*` 标签部署。额外审批和分支保护仍由 GitHub 执行。失败后从 Actions 核对日志并重试原发布流程；已发布版本需要代码修复时使用更高版本，不移动旧标签。
 
 GitHub Pages 的单次部署代表整个站点；这个流程的站点根目录由 `.output/userscript-site/` 提供。如果仓库以后增加其他 Pages 内容，应在这个构建目录合并后再发布。迁移仓库名或更换域名时，也需要设计旧更新地址的衔接，避免已安装用户失去更新来源。
 

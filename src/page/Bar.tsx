@@ -105,7 +105,7 @@ export function PageBar(props: PageBarProps) {
   const { state } = props;
   const recovery = useTranslationRecovery(state.error, props.serviceStatus);
   const running = state.status === 'running';
-  const continuing = state.status === 'stopped' && state.failed === 0 && state.pending > 0;
+  const continuing = state.status === 'stopped' && !state.error && state.failed === 0 && state.pending > 0;
   const retry = !running && (state.failed > 0 || continuing || Boolean(state.error && recovery.action === 'retry'))
     && (!state.error || recovery.action === 'retry');
   const restoreOriginal = !running && state.completed > 0;
@@ -139,7 +139,7 @@ export function PageBar(props: PageBarProps) {
       <div role="status" aria-live="polite">{label}</div>
       {!running && <RecoveryAction recovery={recovery} className="np-retry" onSettings={props.onSettings}
         onRetry={retry ? continuing ? props.onContinue ?? props.onRetry : props.onRetry : undefined}
-        retryLabel={continuing ? '继续未完成部分' : '重试失败段落'}/>}
+        retryLabel={continuing ? '继续未完成部分' : state.error && state.pending > 0 ? '重试未完成部分' : '重试失败段落'}/>}
       {state.limitReached && <small>页面内容较多，已达到本次翻译上限。</small>}
       {state.skipped > 0 && !running && <small>已跳过 {state.skipped} 个发生变化的段落。</small>}
     </div>

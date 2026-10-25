@@ -26,4 +26,13 @@ describe('machine-readable page translation state', () => {
     expect(html).toContain('data-error-code="RATE_LIMIT"');
     expect(html).toContain('DeepL 请求受限');
   });
+
+  it('offers a manual retry for unfinished work with one connection failure message', () => {
+    const html = markup({ status: 'stopped', total: 20, completed: 2, failed: 0, pending: 18,
+      error: { code: 'NETWORK', message: '无法连接翻译服务。', retryable: true } });
+    expect(html.match(/无法连接翻译服务。/g)).toHaveLength(1);
+    expect(html).toContain('重试未完成部分');
+    expect(html).not.toContain('继续未完成部分');
+    expect(html).toContain('aria-label="恢复原文"');
+  });
 });

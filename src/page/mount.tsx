@@ -172,7 +172,7 @@ export function mountPageTranslator(options: {
   const ownSelector = '[data-near-page-ui],[data-near-page-translation],[data-near-translate]';
   const own = (node: Node) => Boolean((node instanceof Element ? node : node.parentElement)?.closest(ownSelector));
   const containsCandidate = (node: Node) => node instanceof Element
-    && (node.matches('article,main') || node.querySelector('article,main') !== null);
+    && (node.matches('article,main,.navheader + .sect1') || node.querySelector('article,main,.navheader + .sect1') !== null);
   const affectsScope = (record: MutationRecord): boolean => {
     const root = translationRoot;
     if (!root || root === document.body || root.contains(record.target)) return true;

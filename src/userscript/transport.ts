@@ -25,7 +25,9 @@ function streamBytes(value: unknown): Uint8Array | undefined {
 }
 
 /** A provider-bound adapter: the caller cannot supply arbitrary network destinations. */
-export function createGMFetch(endpoint: string, beforeRequest?: () => Promise<void>): typeof fetch {
+export function createGMFetch(endpoint: string, beforeRequest?: () => Promise<void>,
+  options: { responseType?: 'stream' | 'text' } = {}): typeof fetch {
+  const responseType = options.responseType ?? 'stream';
   return (async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
     try { requireSafeUserscriptNetwork(); }
     catch (error) { throw new TranslationFailure('CONFIG', error instanceof Error ? error.message : '请更新到新版篡改猴后使用网络翻译。'); }
@@ -102,10 +104,14 @@ export function createGMFetch(endpoint: string, beforeRequest?: () => Promise<vo
       };
       const receive = (response: GMResponse, complete = false) => {
         if (finished) return;
+        // JSON services need the complete text supplied by onload. Some manager
+        // streams never report EOF after their load event, so do not read them
+        // or partial text while waiting for a non-streaming JSON response.
+        if (responseType === 'text' && !complete) { open(response); return; }
         const value = response.response;
         // onloadstart is where Tampermonkey supplies the stream. Headers may
         // arrive later, and that later event need not repeat the stream object.
-        if (!streaming && value && typeof (value as ReadableStream<unknown>).getReader === 'function') {
+        if (responseType === 'stream' && !streaming && value && typeof (value as ReadableStream<unknown>).getReader === 'function') {
           managerStream = value as ReadableStream<unknown>;
         }
         if (!open(response) || finished) return;
@@ -138,7 +144,7 @@ export function createGMFetch(endpoint: string, beforeRequest?: () => Promise<vo
       signal?.addEventListener('abort', onAbort, { once: true });
       try {
         request = GM_xmlhttpRequest({ method: 'POST', url: endpoint, headers, data: init.body as string,
-          responseType: 'stream', anonymous: true, redirect: 'error', timeout: REQUEST_TIMEOUT_MS, nocache: true,
+          responseType, anonymous: true, redirect: 'error', timeout: REQUEST_TIMEOUT_MS, nocache: true,
           onloadstart: receive,
           onreadystatechange(response) { if ((response.readyState ?? 0) >= 2) receive(response); },
           onprogress: receive,

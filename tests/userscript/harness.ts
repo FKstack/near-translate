@@ -122,6 +122,11 @@ export async function installUserscript(page: Page, settingsPage = false, update
         const deliver = (first: string, rest: string, contentType: string) => {
           const response = { status: 200, statusText: 'OK', responseHeaders: `Content-Type: ${contentType}\r\n`, finalUrl: options.url };
           if (options.responseType !== 'stream' || network.responseMode === 'text') {
+            if (options.responseType === 'text') {
+              options.onloadstart?.({ status: 0, readyState: 1 });
+              options.onreadystatechange?.({ ...response, readyState: 2 });
+              options.onprogress?.({ ...response, readyState: 3, responseText: first.slice(0, 5) });
+            }
             done = true; complete = true; event('text');
             options.onload?.({ ...response, responseText: first + rest });
             return;

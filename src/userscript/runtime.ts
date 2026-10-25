@@ -40,7 +40,7 @@ export async function installRuntime(options: { onOpenSettings: () => void }): P
   const deeplFetch = createGMFetch(DEEPL_WEB_ENDPOINT, async () => {
     const until = await readCooldown();
     if (until > Date.now()) throw new TranslationFailure('RATE_LIMIT', 'DeepL 请求受限，已暂停后续翻译，请稍后手动重试。', true, until);
-  });
+  }, { responseType: 'text' });
   const deepl = new DeepLWebProvider((body, signal) => deeplFetch(DEEPL_WEB_ENDPOINT, {
     method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'None' },
     body, signal, credentials: 'omit', redirect: 'error',

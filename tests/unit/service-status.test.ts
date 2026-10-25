@@ -50,6 +50,24 @@ afterEach(() => {
 });
 
 describe('document-owned translation service status observation', () => {
+  it('reports a newly observed upstream error even when the cooldown did not change, retaining only safe fields', async () => {
+    const receive = vi.fn(); client.subscribe(receive); await flush();
+    const diagnostic = { source: 'http-429', httpStatus: 429, at: 1_050, retryAfterMs: 60_000,
+      responseReason: 'quota', privateText: 'private-original', apiKey: 'fixture-private-key' };
+    broadcast({ ...current(), rateLimit: diagnostic });
+    expect(receive).toHaveBeenCalledTimes(2);
+    expect(receive).toHaveBeenLastCalledWith({ ...current(), rateLimit: { source: 'http-429', httpStatus: 429,
+      at: 1_050, retryAfterMs: 60_000, responseReason: 'quota' } });
+    broadcast({ ...current(), rateLimit: { ...diagnostic } });
+    expect(receive).toHaveBeenCalledTimes(2);
+    broadcast({ ...current(), rateLimit: { ...diagnostic, source: 'json-too-many-requests', httpStatus: 200, at: 1_100 } });
+    expect(receive).toHaveBeenCalledTimes(3);
+    expect(JSON.stringify(receive.mock.calls)).not.toContain('private-original');
+    expect(JSON.stringify(receive.mock.calls)).not.toContain('fixture-private-key');
+    broadcast({ ...current(), engine: 'model', rateLimit: diagnostic });
+    expect(receive).toHaveBeenLastCalledWith({ ...current(), engine: 'model' });
+  });
+
   it('shares one initial IPC and event listeners between two subscribers without idle polling', async () => {
     const add = vi.spyOn(page, 'addEventListener'); const first = vi.fn(); const second = vi.fn();
     const stopFirst = client.subscribe(first); const stopSecond = client.subscribe(second);

@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { RequestScheduler, type RequestContext } from '../../src/providers/request-scheduler';
+import { DeepLWebProvider } from '../../src/providers/deepl-web';
 
 function deferred<T>() {
   let resolve!: (value: T) => void;
@@ -10,6 +11,350 @@ function deferred<T>() {
 function fakeTime() { vi.useFakeTimers(); vi.setSystemTime(1000); }
 const signal = () => new AbortController().signal;
 afterEach(() => { vi.useRealTimers(); });
+
+describe('visible cross-document start history admission', () => {
+  it('waits for the correct expiry when foreign starts already exceed the whole window', async () => {
+    fakeTime();
+    const scheduler = new RequestScheduler<number>({ maxConcurrent: 8, startWindow: { maxStarts: 3, durationMs: 1_000 },
+      readStartHistory: () => [1000, 1100, 1200, 1300, 1400] });
+    const execute = vi.fn(() => Date.now()); const result = scheduler.run(execute, signal());
+    expect(execute).not.toHaveBeenCalled();
+    await vi.advanceTimersToNextTimerAsync();
+    expect(Date.now()).toBe(2200); expect(await result).toBe(2200); scheduler.dispose();
+  });
+
+  it('counts equal timestamps as distinct foreign starts rather than deduplicating them', async () => {
+    fakeTime();
+    const scheduler = new RequestScheduler<number>({ startWindow: { maxStarts: 3, durationMs: 1_000 },
+      readStartHistory: () => [1000, 1000, 1000] });
+    const execute = vi.fn(() => Date.now()); const result = scheduler.run(execute, signal());
+    expect(execute).not.toHaveBeenCalled(); await vi.advanceTimersByTimeAsync(999); expect(execute).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(1); expect(await result).toBe(2000); scheduler.dispose();
+  });
+
+  it('combines own starts with foreign history and records each actual admission before execute', async () => {
+    fakeTime(); const events: string[] = []; const times: number[] = [];
+    const scheduler = new RequestScheduler<number>({ startWindow: { maxStarts: 2, durationMs: 1_000 },
+      readStartHistory: () => [900], recordStart: at => { times.push(at); events.push('record'); } });
+    expect(await scheduler.run(() => { events.push('execute'); return 1; }, signal())).toBe(1);
+    const second = scheduler.run(() => { events.push('execute'); return 2; }, signal());
+    await vi.advanceTimersByTimeAsync(899); expect(times).toEqual([1000]);
+    await vi.advanceTimersByTimeAsync(1); expect(await second).toBe(2); expect(times).toEqual([1000, 1900]);
+    expect(events).toEqual(['record', 'execute', 'record', 'execute']); scheduler.dispose();
+  });
+
+  it('takes the latest foreign start into account for spacing, including a backward clock', async () => {
+    fakeTime(); const scheduler = new RequestScheduler<number>({ intervalMs: 100, readStartHistory: () => [900, 1250, 1100] });
+    const execute = vi.fn(() => Date.now()); const result = scheduler.run(execute, signal());
+    await vi.advanceTimersByTimeAsync(349); expect(execute).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(1); expect(await result).toBe(1350); scheduler.dispose();
+  });
+
+  it('uses the post-hook clock without losing old anchors when the clock moves backwards inside the read', async () => {
+    fakeTime(); vi.setSystemTime(15_000); let changed = false;
+    const scheduler = new RequestScheduler<number>({ intervalMs: 100, readStartHistory: () => {
+      if (!changed) { changed = true; vi.setSystemTime(500); }
+      return [1000, 2000];
+    } });
+    const execute = vi.fn(() => Date.now()); const result = scheduler.run(execute, signal());
+    expect(Date.now()).toBe(500); expect(execute).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(1599); expect(execute).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(1); expect(await result).toBe(2100); scheduler.dispose();
+  });
+
+  it.each([NaN, Infinity, -1, 0.5])('does not admit a history-backed request with an invalid clock %j', async now => {
+    const scheduler = new RequestScheduler<number>({ clock: () => now, readStartHistory: () => [] });
+    const execute = vi.fn(() => 1);
+    await expect(scheduler.run(execute, signal())).rejects.toMatchObject({ kind: 'LOAD_STATE' });
+    expect(execute).not.toHaveBeenCalled(); scheduler.dispose();
+  });
+
+  it('inherits another document starts on a new scheduler without resetting the rolling budget', async () => {
+    fakeTime(); const firstHistory: number[] = [];
+    const first = new RequestScheduler<number>({ intervalMs: 100, startWindow: { maxStarts: 2, durationMs: 1_000 },
+      recordStart: at => { firstHistory.push(at); } });
+    expect(await first.run(() => 1, signal())).toBe(1);
+    const next = first.run(() => 2, signal()); await vi.advanceTimersByTimeAsync(100); expect(await next).toBe(2);
+    first.dispose(); expect(firstHistory).toEqual([1000, 1100]);
+    const scheduler = new RequestScheduler<number>({ intervalMs: 100, startWindow: { maxStarts: 2, durationMs: 1_000 },
+      readStartHistory: () => firstHistory });
+    const execute = vi.fn(() => Date.now()); const result = scheduler.run(execute, signal());
+    await vi.advanceTimersByTimeAsync(899); expect(execute).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(1); expect(await result).toBe(2000); scheduler.dispose();
+  });
+
+  it.each([undefined, null, {}, [NaN], [Infinity], [-1], [1.5], [Number.MAX_SAFE_INTEGER + 1], ['1000'], Array(1)])(
+    'fails closed on invalid visible history %j without executing queued work', async value => {
+      fakeTime(); const restored = deferred<number>();
+      const read = vi.fn(() => value as readonly number[]);
+      const scheduler = new RequestScheduler<number>({ maxConcurrent: 8, loadCooldownUntil: () => restored.promise, readStartHistory: read });
+      const execute = vi.fn(() => 1);
+      const jobs = Array.from({ length: 3 }, () => scheduler.run(execute, signal()).catch(error => error));
+      restored.resolve(0); expect((await Promise.all(jobs)).every(error => error.kind === 'LOAD_STATE')).toBe(true);
+      expect(execute).not.toHaveBeenCalled(); expect(read).toHaveBeenCalledOnce(); expect(vi.getTimerCount()).toBe(0);
+      await expect(scheduler.run(execute, signal())).rejects.toMatchObject({ kind: 'LOAD_STATE' }); scheduler.dispose();
+    });
+
+  it('isolates read exceptions and stops the whole queue without publishing a service rate-limit', async () => {
+    fakeTime(); const restored = deferred<number>(); const persist = vi.fn(async () => {});
+    const scheduler = new RequestScheduler<number>({ loadCooldownUntil: () => restored.promise, persistCooldownUntil: persist,
+      readStartHistory: () => { throw new Error('private storage detail'); } });
+    const execute = vi.fn(() => 1); const first = scheduler.run(execute, signal()).catch(error => error);
+    const second = scheduler.run(execute, signal()).catch(error => error); restored.resolve(0);
+    for (const result of await Promise.all([first, second])) {
+      expect(result).toMatchObject({ kind: 'LOAD_STATE' }); expect(result.message).not.toContain('private');
+    }
+    expect(execute).not.toHaveBeenCalled(); expect(persist).not.toHaveBeenCalled(); scheduler.dispose();
+  });
+
+  it('blocks nested execution when a write callback enqueues more work and then fails', async () => {
+    fakeTime(); const execute = vi.fn(() => 1); let nested!: Promise<unknown>;
+    const scheduler = new RequestScheduler<number>({ maxConcurrent: 8, recordStart: () => {
+      nested = scheduler.run(execute, signal()).catch(error => error); throw new Error('private save failure');
+    } });
+    const first = scheduler.run(execute, signal()).catch(error => error);
+    expect(await first).toMatchObject({ kind: 'SAVE_STATE' }); expect(await nested).toMatchObject({ kind: 'SAVE_STATE' });
+    expect(execute).not.toHaveBeenCalled(); await expect(scheduler.run(execute, signal())).rejects.toMatchObject({ kind: 'SAVE_STATE' });
+    expect(vi.getTimerCount()).toBe(0); scheduler.dispose();
+  });
+
+  it.each(['read', 'write'] as const)('aborts an admitted DeepL guard before I/O when a later %s hook fails', async mode => {
+    fakeTime(); const guard = deferred<void>(); let reads = 0; let writes = 0;
+    const transport = vi.fn(async () => new Response('{"translations":[{"text":"完整译文"}]}'));
+    const onDiagnostic = vi.fn(); const persistCooldownUntil = vi.fn(async () => {});
+    const provider = new DeepLWebProvider(transport, { maxConcurrent: 2, intervalMs: 100, onDiagnostic, persistCooldownUntil,
+      readStartHistory: () => { reads++; if (mode === 'read' && reads === 2) throw new Error('private read'); return []; },
+      recordStart: () => { writes++; if (mode === 'write' && writes === 2) throw new Error('private write'); },
+    });
+    const collect = async (beforeRequest?: () => Promise<void>) => {
+      try { for await (const _event of provider.translate({ kind: 'text', text: 'Public guard fixture.' }, signal(), beforeRequest)) { /* No HTTP may complete. */ } }
+      catch (error) { return error; }
+    };
+    const first = collect(() => guard.promise); const second = collect();
+    await vi.advanceTimersByTimeAsync(100);
+    expect(await first).toMatchObject({ code: 'CONFIG' }); expect(await second).toMatchObject({ code: 'CONFIG' });
+    guard.resolve(undefined); await vi.advanceTimersByTimeAsync(1000);
+    expect(transport).not.toHaveBeenCalled(); expect(onDiagnostic).not.toHaveBeenCalled(); expect(persistCooldownUntil).not.toHaveBeenCalled();
+  });
+
+  it.each(['read', 'write'] as const)('rejects accidental asynchronous %s hooks instead of treating a pending write as admission', async mode => {
+    fakeTime();
+    const asynchronous = async () => { throw new Error('private asynchronous failure'); };
+    const scheduler = new RequestScheduler<number>({
+      ...(mode === 'read' ? { readStartHistory: asynchronous as unknown as () => readonly number[] } : { recordStart: asynchronous }),
+    });
+    const execute = vi.fn(() => 1);
+    await expect(scheduler.run(execute, signal())).rejects.toMatchObject({ kind: mode === 'read' ? 'LOAD_STATE' : 'SAVE_STATE' });
+    await vi.advanceTimersByTimeAsync(0); expect(execute).not.toHaveBeenCalled(); scheduler.dispose();
+  });
+
+  it('does not execute a selected job cancelled by its synchronous record callback', async () => {
+    fakeTime(); const controller = new AbortController(); const recorded: number[] = [];
+    const scheduler = new RequestScheduler<number>({ recoveryProbe: true, recordStart: at => { recorded.push(at); controller.abort(); } });
+    const execute = vi.fn(() => 1);
+    await expect(scheduler.run(execute, controller.signal)).rejects.toMatchObject({ name: 'AbortError' });
+    expect(recorded).toEqual([1000]); expect(execute).not.toHaveBeenCalled();
+    expect(await scheduler.getCooldownUntil()).toBe(0); scheduler.dispose();
+  });
+
+  it('does not admit work when a read callback observes a new shared cooldown', async () => {
+    fakeTime();
+    const scheduler = new RequestScheduler<number>({ recoveryProbe: true, readStartHistory: () => {
+      scheduler.observeCooldownUntil(61_000); return [];
+    } });
+    const execute = vi.fn(() => 1);
+    await expect(scheduler.run(execute, signal())).rejects.toMatchObject({ kind: 'RATE_LIMIT' });
+    expect(execute).not.toHaveBeenCalled(); expect(await scheduler.getCooldownUntil()).toBe(61_000); scheduler.dispose();
+  });
+
+  it('retains an issued start after cancellation instead of refunding recorded admission', async () => {
+    fakeTime(); const old = deferred<number>(); const controller = new AbortController(); const recorded: number[] = [];
+    const scheduler = new RequestScheduler<number>({ startWindow: { maxStarts: 1, durationMs: 1_000 }, recordStart: at => { recorded.push(at); } });
+    const first = scheduler.run(() => old.promise, controller.signal).catch(error => error);
+    controller.abort(); expect(await first).toMatchObject({ name: 'AbortError' }); old.resolve(1);
+    const execute = vi.fn(() => 2); const second = scheduler.run(execute, signal());
+    await vi.advanceTimersByTimeAsync(999); expect(execute).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(1); expect(await second).toBe(2); expect(recorded).toEqual([1000, 2000]); scheduler.dispose();
+  });
+
+  it('chunks an extremely distant valid timestamp without timer overflow or a busy loop', async () => {
+    fakeTime(); const controller = new AbortController();
+    const scheduler = new RequestScheduler<number>({ intervalMs: 100, readStartHistory: () => [Number.MAX_SAFE_INTEGER] });
+    const execute = vi.fn(() => 1); const result = scheduler.run(execute, controller.signal).catch(error => error);
+    await vi.advanceTimersToNextTimerAsync(); expect(Date.now()).toBe(1000 + 2_147_483_647);
+    expect(execute).not.toHaveBeenCalled(); expect(vi.getTimerCount()).toBe(1);
+    controller.abort(); expect(await result).toMatchObject({ name: 'AbortError' }); expect(vi.getTimerCount()).toBe(0); scheduler.dispose();
+  });
+
+  it('passes history admission hooks through the DeepL provider without issuing HTTP early', async () => {
+    fakeTime(); const recorded: number[] = [];
+    const transport = vi.fn(async () => new Response('{"translations":[{"text":"完整译文"}]}'));
+    const provider = new DeepLWebProvider(transport, { intervalMs: 100, maxConcurrent: 8,
+      startWindow: { maxStarts: 30, durationMs: 12_000 }, readStartHistory: () => Array(30).fill(1000),
+      recordStart: at => { expect(transport).not.toHaveBeenCalled(); recorded.push(at); } });
+    const result = (async () => { for await (const event of provider.translate({ kind: 'text', text: 'Public fixture.' }, signal())) {
+      if (event.type === 'result') return event.result;
+    } })();
+    await vi.advanceTimersByTimeAsync(11_999); expect(recorded).toEqual([]); expect(transport).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(1); expect(await result).toMatchObject({ kind: 'text', translation: '完整译文' });
+    expect(recorded).toEqual([13000]); expect(transport).toHaveBeenCalledOnce();
+  });
+});
+
+describe('optional service recovery admission', () => {
+  it('starts exactly one probe before charging further starts, then keeps FIFO, interval and rolling budgets', async () => {
+    fakeTime();
+    const probe = deferred<number>();
+    const scheduler = new RequestScheduler<number>({ recoveryProbe: true, loadCooldownUntil: async () => 500,
+      maxConcurrent: 8, intervalMs: 100, startWindow: { maxStarts: 2, durationMs: 1_000 } });
+    const starts: number[] = [];
+    const jobs = Array.from({ length: 4 }, (_, index) => scheduler.run(() => {
+      starts.push(Date.now()); return index === 0 ? probe.promise : index;
+    }, signal()));
+    await vi.advanceTimersByTimeAsync(1_500);
+    expect(starts).toEqual([1000]);
+    probe.resolve(0); await vi.advanceTimersByTimeAsync(0);
+    expect(starts).toEqual([1000, 2500]);
+    await vi.advanceTimersByTimeAsync(100);
+    expect(starts).toEqual([1000, 2500, 2600]);
+    await vi.advanceTimersByTimeAsync(899); expect(starts).toHaveLength(3);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(starts).toEqual([1000, 2500, 2600, 3500]);
+    expect(await Promise.all(jobs)).toEqual([0, 1, 2, 3]); scheduler.dispose();
+  });
+
+  it('fails the existing attempt as one unit instead of automatically probing every waiter', async () => {
+    fakeTime();
+    const probe = deferred<number>(); const error = new TypeError('network failure');
+    const scheduler = new RequestScheduler<number>({ recoveryProbe: true, loadCooldownUntil: async () => 500, maxConcurrent: 8 });
+    const execute = vi.fn(() => probe.promise);
+    const jobs = Array.from({ length: 8 }, () => scheduler.run(execute, signal()).catch(reason => reason));
+    await vi.advanceTimersByTimeAsync(0); probe.reject(error);
+    expect((await Promise.all(jobs)).every(result => result.kind === 'RECOVERY_FAILED' && result.cause === error)).toBe(true);
+    await vi.advanceTimersByTimeAsync(60_000); expect(execute).toHaveBeenCalledOnce();
+    expect(await scheduler.run(() => 9, signal())).toBe(9); scheduler.dispose();
+  });
+
+  it('flushes waiters immediately on cancellation and an ignored-abort late success cannot open recovery', async () => {
+    fakeTime();
+    const probe = deferred<number>(); const controller = new AbortController();
+    const recovered = vi.fn(async () => {});
+    const scheduler = new RequestScheduler<number>({ recoveryProbe: true, onRecoverySucceeded: recovered,
+      loadCooldownUntil: async () => 500, maxConcurrent: 8 });
+    const first = scheduler.run(() => probe.promise, controller.signal).catch(reason => reason);
+    const execute = vi.fn(() => 2);
+    const waiting = scheduler.run(execute, signal()).catch(reason => reason);
+    await vi.advanceTimersByTimeAsync(0); controller.abort();
+    expect(await first).toMatchObject({ name: 'AbortError' });
+    expect(await waiting).toMatchObject({ name: 'AbortError' });
+    probe.resolve(1); await vi.advanceTimersByTimeAsync(1000);
+    expect(recovered).not.toHaveBeenCalled(); expect(execute).not.toHaveBeenCalled();
+    const next = deferred<number>();
+    const retry = scheduler.run(() => next.promise, signal());
+    const after = scheduler.run(execute, signal());
+    await vi.advanceTimersByTimeAsync(1000); expect(execute).not.toHaveBeenCalled();
+    next.resolve(3); expect(await retry).toBe(3); expect(await after).toBe(2);
+    expect(recovered).toHaveBeenCalledExactlyOnceWith(500, expect.any(Function)); scheduler.dispose();
+  });
+
+  it('captures the old deadline and waits for recovery persistence before admitting peers', async () => {
+    fakeTime(); const saved = deferred<void>();
+    const recovered = vi.fn(() => saved.promise);
+    const scheduler = new RequestScheduler<number>({ recoveryProbe: true, onRecoverySucceeded: recovered,
+      loadCooldownUntil: async () => 500, maxConcurrent: 8 });
+    const first = scheduler.run(() => 1, signal());
+    const execute = vi.fn(() => 2); const second = scheduler.run(execute, signal());
+    await vi.advanceTimersByTimeAsync(0);
+    expect(recovered).toHaveBeenCalledExactlyOnceWith(500, expect.any(Function)); expect(execute).not.toHaveBeenCalled();
+    saved.resolve(undefined); expect(await first).toBe(1); expect(await second).toBe(2); scheduler.dispose();
+  });
+
+  it('fails closed when recovery persistence fails and never releases waiting work', async () => {
+    const scheduler = new RequestScheduler<number>({ recoveryProbe: true, loadCooldownUntil: async () => 1,
+      onRecoverySucceeded: async () => { throw new Error('private storage failure'); }, maxConcurrent: 8 });
+    const execute = vi.fn(() => 2);
+    const first = scheduler.run(() => 1, signal()).catch(reason => reason);
+    const second = scheduler.run(execute, signal()).catch(reason => reason);
+    expect(await first).toMatchObject({ kind: 'SAVE_STATE' }); expect(await second).toMatchObject({ kind: 'SAVE_STATE' });
+    await expect(scheduler.run(execute, signal())).rejects.toMatchObject({ kind: 'SAVE_STATE' });
+    expect(execute).not.toHaveBeenCalled(); scheduler.dispose();
+  });
+
+  it('checks cancellation again after recovery persistence, without allowing its late resolution to open the gate', async () => {
+    fakeTime(); const saved = deferred<void>(); const controller = new AbortController();
+    const scheduler = new RequestScheduler<number>({ recoveryProbe: true, loadCooldownUntil: async () => 500,
+      onRecoverySucceeded: () => saved.promise, maxConcurrent: 8 });
+    const first = scheduler.run(() => 1, controller.signal).catch(reason => reason);
+    const execute = vi.fn(() => 2); const second = scheduler.run(execute, signal()).catch(reason => reason);
+    await vi.advanceTimersByTimeAsync(0); controller.abort();
+    expect(await first).toMatchObject({ name: 'AbortError' }); expect(await second).toMatchObject({ name: 'AbortError' });
+    saved.resolve(undefined); await vi.advanceTimersByTimeAsync(0); expect(execute).not.toHaveBeenCalled(); scheduler.dispose();
+  });
+
+  it('never lets metadata-only execution recover a paused service', async () => {
+    const scheduler = new RequestScheduler<number>({ recoveryProbe: true, loadCooldownUntil: async () => 1, maxConcurrent: 8 });
+    const metadata = vi.fn(() => 0);
+    await expect(scheduler.run(metadata, signal(), { recoveryEligible: false })).rejects.toMatchObject({ kind: 'RATE_LIMIT' });
+    expect(metadata).not.toHaveBeenCalled();
+    expect(await scheduler.run(() => 1, signal())).toBe(1); scheduler.dispose();
+  });
+
+  it('provides a commit guard that becomes false after cancellation without poisoning later attempts', async () => {
+    fakeTime(); const saved = deferred<void>(); const controller = new AbortController(); let committed = false;
+    const scheduler = new RequestScheduler<number>({ recoveryProbe: true, loadCooldownUntil: async () => 500,
+      onRecoverySucceeded: async (_through, current) => { await saved.promise; if (!current()) throw new DOMException('cancelled', 'AbortError'); committed = true; } });
+    const first = scheduler.run(() => 1, controller.signal).catch(reason => reason);
+    await vi.advanceTimersByTimeAsync(0); controller.abort(); saved.resolve(undefined);
+    expect(await first).toMatchObject({ name: 'AbortError' }); await vi.advanceTimersByTimeAsync(0);
+    expect(committed).toBe(false);
+    expect(await scheduler.run(() => 2, signal())).toBe(2); expect(committed).toBe(true); scheduler.dispose();
+  });
+
+  it('invalidates the recovery commit guard when a newer shared cooldown arrives during its write', async () => {
+    fakeTime(); const saved = deferred<void>(); let guard!: () => boolean; const captured: number[] = [];
+    const scheduler = new RequestScheduler<number>({ recoveryProbe: true, loadCooldownUntil: async () => 500, maxConcurrent: 8,
+      onRecoverySucceeded: async (through, current) => { captured.push(through); guard = current; await saved.promise; } });
+    const first = scheduler.run(() => 1, signal()).catch(reason => reason);
+    const execute = vi.fn(() => 2); const waiting = scheduler.run(execute, signal()).catch(reason => reason);
+    await vi.advanceTimersByTimeAsync(0); expect(guard()).toBe(true);
+    scheduler.observeCooldownUntil(3_000); expect(guard()).toBe(false);
+    expect(await first).toMatchObject({ kind: 'RATE_LIMIT' }); expect(await waiting).toMatchObject({ kind: 'RATE_LIMIT' });
+    saved.resolve(undefined); await vi.advanceTimersByTimeAsync(2_000);
+    expect(execute).not.toHaveBeenCalled(); expect(captured).toEqual([500]);
+    expect(await scheduler.run(() => 3, signal())).toBe(3); expect(captured).toEqual([500, 3000]); scheduler.dispose();
+  });
+
+  it('recovers cautiously after an active external abort without creating or persisting a rate limit', async () => {
+    fakeTime(); const old = deferred<number>(); const controller = new AbortController();
+    const persist = vi.fn(async () => {}); const recovered = vi.fn(async () => {});
+    const scheduler = new RequestScheduler<number>({ recoveryProbe: true, maxConcurrent: 8, intervalMs: 100,
+      persistCooldownUntil: persist, onRecoverySucceeded: recovered });
+    const first = scheduler.run(() => old.promise, controller.signal).catch(reason => reason);
+    controller.abort(); expect(await first).toMatchObject({ name: 'AbortError' });
+    old.resolve(1); await vi.advanceTimersByTimeAsync(100);
+    expect(await scheduler.getCooldownUntil()).toBe(0); expect(persist).not.toHaveBeenCalled();
+    const probe = deferred<number>(); const start = vi.fn(() => 3);
+    const second = scheduler.run(() => probe.promise, signal()); const third = scheduler.run(start, signal());
+    await vi.advanceTimersByTimeAsync(1_000); expect(start).not.toHaveBeenCalled();
+    probe.resolve(2); expect(await second).toBe(2); expect(await third).toBe(3);
+    expect(recovered).toHaveBeenCalledExactlyOnceWith(0, expect.any(Function)); scheduler.dispose();
+  });
+
+  it('does not arm recovery for queued cancellation or aborting an already successful owner', async () => {
+    fakeTime(); const first = deferred<number>(); const queuedController = new AbortController(); const settledController = new AbortController();
+    const recovered = vi.fn(async () => {});
+    const scheduler = new RequestScheduler<number>({ recoveryProbe: true, maxConcurrent: 8, intervalMs: 100, onRecoverySucceeded: recovered });
+    const active = scheduler.run(() => first.promise, settledController.signal);
+    const queued = scheduler.run(() => 2, queuedController.signal).catch(reason => reason);
+    queuedController.abort(); expect(await queued).toMatchObject({ name: 'AbortError' });
+    first.resolve(1); expect(await active).toBe(1); settledController.abort();
+    const work = Array.from({ length: 8 }, () => deferred<number>()); const starts: number[] = [];
+    const jobs = work.map((item, index) => scheduler.run(() => { starts.push(index); return item.promise; }, signal()));
+    await vi.advanceTimersByTimeAsync(800); expect(starts).toHaveLength(8);
+    work.forEach((item, index) => item.resolve(index)); await Promise.all(jobs);
+    expect(recovered).not.toHaveBeenCalled(); scheduler.dispose();
+  });
+});
 
 describe('RequestScheduler bounded execution ownership', () => {
   it('shares read-only cooldown restoration without admitting work or allocating start timers', async () => {

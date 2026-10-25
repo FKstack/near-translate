@@ -1,8 +1,8 @@
-import { TranslationFailure } from '../core/errors';
+import { toTranslationError, TranslationFailure } from '../core/errors';
 import { normalizeTranslationInput } from '../core/input';
 import { normalizeChineseVariant } from '../core/chinese-variants';
 import type { TranslationEvent, TranslationInput, TranslationProvider } from '../shared/contracts';
-import { DEEPL_WEB_LIMITS } from '../shared/translation-policy';
+import { DEEPL_WEB_LIMITS, DEEPL_WEB_SCHEDULING } from '../shared/translation-policy';
 import { resolveLanguagePair, type LanguagePair } from '../shared/languages';
 import { RequestScheduler, RequestSchedulingFailure, type RequestContext } from './request-scheduler';
 
@@ -10,6 +10,8 @@ export type DeepLWebTransport = (body: string, signal: AbortSignal) => Promise<R
 export interface DeepLWebDiagnostic {
   at: number;
   httpStatus: number;
+  origin?: 'upstream';
+  source?: 'http-429' | 'json-too-many-requests';
   /** Historical field name; safe integer from error.code or top-level code. */
   rpcErrorCode?: number;
   /** A coarse hint from known error fields, not a verified limiting cause. */
@@ -30,8 +32,11 @@ export interface DeepLWebProviderOptions {
   maxQueuedRequests?: number;
   /** Optional shared start budget; never refunds already issued requests. */
   startWindow?: { maxStarts: number; durationMs: number };
+  readStartHistory?: () => readonly number[];
+  recordStart?: (at: number) => void;
   loadCooldownUntil?: () => Promise<number>;
   persistCooldownUntil?: (until: number) => Promise<void>;
+  onRecoverySucceeded?: (throughCooldownUntil: number, isCurrent: () => boolean) => Promise<void>;
   onDiagnostic?: (diagnostic: DeepLWebDiagnostic) => void;
   /** Optional metadata-only request; browser details remain in the transport. */
   prepareTransport?: (signal: AbortSignal) => Promise<Response>;
@@ -46,6 +51,9 @@ const DIAGNOSTIC_TIMEOUT_MS = 1_000;
 const MIN_INTERVAL_MS = 100;
 const DEFAULT_INTERVAL_MS = 1_050;
 const MIN_COOLDOWN_MS = 60_000;
+const MAX_EPISODE_COOLDOWN_MS = 15 * 60_000;
+// A local recovery policy, not an upstream quota or availability guarantee.
+const RECOVERY_HEALTHY_RESPONSES = DEEPL_WEB_SCHEDULING.maxConcurrent;
 const PREPARATION_TIMEOUT_MS = 5_000;
 const CANCELLED = () => new DOMException('翻译请求已取消。', 'AbortError');
 const limited = (retryAt: number) => new TranslationFailure('RATE_LIMIT', 'DeepL 请求受限，已暂停后续翻译，请稍后手动重试。', true, retryAt);
@@ -129,6 +137,9 @@ export class DeepLWebProvider implements TranslationProvider {
   private readonly reservePreparation?: () => Promise<boolean>;
   private readonly scheduler: RequestScheduler<string[]>;
   private preparation?: { controller: AbortController; completion: Promise<void> };
+  private rateLimitEpisodes = 0;
+  private rateLimitGeneration = 0;
+  private healthyRecoveryResponses = 0;
 
   constructor(private readonly transport: DeepLWebTransport, options: DeepLWebProviderOptions = {}) {
     this.clock = options.clock ?? (() => Date.now());
@@ -141,7 +152,9 @@ export class DeepLWebProvider implements TranslationProvider {
       intervalMs: Number.isNaN(interval) ? MIN_INTERVAL_MS : Math.max(MIN_INTERVAL_MS, interval),
       maxConcurrent: options.maxConcurrent, maxQueuedRequests: options.maxQueuedRequests,
       startWindow: options.startWindow,
+      readStartHistory: options.readStartHistory, recordStart: options.recordStart,
       loadCooldownUntil: options.loadCooldownUntil, persistCooldownUntil: options.persistCooldownUntil,
+      recoveryProbe: true, onRecoverySucceeded: options.onRecoverySucceeded,
     });
   }
 
@@ -170,7 +183,7 @@ export class DeepLWebProvider implements TranslationProvider {
           executing = true;
           try { return await this.requestPreparation(context); }
           finally { release(); }
-        }, controller.signal);
+        }, controller.signal, { recoveryEligible: false });
       } catch { /* Preparation never replaces or retries a user's translation. */ }
       finally {
         controller.signal.removeEventListener('abort', finishPublic);
@@ -189,6 +202,12 @@ export class DeepLWebProvider implements TranslationProvider {
   async getServiceStatus(): Promise<{ cooldownUntil: number }> {
     try { return { cooldownUntil: await this.scheduler.getCooldownUntil() }; }
     catch (error) { throw this.schedulingFailure(error); }
+  }
+
+  observeCooldownUntil(until: number): void {
+    if (this.scheduler.observeCooldownUntil(until)) {
+      this.rateLimitGeneration++; this.healthyRecoveryResponses = 0;
+    }
   }
 
   private async requestPreparation(context: RequestContext): Promise<string[]> {
@@ -271,8 +290,24 @@ export class DeepLWebProvider implements TranslationProvider {
 
   private async enqueue(texts: string[], languages: Readonly<LanguagePair>, signal: AbortSignal,
     beforeRequest?: () => Promise<void>): Promise<string[]> {
-    try { return await this.scheduler.run(context => this.request(texts, languages, context, beforeRequest), signal); }
+    const generation = this.rateLimitGeneration;
+    try {
+      const result = await this.scheduler.run(context => this.request(texts, languages, context, beforeRequest), signal);
+      checkAbort(signal);
+      if (generation === this.rateLimitGeneration && this.rateLimitEpisodes > 0) {
+        this.healthyRecoveryResponses++;
+        if (this.healthyRecoveryResponses >= RECOVERY_HEALTHY_RESPONSES) {
+          this.rateLimitEpisodes = 0; this.healthyRecoveryResponses = 0;
+        }
+      }
+      return result;
+    }
     catch (error) {
+      if (this.rateLimitEpisodes > 0) {
+        // A cancelled or failed execution is not part of a healthy window.
+        // It interrupts recovery evidence without adding an upstream episode.
+        this.rateLimitGeneration++; this.healthyRecoveryResponses = 0;
+      }
       if (error instanceof RequestSchedulingFailure && error.kind === 'RATE_LIMIT') {
         throw limited((await this.getServiceStatus()).cooldownUntil);
       }
@@ -282,6 +317,10 @@ export class DeepLWebProvider implements TranslationProvider {
 
   private schedulingFailure(error: unknown): unknown {
     if (!(error instanceof RequestSchedulingFailure)) return error;
+    if (error.kind === 'RECOVERY_FAILED') {
+      const original = toTranslationError(this.schedulingFailure(error.cause));
+      return new TranslationFailure(original.code, original.message, original.retryable, original.retryAt, true);
+    }
     if (error.kind === 'QUEUE_FULL') return new TranslationFailure('RATE_LIMIT', '等待 DeepL 翻译的任务较多，请稍后手动重试。', true);
     if (error.kind === 'LOAD_STATE') return new TranslationFailure('CONFIG', '无法读取 DeepL 的限流状态，已暂停该服务；请重新加载扩展后重试。');
     if (error.kind === 'SAVE_STATE') return new TranslationFailure('CONFIG', '无法保存 DeepL 的限流状态，已暂停该服务；请重新加载扩展后重试。');
@@ -289,7 +328,10 @@ export class DeepLWebProvider implements TranslationProvider {
   }
 
   private cooldownDelay(retryAfter: string | null): number {
-    let delay = this.cooldownMs;
+    this.rateLimitGeneration++;
+    this.healthyRecoveryResponses = 0;
+    this.rateLimitEpisodes = Math.min(this.rateLimitEpisodes + 1, 16);
+    let delay = Math.max(this.cooldownMs, Math.min(MAX_EPISODE_COOLDOWN_MS, MIN_COOLDOWN_MS * 2 ** (this.rateLimitEpisodes - 1)));
     if (retryAfter) {
       const seconds = /^\d+(?:\.\d+)?$/.test(retryAfter.trim()) ? Number(retryAfter) : NaN;
       const suggested = Number.isFinite(seconds) ? seconds * 1000 : Date.parse(retryAfter) - this.clock();
@@ -330,7 +372,12 @@ export class DeepLWebProvider implements TranslationProvider {
       catch { if (!response.ok) throw this.httpFailure(response.status); throw invalid(); }
       if (record(payload) && record(payload.error) && typeof payload.error.message === 'string'
         && /too\s+many\s+requests/i.test(payload.error.message)) {
-        await context.pauseFor(this.cooldownDelay(response.headers.get('retry-after')));
+        const at = this.clock();
+        const retryAfter = response.headers.get('retry-after');
+        const persisted = context.pauseFor(this.cooldownDelay(retryAfter));
+        this.publishRateLimitDiagnostic(response, at, retryAfter,
+          { bodyOutcome: 'json', ...diagnosticBodyClues(payload) }, 'json-too-many-requests');
+        await persisted;
         throw limited((await this.getServiceStatus()).cooldownUntil);
       }
       if (!response.ok) throw this.httpFailure(response.status);
@@ -357,6 +404,11 @@ export class DeepLWebProvider implements TranslationProvider {
     let observation: DiagnosticBodyObservation;
     try { observation = await this.readDiagnosticBody(response, signal, onCancellation); }
     catch { observation = { bodyOutcome: signal.aborted ? 'aborted' : 'read-error' }; }
+    this.publishRateLimitDiagnostic(response, at, retryAfter, observation, 'http-429');
+  }
+
+  private publishRateLimitDiagnostic(response: Response, at: number, retryAfter: string | null,
+    observation: DiagnosticBodyObservation, source: NonNullable<DeepLWebDiagnostic['source']>): void {
     let retryAfterMs: number | undefined;
     if (retryAfter) {
       const seconds = /^\d+(?:\.\d+)?$/.test(retryAfter.trim()) ? Number(retryAfter) : NaN;
@@ -369,7 +421,7 @@ export class DeepLWebProvider implements TranslationProvider {
       const value = diagnosticIntegerHeader(response.headers.get(header));
       if (value !== undefined) headerClues[field] = value;
     }
-    const diagnostic: DeepLWebDiagnostic = { at, httpStatus: response.status, ...observation, ...headerClues,
+    const diagnostic: DeepLWebDiagnostic = { at, httpStatus: response.status, origin: 'upstream', source, ...observation, ...headerClues,
       ...(retryAfterMs !== undefined ? { retryAfterMs } : {}), bodyCompletedAt: this.clock() };
     try { this.onDiagnostic?.(diagnostic); }
     catch { /* Observability cannot change the rate-limit or cancellation result. */ }

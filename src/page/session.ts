@@ -406,7 +406,7 @@ export class PageTranslationSession {
         this.complete(active.tasks[0]!, event.result.translation);
       } else this.failTasks(active.tasks, INVALID_BATCH);
     } else {
-      if (STOP_ERRORS.has(event.error.code)) {
+      if (STOP_ERRORS.has(event.error.code) || event.error.serviceWide === true) {
         // A connection or service-wide failure belongs to the session bar, not
         // every paragraph in this batch. Keep completed text and wait for the
         // user's next action before sending any unfinished work again.

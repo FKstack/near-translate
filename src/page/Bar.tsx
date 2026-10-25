@@ -123,7 +123,12 @@ export function PageBar(props: PageBarProps) {
     onFocusCapture={event => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setQuiet(false); }}
     onKeyDown={moveWithKeyboard}
     data-status={state.status} data-total={state.total} data-completed={state.completed}
-    data-failed={state.failed} data-pending={state.pending} data-error-code={state.error?.code}>
+    data-failed={state.failed} data-pending={state.pending} data-error-code={state.error?.code}
+    data-last-rate-http-status={props.serviceStatus?.rateLimit?.httpStatus}
+    data-last-rate-source={props.serviceStatus?.rateLimit?.source}
+    data-last-rate-at={props.serviceStatus?.rateLimit?.at}
+    data-last-rate-retry-after-ms={props.serviceStatus?.rateLimit?.retryAfterMs}
+    data-last-rate-reason={props.serviceStatus?.rateLimit?.responseReason}>
     <button ref={primary} type="button" className={`np-primary${running ? ' np-running' : ''}`} aria-label={primaryLabel} aria-description="拖动调整位置；按住 Alt 并使用方向键微调。" aria-pressed={state.completed > 0}
       disabled={!running && !restoreOriginal && recovery.blocked}
       onPointerDown={startDrag} onPointerMove={moveDrag} onPointerUp={finishDrag} onPointerCancel={finishDrag} onLostPointerCapture={finishDrag}

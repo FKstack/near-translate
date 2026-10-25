@@ -9,7 +9,7 @@ vi.mock('../../src/page/segments', async importOriginal => ({ ...await importOri
 vi.mock('../../src/page/viewport', () => ({ snapshotViewportPriorities: deps.viewport }));
 import { PageBenchmarkProbe, PUBLIC_GO_URL, summarizeSources, translationHostForSegment } from '../../scripts/benchmarks/page-probe';
 
-function fixture(options: { url?: string; expectedUrl?: string } = {}) {
+function fixture(options: { url?: string; expectedUrl?: string; mode?: 'foreground' | 'background-dom' } = {}) {
   let now = 0; let foreground = true; let frameId = 0;
   const frames = new Map<number, FrameRequestCallback>();
   const listeners = new Map<string, EventListener>();
@@ -51,7 +51,7 @@ function fixture(options: { url?: string; expectedUrl?: string } = {}) {
     Object.assign(segment.anchor, { nextSibling: host }); hosts.push(host);
     return host;
   };
-  const probe = new PageBenchmarkProbe(doc, options.expectedUrl);
+  const probe = new PageBenchmarkProbe(doc, options.expectedUrl, { mode: options.mode });
   return { probe, doc, view, aside, button, title, prose, segments, priorities, frames, listeners, observerCallbacks, selection, complete,
     setNow: (value: number) => { now = value; }, setFocused: (value: boolean) => { foreground = value; } };
 }
@@ -84,7 +84,7 @@ describe('installed page probe source identity and milestones', () => {
     Object.assign(f.aside.dataset, { status: 'done', completed: '2', pending: '0' });
     f.setNow(20);
     const final = await f.probe.snapshot();
-    expect(final).toMatchObject({ firstVisibleProseRafMs: 16, fullDoneMs: 20, doneAt: 1020, renderedSegments: 2 });
+    expect(final).toMatchObject({ measurementMode: 'foreground', firstVisibleProseRafMs: 16, fullDoneMs: 20, doneAt: 1020, renderedSegments: 2 });
     expect(final?.outputFingerprint).toMatch(/^[a-f0-9]{64}$/);
     expect(JSON.stringify(final)).not.toContain('这是正文');
     f.setNow(1100); expect((await f.probe.snapshot())?.elapsedMs).toBe(20);
@@ -116,6 +116,11 @@ describe('installed page probe source identity and milestones', () => {
   it('refuses a hidden, unfocused or non-public document before translation', () => {
     const f = fixture(); f.setFocused(false);
     expect(() => f.probe.prepare()).toThrow(/visible and focused/);
+    f.setFocused(true); Object.assign(f.doc, { visibilityState: 'hidden' });
+    expect(() => f.probe.prepare()).toThrow(/visible and focused/);
+    Object.assign(f.doc, { visibilityState: 'visible' }); f.probe.prepare(); f.setFocused(false);
+    expect(() => f.probe.start()).toThrow(/remain visible and focused/);
+    expect(f.button.click).not.toHaveBeenCalled();
     f.setFocused(true); f.view.location.href = 'https://private.invalid/';
     expect(() => f.probe.readiness()).toThrow(/exact public Go URL/);
     f.probe.cleanup();
@@ -168,4 +173,63 @@ describe('installed page probe source identity and milestones', () => {
     f.probe.cleanup();
     expect(f.listeners.size).toBe(0);
   });
+  it('allows a genuinely hidden and unfocused background DOM pass without inventing visual milestones', async () => {
+    const f = fixture({ mode: 'background-dom' });
+    Object.assign(f.doc, { visibilityState: 'hidden' }); f.setFocused(false);
+    expect(f.probe.prepare()).toMatchObject({ sourceSegments: 2, viewportTargets: 0, initialViewportSourceIds: [] });
+    expect(deps.collect).toHaveBeenCalledExactlyOnceWith({ tagName: 'ARTICLE' });
+    expect(deps.viewport).not.toHaveBeenCalled();
+    expect(await f.probe.snapshot()).toMatchObject({ measurementMode: 'background-dom', visible: false, focused: false });
+    f.probe.start(); expect(f.button.click).toHaveBeenCalledOnce();
+    f.setNow(5); f.complete(f.title, '标题译文');
+    expect(await f.probe.snapshot()).toMatchObject({ firstMs: null, renderedSegments: 1, fullDoneMs: null });
+    f.setNow(12); f.complete(f.prose, '完整正文译文');
+    Object.assign(f.aside.dataset, { status: 'done', completed: '2', pending: '0' });
+    const snapshot = await f.probe.snapshot();
+    expect(snapshot).toMatchObject({ measurementMode: 'background-dom', visible: false, focused: false,
+      fullDoneMs: 12, doneAt: 1012, renderedSegments: 2, sourceChanged: false, mappingConflicts: 0,
+      unexpectedTranslations: 0, viewportTargets: 0, viewportCompleted: 0,
+      firstMs: null, firstProseMs: null, firstViewportProseMs: null, firstVisibleProseDomReadyMs: null,
+      firstVisibleProseRafMs: null, firstVisibleProseSourceId: null, initialViewportAllDoneMs: null });
+    expect(snapshot?.outputFingerprint).toMatch(/^[a-f0-9]{64}$/);
+    expect(JSON.stringify(snapshot)).not.toContain('完整正文译文');
+    expect(f.view.requestAnimationFrame).not.toHaveBeenCalled();
+    expect(f.doc.visibilityState).toBe('hidden'); expect(f.doc.hasFocus()).toBe(false);
+    f.probe.cleanup(); expect(f.listeners.size).toBe(0);
+  });
+
+  it('records actual focus transitions without turning a background pass into a visual result', async () => {
+    const f = fixture({ mode: 'background-dom' });
+    Object.assign(f.doc, { visibilityState: 'hidden' }); f.setFocused(false); f.probe.prepare(); f.probe.start();
+    f.setNow(5); Object.assign(f.doc, { visibilityState: 'visible' }); f.setFocused(true);
+    f.listeners.get('visibilitychange')?.(new Event('visibilitychange'));
+    f.setNow(9); f.setFocused(false); f.listeners.get('blur')?.(new Event('blur'));
+    f.setNow(12); f.setFocused(true); f.listeners.get('focus')?.(new Event('focus'));
+    f.complete(f.title, '标题'); f.complete(f.prose, '正文');
+    Object.assign(f.aside.dataset, { status: 'done', completed: '2', pending: '0' });
+    const snapshot = await f.probe.snapshot();
+    expect(snapshot).toMatchObject({ measurementMode: 'background-dom', visible: true, focused: true, visibilityFailures: 1,
+      fullDoneMs: 12, firstMs: null, firstVisibleProseDomReadyMs: null, firstVisibleProseRafMs: null,
+      initialViewportAllDoneMs: null, visibilityChanges: [
+        { elapsedMs: 0, visible: false, focused: false }, { elapsedMs: 5, visible: true, focused: true },
+        { elapsedMs: 9, visible: true, focused: false }, { elapsedMs: 12, visible: true, focused: true },
+      ] });
+    expect(f.view.requestAnimationFrame).not.toHaveBeenCalled(); f.probe.cleanup();
+  });
+
+  it('keeps every exact-URL guard in background DOM mode after navigation', async () => {
+    const url = 'https://articles.example/story?edition=1#body';
+    const f = fixture({ url, expectedUrl: url, mode: 'background-dom' });
+    Object.assign(f.doc, { visibilityState: 'hidden' }); f.setFocused(false); f.probe.prepare(); f.probe.start();
+    const queries = vi.mocked(f.doc.querySelector).mock.calls.length;
+    f.view.location.href = 'https://articles.example/story?edition=2#body';
+    f.observerCallbacks.forEach(callback => callback([], {} as MutationObserver));
+    for (const action of [() => f.probe.readiness(), () => f.probe.prepare(), () => f.probe.start(),
+      () => f.probe.restore(), () => f.probe.restored(), () => f.probe.stop()])
+      expect(action).toThrow(/exact authorized page URL/);
+    await expect(f.probe.snapshot()).rejects.toThrow(/exact authorized page URL/);
+    expect(f.doc.querySelector).toHaveBeenCalledTimes(queries); expect(f.button.click).toHaveBeenCalledOnce();
+    f.probe.cleanup(); expect(f.listeners.size).toBe(0);
+  });
+
 });

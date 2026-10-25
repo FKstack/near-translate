@@ -34,17 +34,19 @@ export function translationRecovery(error?: TranslationError, serviceStatus?: Tr
 /** One local clock per view, shared by its message and all recovery controls. */
 export function useTranslationRecovery(error?: TranslationError, serviceStatus?: TranslationServiceStatus): TranslationRecovery {
   const until = recoveryDeadline(error, serviceStatus);
-  const [now, setNow] = useState(Date.now);
+  const [clock, setClock] = useState(() => ({ until, now: Date.now() }));
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | undefined;
     const tick = () => {
-      const current = Date.now(); setNow(current);
+      const current = Date.now(); setClock({ until, now: current });
       if (until > current) timer = setTimeout(tick, Math.min(1_000, until - current));
     };
     tick();
     return () => { clearTimeout(timer); };
   }, [until]);
-  return translationRecovery(error, serviceStatus, now);
+  // A new deadline can arrive after a long idle period with no ticking clock.
+  // Its first render must not show a countdown based on the previous deadline.
+  return translationRecovery(error, serviceStatus, clock.until === until ? clock.now : Date.now());
 }
 
 export function RecoveryAction({ recovery, onRetry, onSettings, retryLabel = '重试', className, disabled = false }: {

@@ -8,12 +8,19 @@ export const DEEPL_WEB_LIMITS = Object.freeze({
   maxResponseBytes: 1_000_000,
 });
 
-/** The composition root applies this one service-wide budget across all tabs. */
+/** Extension admission is shared; userscripts also inherit already visible document starts. */
 export const DEEPL_WEB_SCHEDULING = Object.freeze({
   maxConcurrent: 8,
   intervalMs: 100,
   maxQueuedRequests: 64,
   startWindow: Object.freeze({ maxStarts: 30, durationMs: 12_000 }),
+});
+
+/** Userscript transport allowance; the extra time is client headroom, not an upstream quota. */
+export const DEEPL_USERSCRIPT_SCHEDULING = Object.freeze({
+  ...DEEPL_WEB_SCHEDULING,
+  maxConcurrent: 7,
+  startWindow: Object.freeze({ ...DEEPL_WEB_SCHEDULING.startWindow, durationMs: 12_250 }),
 });
 
 export interface PageExecutionPolicy {

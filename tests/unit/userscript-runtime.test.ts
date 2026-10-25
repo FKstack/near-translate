@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { GMRequest } from '../../src/userscript/gm';
 import type { TranslationServerMessage } from '../../src/shared/contracts';
 import { KEY_VAULT_SESSION_KEY } from '../../src/shared/key-vault';
+import { DEEPL_USERSCRIPT_SCHEDULING } from '../../src/shared/translation-policy';
 
 const shim = vi.hoisted(() => ({ browser: undefined as typeof import('../../src/userscript/browser')['browser'] | undefined }));
 vi.mock('wxt/browser', () => ({ get browser() { return shim.browser; } }));
@@ -10,6 +11,8 @@ const PREFIX = 'near-translate:userscript:v1:';
 const DEEPL = 'https://oneshot-free.www.deepl.com/v1/translate';
 const PASS = 'fixture-only userscript passphrase';
 const KEY = 'fixture-only-private-api-key';
+const DEEPL_CONCURRENCY = DEEPL_USERSCRIPT_SCHEDULING.maxConcurrent;
+const START_WINDOW_MS = DEEPL_USERSCRIPT_SCHEDULING.startWindow.durationMs;
 let persisted: Map<string, unknown>;
 let listeners: Map<number, { key: string; listener: (key: string, oldValue: unknown, newValue: unknown, remote: boolean) => void }>;
 let nextListener: number;
@@ -60,6 +63,39 @@ beforeEach(async () => {
 afterEach(async () => { cleanup?.(); await settle(); vi.useRealTimers(); vi.unstubAllGlobals(); });
 
 describe('userscript sandbox storage and runtime', () => {
+  it('inherits already issued DeepL starts after navigation instead of resetting the rolling budget', async () => {
+    vi.useFakeTimers(); vi.setSystemTime(100_000);
+    vi.stubGlobal('GM_xmlhttpRequest', (details: GMRequest) => {
+      const abort = vi.fn(() => details.onabort());
+      requests.push({ details, abort, startedAt: Date.now() });
+      queueMicrotask(() => details.onload({ status: 200, finalUrl: details.url,
+        responseText: JSON.stringify({ translations: [{ text: '已完成' }] }) }));
+      return { abort };
+    });
+    await install();
+    const { TranslationClient } = await import('../../src/platform/translation-client');
+    const clients = Array.from({ length: 30 }, (_, index) => {
+      const client = new TranslationClient(() => {});
+      client.start({ kind: 'text', text: `Public passage ${index}.` });
+      return client;
+    });
+    await vi.advanceTimersByTimeAsync(3_000);
+    expect(requests).toHaveLength(30);
+    clients.forEach(client => client.dispose()); cleanup!(); cleanup = undefined;
+    vi.resetModules();
+    api = await import('../../src/userscript/browser'); shim.browser = api.browser;
+    runtime = await import('../../src/userscript/runtime'); await install();
+    const next = await import('../../src/platform/translation-client');
+    const fresh = new next.TranslationClient(() => {});
+    fresh.start({ kind: 'text', text: 'A different article after navigation.' });
+    await vi.advanceTimersByTimeAsync(START_WINDOW_MS - 3_000 - 1);
+    expect(requests).toHaveLength(30);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(requests).toHaveLength(31);
+    expect(requests[30]!.startedAt).toBe(100_000 + START_WINDOW_MS);
+    fresh.dispose();
+  });
+
   it('persists only GM local data, isolates session secrets, and never uses page storage', async () => {
     vi.stubGlobal('localStorage', { getItem() { throw new Error('Page storage must not be read'); }, setItem() { throw new Error('Page storage must not be written'); } });
     await api.browser.storage.local.set({ 'settings:v1': { enabled: false } });
@@ -187,28 +223,28 @@ describe('userscript sandbox storage and runtime', () => {
     expect(requests).toHaveLength(1); fresh.dispose();
   });
 
-  it('admits eight DeepL requests, holds the ninth, and removes cancelled waiting work', async () => {
+  it('admits seven DeepL requests, holds the eighth, and removes cancelled waiting work', async () => {
     vi.useFakeTimers();
     await install();
     const { TranslationClient } = await import('../../src/platform/translation-client');
-    const events: TranslationServerMessage[][] = Array.from({ length: 10 }, () => []);
+    const events: TranslationServerMessage[][] = Array.from({ length: DEEPL_CONCURRENCY + 2 }, () => []);
     const clients = events.map(events => new TranslationClient(event => events.push(event)));
-    clients.slice(0, 9).forEach((client, index) => client.start({ kind: 'text', text: `Public passage ${index}.` }));
+    clients.slice(0, DEEPL_CONCURRENCY + 1).forEach((client, index) => client.start({ kind: 'text', text: `Public passage ${index}.` }));
     await vi.advanceTimersByTimeAsync(800);
-    expect(requests).toHaveLength(8);
+    expect(requests).toHaveLength(DEEPL_CONCURRENCY);
     expect(requests.every(request => request.details.responseType === 'text')).toBe(true);
-    expect(new Set(requests.map(request => request.details.url)).size).toBe(8);
-    expect(requests.slice(1).map((request, index) => request.startedAt - requests[index]!.startedAt)).toEqual(Array(7).fill(100));
+    expect(new Set(requests.map(request => request.details.url)).size).toBe(DEEPL_CONCURRENCY);
+    expect(requests.slice(1).map((request, index) => request.startedAt - requests[index]!.startedAt)).toEqual(Array(DEEPL_CONCURRENCY - 1).fill(100));
     respond(0, { translations: [{ text: '第一' }] });
     await vi.advanceTimersByTimeAsync(0);
-    expect(requests).toHaveLength(9);
+    expect(requests).toHaveLength(DEEPL_CONCURRENCY + 1);
     expect(events[0]!.some(event => event.type === 'result')).toBe(true);
-    clients[9]!.start({ kind: 'text', text: 'Cancelled waiting passage.' });
+    clients[DEEPL_CONCURRENCY + 1]!.start({ kind: 'text', text: 'Cancelled waiting passage.' });
     await vi.advanceTimersByTimeAsync(0);
-    clients[9]!.cancel();
+    clients[DEEPL_CONCURRENCY + 1]!.cancel();
     respond(1, { translations: [{ text: '第二' }] });
     await vi.advanceTimersByTimeAsync(300);
-    expect(requests).toHaveLength(9);
+    expect(requests).toHaveLength(DEEPL_CONCURRENCY + 1);
     clients.forEach(client => client.dispose());
     expect(requests.slice(2).every(request => request.abort.mock.calls.length > 0)).toBe(true);
     respond(2, { translations: [{ text: '迟到结果' }] });
@@ -232,11 +268,11 @@ describe('userscript sandbox storage and runtime', () => {
       client.start({ kind: 'text', text: `Public rolling-window passage ${index}.` });
       return client;
     });
-    await vi.advanceTimersByTimeAsync(11_999);
+    await vi.advanceTimersByTimeAsync(START_WINDOW_MS - 1);
     expect(requests).toHaveLength(30);
     await vi.advanceTimersByTimeAsync(1);
     expect(requests).toHaveLength(31);
-    expect(requests[30]!.startedAt - requests[0]!.startedAt).toBe(12_000);
+    expect(requests[30]!.startedAt - requests[0]!.startedAt).toBe(START_WINDOW_MS);
     clients.forEach(client => client.dispose());
   });
 
@@ -244,22 +280,22 @@ describe('userscript sandbox storage and runtime', () => {
     vi.useFakeTimers();
     await install();
     const { TranslationClient } = await import('../../src/platform/translation-client');
-    const events: TranslationServerMessage[][] = Array.from({ length: 10 }, () => []);
+    const events: TranslationServerMessage[][] = Array.from({ length: DEEPL_CONCURRENCY + 2 }, () => []);
     const clients = events.map(events => new TranslationClient(event => events.push(event)));
-    clients.slice(0, 9).forEach((client, index) => client.start({ kind: 'text', text: `Public cooldown passage ${index}.` }));
+    clients.slice(0, DEEPL_CONCURRENCY + 1).forEach((client, index) => client.start({ kind: 'text', text: `Public cooldown passage ${index}.` }));
     await vi.advanceTimersByTimeAsync(800);
-    expect(requests).toHaveLength(8);
+    expect(requests).toHaveLength(DEEPL_CONCURRENCY);
     const retryAt = Date.now() + 60_000;
     write(PREFIX + 'deepl-web:cooldown-until:v1', retryAt, true);
     await vi.advanceTimersByTimeAsync(0);
-    expect(events.slice(0, 9).every(events => events.some(event => event.type === 'error' && event.error.code === 'RATE_LIMIT'))).toBe(true);
+    expect(events.slice(0, DEEPL_CONCURRENCY + 1).every(events => events.some(event => event.type === 'error' && event.error.code === 'RATE_LIMIT'))).toBe(true);
     expect(requests.every(request => request.abort.mock.calls.length > 0)).toBe(true);
-    clients[9]!.start({ kind: 'text', text: 'Request after restored remote cooldown.' });
+    clients[DEEPL_CONCURRENCY + 1]!.start({ kind: 'text', text: 'Request after restored remote cooldown.' });
     respond(0, { translations: [{ text: '迟到译文' }] });
     await vi.advanceTimersByTimeAsync(1_000);
-    expect(requests).toHaveLength(8);
+    expect(requests).toHaveLength(DEEPL_CONCURRENCY);
     expect(events[0]!.some(event => event.type === 'result')).toBe(false);
-    expect(events[9]!.at(-1)).toMatchObject({ type: 'error', error: { code: 'RATE_LIMIT', retryAt } });
+    expect(events[DEEPL_CONCURRENCY + 1]!.at(-1)).toMatchObject({ type: 'error', error: { code: 'RATE_LIMIT', retryAt } });
     clients.forEach(client => client.dispose());
   });
 
@@ -267,20 +303,20 @@ describe('userscript sandbox storage and runtime', () => {
     vi.useFakeTimers();
     await install();
     const { TranslationClient } = await import('../../src/platform/translation-client');
-    const events: TranslationServerMessage[][] = Array.from({ length: 9 }, () => []);
+    const events: TranslationServerMessage[][] = Array.from({ length: DEEPL_CONCURRENCY + 1 }, () => []);
     const clients = events.map((events, index) => {
       const client = new TranslationClient(event => events.push(event));
       client.start({ kind: 'text', text: `Public limited passage ${index}.` });
       return client;
     });
     await vi.advanceTimersByTimeAsync(800);
-    expect(requests).toHaveLength(8);
+    expect(requests).toHaveLength(DEEPL_CONCURRENCY);
     respond(0, { message: 'Rate limit exceeded' }, 429);
     await vi.advanceTimersByTimeAsync(0);
     expect(events.every(events => events.some(event => event.type === 'error' && event.error.code === 'RATE_LIMIT'))).toBe(true);
     expect(requests.slice(1).every(request => request.abort.mock.calls.length > 0)).toBe(true);
     await vi.advanceTimersByTimeAsync(1_000);
-    expect(requests).toHaveLength(8);
+    expect(requests).toHaveLength(DEEPL_CONCURRENCY);
     clients.forEach(client => client.dispose());
   });
 
@@ -288,14 +324,14 @@ describe('userscript sandbox storage and runtime', () => {
     vi.useFakeTimers();
     await install();
     const { TranslationClient } = await import('../../src/platform/translation-client');
-    const events: TranslationServerMessage[][] = Array.from({ length: 9 }, () => []);
+    const events: TranslationServerMessage[][] = Array.from({ length: DEEPL_CONCURRENCY + 1 }, () => []);
     const clients = events.map((events, index) => {
       const client = new TranslationClient(event => events.push(event));
       client.start({ kind: 'text', text: `Public early-limit passage ${index}.` });
       return client;
     });
     await vi.advanceTimersByTimeAsync(800);
-    expect(requests).toHaveLength(8);
+    expect(requests).toHaveLength(DEEPL_CONCURRENCY);
     expect(requests.every(({ details }) => !details.onloadstart && !details.onprogress)).toBe(true);
     requests[0]!.details.onreadystatechange({ status: 429, readyState: 2, finalUrl: requests[0]!.details.url });
     await vi.advanceTimersByTimeAsync(0);
@@ -305,7 +341,7 @@ describe('userscript sandbox storage and runtime', () => {
     respond(0, { message: 'Rate limit exceeded' }, 429);
     await vi.advanceTimersByTimeAsync(0);
     expect(events[0]!.at(-1)).toMatchObject({ type: 'error', error: { code: 'RATE_LIMIT' } });
-    expect(requests).toHaveLength(8);
+    expect(requests).toHaveLength(DEEPL_CONCURRENCY);
     clients.forEach(client => client.dispose());
   });
 
@@ -313,14 +349,14 @@ describe('userscript sandbox storage and runtime', () => {
     vi.useFakeTimers();
     await install();
     const { TranslationClient } = await import('../../src/platform/translation-client');
-    const events: TranslationServerMessage[][] = Array.from({ length: 9 }, () => []);
+    const events: TranslationServerMessage[][] = Array.from({ length: DEEPL_CONCURRENCY + 1 }, () => []);
     const clients = events.map((events, index) => {
       const client = new TranslationClient(event => events.push(event));
       client.start({ kind: 'text', text: `Public prior-generation passage ${index}.` });
       return client;
     });
     await vi.advanceTimersByTimeAsync(800);
-    expect(requests).toHaveLength(8);
+    expect(requests).toHaveLength(DEEPL_CONCURRENCY);
     await configureModel();
     await vi.advanceTimersByTimeAsync(0);
     expect(requests.every(request => request.abort.mock.calls.length > 0)).toBe(true);
@@ -329,8 +365,8 @@ describe('userscript sandbox storage and runtime', () => {
     const next = new TranslationClient(() => {});
     next.start({ kind: 'text', text: 'New model generation.' });
     await vi.advanceTimersByTimeAsync(300);
-    expect(requests).toHaveLength(9);
-    expect(requests[8]!.details).toMatchObject({ url: 'https://api.deepseek.com/chat/completions', responseType: 'stream' });
+    expect(requests).toHaveLength(DEEPL_CONCURRENCY + 1);
+    expect(requests[DEEPL_CONCURRENCY]!.details).toMatchObject({ url: 'https://api.deepseek.com/chat/completions', responseType: 'stream' });
     expect(events[0]!.some(event => event.type === 'result')).toBe(false);
     clients.forEach(client => client.dispose()); next.dispose();
   });
@@ -342,22 +378,22 @@ describe('userscript sandbox storage and runtime', () => {
     await install();
     expect(await api.browser.runtime.sendMessage({ type: 'enable-free-translation' })).toMatchObject({ ok: true });
     const { TranslationClient } = await import('../../src/platform/translation-client');
-    const events: TranslationServerMessage[][] = Array.from({ length: 9 }, () => []);
+    const events: TranslationServerMessage[][] = Array.from({ length: DEEPL_CONCURRENCY + 1 }, () => []);
     const clients = events.map((events, index) => {
       const client = new TranslationClient(event => events.push(event));
       client.start({ kind: 'text', text: `Public waiting passage ${index}.` });
       return client;
     });
     await vi.advanceTimersByTimeAsync(800);
-    expect(requests).toHaveLength(8);
+    expect(requests).toHaveLength(DEEPL_CONCURRENCY);
     const key = PREFIX + 'connection-settings:v2';
     const saved = persisted.get(key) as { settings: Record<string, unknown> };
     // Keep the GM notification pending while releasing a real provider slot.
     persisted.set(key, { ...saved, settings: { ...saved.settings, [field]: value } });
     respond(0, { translations: [{ text: '第一段译文' }] });
     await vi.advanceTimersByTimeAsync(200);
-    expect(requests).toHaveLength(8);
-    expect(events[8]!.at(-1)).toMatchObject({ type: 'error', error: { code: 'CONFIG' } });
+    expect(requests).toHaveLength(DEEPL_CONCURRENCY);
+    expect(events[DEEPL_CONCURRENCY]!.at(-1)).toMatchObject({ type: 'error', error: { code: 'CONFIG' } });
     clients.forEach(client => client.dispose());
   });
 
@@ -504,5 +540,75 @@ describe('userscript sandbox storage and runtime', () => {
       await rejection;
       expect(requests[0]!.abort).toHaveBeenCalled();
     } finally { vi.useRealTimers(); }
+  });
+});
+
+describe('userscript DeepL protection integration', () => {
+  it('cancels an active explicit service check when a remote protection record cannot be verified', async () => {
+    await install();
+    const check = api.browser.runtime.sendMessage({ type: 'test-free-translation' });
+    await until(() => requests.length === 1);
+    write(PREFIX + 'deepl-web:cooldown-event:v1:broken', { kind: 'unknown' }, true);
+    write(PREFIX + 'deepl-web:cooldown-notice:v1', 'broken', true);
+    await expect(check).resolves.toMatchObject({ ok: false, error: { code: 'DISCONNECTED' } });
+    expect(requests[0]!.abort).toHaveBeenCalled();
+  });
+
+  it('acknowledges only the old recovered deadline before opening the rest of the queue', async () => {
+    vi.useFakeTimers({ now: 1_000 });
+    write(PREFIX + 'deepl-web:cooldown-until:v1', 500);
+    await install();
+    const { TranslationClient } = await import('../../src/platform/translation-client');
+    const clients = [new TranslationClient(() => {}), new TranslationClient(() => {})];
+    clients[0]!.start({ kind: 'text', text: 'Recovery batch' });
+    clients[1]!.start({ kind: 'text', text: 'Waiting batch' });
+    await settle(); await vi.advanceTimersByTimeAsync(0);
+    expect(requests).toHaveLength(1);
+    respond(0, { translations: [{ text: '恢复批次完成' }] });
+    await settle(); await vi.advanceTimersByTimeAsync(100);
+    expect(requests).toHaveLength(2);
+    const { createDeepLCooldownStore } = await import('../../src/userscript/deepl-cooldown');
+    expect(createDeepLCooldownStore().read()).toBe(0);
+    expect(persisted.get(PREFIX + 'deepl-web:cooldown-until:v1')).toBe(500);
+    respond(1, { translations: [{ text: '等待批次完成' }] });
+    await settle(); clients.forEach(client => client.dispose());
+  });
+
+  it('moves an already-loaded healthy document into recovery after a remote immutable notice', async () => {
+    vi.useFakeTimers({ now: 1_000 }); await install();
+    const { TranslationClient } = await import('../../src/platform/translation-client');
+    const warm = new TranslationClient(() => {});
+    warm.start({ kind: 'text', text: 'Initial healthy batch' });
+    await settle(); await vi.advanceTimersByTimeAsync(0);
+    respond(0, { translations: [{ text: '首次成功' }] }); await settle(); warm.dispose();
+    write(PREFIX + 'deepl-web:cooldown-event:v1:external', { kind: 'limited', until: 2_000 }, true);
+    write(PREFIX + 'deepl-web:cooldown-notice:v1', 'external', true);
+    await settle(); await vi.advanceTimersByTimeAsync(1_000);
+    const clients = Array.from({ length: 3 }, () => new TranslationClient(() => {}));
+    clients.forEach((client, index) => client.start({ kind: 'text', text: `Queued recovery batch ${index}` }));
+    await settle(); await vi.advanceTimersByTimeAsync(0);
+    expect(requests).toHaveLength(2);
+    respond(1, { translations: [{ text: '恢复探测成功' }] });
+    await settle(); await vi.advanceTimersByTimeAsync(100);
+    expect(requests).toHaveLength(3);
+    const reply = await api.browser.runtime.sendMessage({ type: 'get-translation-status' }) as { status: { rateLimit?: unknown } };
+    expect(reply.status.rateLimit).toBeUndefined();
+    clients.forEach(client => client.dispose());
+  });
+
+  it('exposes a real JSON limit as HTTP 200 without retaining the upstream text', async () => {
+    await install();
+    const { TranslationClient } = await import('../../src/platform/translation-client');
+    const events: TranslationServerMessage[] = [];
+    const client = new TranslationClient(event => events.push(event));
+    client.start({ kind: 'text', text: 'Public qualification sentence' });
+    await until(() => requests.length === 1);
+    respond(0, { error: { message: 'Too many requests fixture-private-token' } }, 200);
+    await until(() => events.some(event => event.type === 'error'));
+    const reply = await api.browser.runtime.sendMessage({ type: 'get-translation-status' });
+    expect(reply).toMatchObject({ ok: true, status: { rateLimit: { httpStatus: 200, source: 'json-too-many-requests' } } });
+    expect(JSON.stringify(reply)).not.toContain('fixture-private-token');
+    expect(JSON.stringify(reply)).not.toContain('Public qualification sentence');
+    client.dispose();
   });
 });

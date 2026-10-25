@@ -275,7 +275,11 @@ describe('DeepL metadata preparation lifecycle', () => {
     expect(reservePreparation).toHaveBeenCalledTimes(2);
     await vi.advanceTimersByTimeAsync(60_000);
     expect(prepareTransport).not.toHaveBeenCalled(); expect(vi.getTimerCount()).toBe(0);
-    await provider.prepareNetwork(); expect(prepareTransport).toHaveBeenCalledOnce();
+    await provider.prepareNetwork(); expect(prepareTransport).not.toHaveBeenCalled();
+    transport.mockImplementation(async body => reply(body));
+    await collect(provider);
+    const preparation = provider.prepareNetwork(); await vi.advanceTimersByTimeAsync(1_050); await preparation;
+    expect(prepareTransport).toHaveBeenCalledOnce();
   });
 
   it('times out a pending reservation without sending late network work or releasing its owner early', async () => {
@@ -390,6 +394,7 @@ describe('DeepL metadata preparation lifecycle', () => {
     expect(transport.mock.calls[0]![1].aborted).toBe(true); expect(transport).toHaveBeenCalledOnce();
     expect(persistCooldownUntil).toHaveBeenCalledExactlyOnceWith(1_700_000_090_100);
     expect(onDiagnostic).toHaveBeenCalledExactlyOnceWith({ at: 1_700_000_000_100, httpStatus: 429,
+      origin: 'upstream', source: 'http-429',
       rpcErrorCode: 1042911, retryAfterMs: 90_000, bodyOutcome: 'json', bodyCompletedAt: 1_700_000_000_100 });
     expect(provider.prepareNetwork()).toBe(preparation);
     saved.resolve(undefined); await preparation;
@@ -434,6 +439,7 @@ describe('DeepL metadata preparation lifecycle', () => {
     const preparation = provider.prepareNetwork();
     await vi.advanceTimersByTimeAsync(1_000);
     expect(onDiagnostic).toHaveBeenCalledExactlyOnceWith({ at: 1_700_000_000_000, httpStatus: 429,
+      origin: 'upstream', source: 'http-429',
       bodyOutcome: 'timeout', bodyCompletedAt: 1_700_000_001_000 });
     expect(canceled).toHaveBeenCalledOnce();
     await vi.advanceTimersByTimeAsync(4_000); await preparation;
@@ -1368,6 +1374,7 @@ describe('DeepL web bounded rate-limit diagnostics', () => {
     expect(await waiting).toMatchObject({ code: 'RATE_LIMIT' });
     expect(requestTexts(transport.mock.calls[0]![0])).toEqual(['First.', 'Second.']);
     expect(onDiagnostic).toHaveBeenCalledExactlyOnceWith({ at: 1_700_000_000_000, httpStatus: 429,
+      origin: 'upstream', source: 'http-429',
       rpcErrorCode: 1042911, bodyOutcome: 'json', bodyCompletedAt: 1_700_000_000_000 });
     await vi.advanceTimersByTimeAsync(59_999);
     await expect(collect(provider)).rejects.toMatchObject({ code: 'RATE_LIMIT' });
@@ -1388,6 +1395,7 @@ describe('DeepL web bounded rate-limit diagnostics', () => {
     await expect(collect(provider)).rejects.toMatchObject({ code: 'RATE_LIMIT' });
     expect(onDiagnostic).toHaveBeenCalledExactlyOnceWith({
       at: 1_700_000_000_000, httpStatus: 429, rpcErrorCode: 1042911, retryAfterMs: 120_000,
+      origin: 'upstream', source: 'http-429',
       bodyOutcome: 'json', bodyCompletedAt: 1_700_000_000_000,
     });
     expect(persist).toHaveBeenCalledWith(1_700_000_120_000);
@@ -1452,7 +1460,7 @@ describe('DeepL web bounded rate-limit diagnostics', () => {
     const diagnostic = onDiagnostic.mock.calls[0]![0];
     expect(diagnostic).toMatchObject({ rateLimitLimit: 30, rateLimitRemaining: 0, rateLimitReset: 1700000012, bodyOutcome: 'empty' });
     expect(Object.keys(diagnostic).sort()).toEqual(['at', 'httpStatus', 'rateLimitLimit', 'rateLimitRemaining',
-      'rateLimitReset', 'bodyOutcome', 'bodyCompletedAt'].sort());
+      'rateLimitReset', 'bodyOutcome', 'bodyCompletedAt', 'origin', 'source'].sort());
     expect(get.mock.calls.map(([header]) => header)).toEqual(['retry-after', 'ratelimit-limit', 'ratelimit-remaining', 'ratelimit-reset']);
     expect(JSON.stringify(diagnostic)).not.toMatch(/private|cookie|trace|account/);
     expect(transport).toHaveBeenCalledOnce();
@@ -1482,6 +1490,7 @@ describe('DeepL web bounded rate-limit diagnostics', () => {
     const failure = await collect(new DeepLWebProvider(async () => new Response(body, { status: 429 }), { onDiagnostic })).catch(error => error);
     expect(failure).toMatchObject({ code: 'RATE_LIMIT' });
     expect(onDiagnostic).toHaveBeenCalledExactlyOnceWith({ at: 1_700_000_000_000, httpStatus: 429,
+      origin: 'upstream', source: 'http-429',
       bodyOutcome: outcome, bodyCompletedAt: 1_700_000_000_000 });
     expect(vi.getTimerCount()).toBe(0);
   });
@@ -1539,6 +1548,7 @@ describe('DeepL web bounded rate-limit diagnostics', () => {
     await vi.advanceTimersByTimeAsync(999); expect(onDiagnostic).not.toHaveBeenCalled();
     await vi.advanceTimersByTimeAsync(1);
     expect(onDiagnostic).toHaveBeenCalledExactlyOnceWith({ at: 1_700_000_000_000, httpStatus: 429,
+      origin: 'upstream', source: 'http-429',
       bodyOutcome: 'timeout', bodyCompletedAt: 1_700_000_001_000 });
     expect(finished).toBe(false); expect(canceled).toHaveBeenCalledOnce();
     expect(response.body!.locked).toBe(false); expect(vi.getTimerCount()).toBe(0);

@@ -47,6 +47,27 @@ function documentFor(html: string): Document {
 }
 
 describe('manual translation recovery presentation', () => {
+  it('uses the current clock on the first render of a new deadline after idle', async () => {
+    vi.useFakeTimers(); vi.setSystemTime(1_000);
+    dom = new JSDOM('<!doctype html><div id="root"></div>');
+    vi.stubGlobal('window', dom.window); vi.stubGlobal('document', dom.window.document);
+    vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true);
+    const renders: number[] = [];
+    function Harness({ until }: { until: number }) {
+      const recovery = useTranslationRecovery(until ? rate(until) : undefined, status(until));
+      renders.push(recovery.remainingSeconds);
+      return createElement('p', null, recovery.message);
+    }
+    root = createRoot(dom.window.document.getElementById('root')!);
+    await act(async () => root!.render(createElement(Harness, { until: 0 })));
+    const before = renders.length;
+    vi.setSystemTime(153_000);
+    await act(async () => root!.render(createElement(Harness, { until: 213_000 })));
+    expect(renders[before]).toBe(60);
+    expect(renders.slice(before).every(seconds => seconds === 60)).toBe(true);
+    expect(dom.window.document.body.textContent).toContain('60 秒后');
+  });
+
   it('merges local and service deadlines into one bounded countdown', () => {
     expect(recoveryDeadline(rate(2_000), status(3_500))).toBe(3_500);
     expect(translationRecovery(rate(2_000), status(3_500), 1_000)).toMatchObject({ action: 'retry', blocked: true, remainingSeconds: 3 });

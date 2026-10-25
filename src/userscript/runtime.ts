@@ -9,17 +9,21 @@ import { KeyVaultError } from '../platform/key-vault';
 import { readReadingPreferences, saveReadingPreferences } from '../platform/reading-preferences';
 import { FreeTranslationCheck } from '../platform/free-translation-check';
 import { completionEndpoint, getProvider } from '../shared/api-config';
-import { DEEPL_WEB_SCHEDULING } from '../shared/translation-policy';
+import { DEEPL_USERSCRIPT_SCHEDULING } from '../shared/translation-policy';
 import { readLanguagePair, supportsWordDetails } from '../shared/languages';
 import { KEY_VAULT_STORAGE_KEY } from '../shared/key-vault';
 import { REQUEST_TIMEOUT_MS, TRANSLATION_PORT, type TranslationServerMessage, type TranslationError } from '../shared/contracts';
-import { browser, emitRuntimeMessage, observeLocalStorage, registerRuntimeHandlers, type UserscriptPort } from './browser';
+import { emitRuntimeMessage, observeLocalStorage, registerRuntimeHandlers, type UserscriptPort } from './browser';
 import { createGMFetch } from './transport';
 import { createDeepLUserscriptTransport } from './deepl-transport';
+import { createDeepLCooldownStore, DEEPL_COOLDOWN_KEY, DEEPL_COOLDOWN_NOTICE_KEY } from './deepl-cooldown';
+import { createDeepLStartHistory } from './deepl-start-history';
+import { publicDeepLRateDiagnostic } from '../shared/translation-diagnostic';
+import type { TranslationRateLimitDiagnostic } from '../shared/contracts';
 import { isSettingsPage } from './locations';
 
 const SETTINGS_KEY = 'settings:v1';
-const COOLDOWN_KEY = 'deepl-web:cooldown-until:v1';
+const COOLDOWN_KEY = DEEPL_COOLDOWN_KEY;
 const record = (value: unknown): value is Record<string, unknown> => Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 const changedError: TranslationError = { code: 'CONFIG', message: '翻译配置已更改，请使用当前设置重新翻译。', retryable: false };
 
@@ -31,21 +35,34 @@ export async function installRuntime(options: { onOpenSettings: () => void }): P
   let epoch = 0;
   const jobs = new Map<AbortController, { engine?: string; fail: (error: TranslationError) => void }>();
   const modelQueue = new RequestScheduler<void>({ maxConcurrent: 1, maxQueuedRequests: 64, intervalMs: 200 });
-  const readCooldown = async () => {
-    const value = (await browser.storage.local.get(COOLDOWN_KEY))[COOLDOWN_KEY];
-    if (value === undefined) return 0;
-    if (typeof value !== 'number' || !Number.isSafeInteger(value) || value < 0) throw new TranslationFailure('CONFIG', 'DeepL 冷却记录无法验证，请检查篡改猴存储后重试。');
-    return value;
-  };
+  const cooldown = createDeepLCooldownStore();
+  const startHistory = createDeepLStartHistory();
+  const readCooldown = async () => cooldown.read();
+  let lastRateLimit: TranslationRateLimitDiagnostic | undefined;
   const deeplTransport = createDeepLUserscriptTransport(async () => {
     const until = await readCooldown();
     if (until > Date.now()) throw new TranslationFailure('RATE_LIMIT', 'DeepL 请求受限，已暂停后续翻译，请稍后手动重试。', true, until);
   });
-  const deepl = new DeepLWebProvider(deeplTransport, { ...DEEPL_WEB_SCHEDULING,
+  const deepl = new DeepLWebProvider(deeplTransport, { ...DEEPL_USERSCRIPT_SCHEDULING,
+    readStartHistory: () => startHistory.read(),
+    recordStart: at => startHistory.record(at),
     loadCooldownUntil: readCooldown,
     async persistCooldownUntil(until) {
-      await browser.storage.local.set({ [COOLDOWN_KEY]: Math.max(until, await readCooldown()) });
+      cooldown.limit(until);
       publishStatus();
+    },
+    async onRecoverySucceeded(throughUntil, isCurrent) {
+      if (!isCurrent()) throw new DOMException('翻译请求已取消。', 'AbortError');
+      if (throughUntil > 0) cooldown.recover(throughUntil, isCurrent);
+      publishStatus();
+    },
+    onDiagnostic(value) {
+      if (disposed) return;
+      const diagnostic = publicDeepLRateDiagnostic(value);
+      if (diagnostic && (!lastRateLimit || diagnostic.at >= lastRateLimit.at)) {
+        lastRateLimit = diagnostic;
+        publishStatus();
+      }
     },
   });
   const freeCheck = new FreeTranslationCheck(deepl, toTranslationError);
@@ -53,7 +70,8 @@ export async function installRuntime(options: { onOpenSettings: () => void }): P
   async function status() {
     const settings = await readSettings();
     return { engine: settings.translationEngine, cooldownUntil: settings.translationEngine === 'deepl-web'
-      ? Math.max(await readCooldown(), (await deepl.getServiceStatus()).cooldownUntil) : 0, checkedAt: Date.now() };
+      ? Math.max(await readCooldown(), (await deepl.getServiceStatus()).cooldownUntil) : 0, checkedAt: Date.now(),
+      ...(settings.translationEngine === 'deepl-web' && lastRateLimit ? { rateLimit: lastRateLimit } : {}) };
   }
   function publishStatus() {
     void status().then(value => { if (!disposed) emitRuntimeMessage({ type: 'translation-status-changed', status: value }); }).catch(() => {});
@@ -82,18 +100,31 @@ export async function installRuntime(options: { onOpenSettings: () => void }): P
       return operation();
     });
   }
-  const removeStorageWatch = observeLocalStorage([CONNECTION_SETTINGS_KEY, SETTINGS_KEY, KEY_VAULT_STORAGE_KEY, COOLDOWN_KEY], (changes, remote) => {
+  const removeStorageWatch = observeLocalStorage([CONNECTION_SETTINGS_KEY, SETTINGS_KEY, KEY_VAULT_STORAGE_KEY, COOLDOWN_KEY, DEEPL_COOLDOWN_NOTICE_KEY], (changes, remote) => {
     if (disposed) return;
-    if (Object.hasOwn(changes, COOLDOWN_KEY)) {
-      const until = changes[COOLDOWN_KEY]?.newValue;
-      if (remote && typeof until === 'number' && until > Date.now()) {
+    if (Object.hasOwn(changes, COOLDOWN_KEY) || Object.hasOwn(changes, DEEPL_COOLDOWN_NOTICE_KEY)) {
+      void (async () => {
+        if (remote) {
+          const until = await readCooldown();
+          if (disposed) return;
+          if (until > 0) deepl.observeCooldownUntil(until);
+          if (until > Date.now()) {
+            freeCheck.cancel();
+            for (const [controller, job] of jobs) if (job.engine === 'deepl-web') {
+              job.fail({ code: 'RATE_LIMIT', message: '另一页面的 DeepL 请求触发了冷却，请稍后重试。', retryable: true, retryAt: until });
+              controller.abort();
+            }
+          }
+        }
+        if (!disposed) publishStatus();
+      })().catch(error => {
+        if (disposed) return;
         freeCheck.cancel();
         for (const [controller, job] of jobs) if (job.engine === 'deepl-web') {
-          job.fail({ code: 'RATE_LIMIT', message: '另一页面的 DeepL 请求触发了冷却，请稍后重试。', retryable: true, retryAt: until });
-          controller.abort();
+          job.fail(toTranslationError(error)); controller.abort();
         }
-      }
-      publishStatus(); return;
+      });
+      return;
     }
     cancelAll();
     publishSettings();
@@ -205,7 +236,7 @@ export async function installRuntime(options: { onOpenSettings: () => void }): P
             send({ ...event, requestId });
           }
         };
-        // DeepL owns its bounded 8-slot queue and rolling start budget. Routing
+        // DeepL owns its bounded queue and userscript rolling start budget. Routing
         // it through the model queue would serialize complete JSON responses.
         if (isDeepL) await execute(owner.controller.signal);
         else await modelQueue.run(context => execute(context.signal), owner.controller.signal);

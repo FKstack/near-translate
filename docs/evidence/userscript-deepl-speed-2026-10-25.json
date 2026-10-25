@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "date": "2026-10-25",
-  "status": "preparing-release-after-explicit-user-speed-acceptance",
+  "status": "product-release-gate-passed-user-accepted-speed-workflow-pending",
   "acceptance": {
     "authorizedPublicUrl": "https://go.dev/talks/2012/splash.article?utm_source=chatgpt.com",
     "sourceSegments": 251,
@@ -124,26 +124,27 @@
     "environmentProtocol": {
       "id": "dedicated-background-valid-viewport",
       "reason": "The user is actively using the browser and cannot keep translation test tabs foreground. The primary agent adjusted the test environment to that user constraint.",
-      "candidateVersion": "0.11.16-rejected",
+      "candidateVersion": "0.11.16",
       "dedicatedTestTabs": true,
       "requestedWidth": 1280,
       "requestedHeight": 900,
       "network": "Real DeepL service; no response mocking",
       "document": "New cold document without userscript translation cache",
-      "requiredOutcome": "Entire frozen production source set completed, zero failed and pending, raw fullDoneMs <= 15000 for each article",
+      "requiredOutcome": "For the current release, entire frozen source set completed with zero failures/pending and actual raw timings retained under explicit human acceptance of observed approximately15.3s. Original strict <=15000ms criterion remains in acceptance as historical research failure.",
       "backgroundRunLabel": "background-valid-viewport",
       "backgroundAcceptanceStatus": "original-strict-15000ms-target-failed-user-accepted-observed-speed-for-release",
       "foregroundAcceptanceStatus": "not-tested",
       "actualStateRecording": "Keep management tab/window state distinct from page visibility/focus; record the actual environment without forcing the user off their foreground tab.",
       "scope": "Future final five-article measurements; earlier failing candidates and invalid viewport diagnostics retain their original evidence and do not become accepted retroactively.",
-      "currentCandidateStatus": "selected-for-release-after-explicit-user-speed-acceptance"
+      "currentCandidateStatus": "user-accepted-release-gate-passed-workflow-pending"
     },
     "backgroundAcceptanceStatus": "original-strict-15000ms-target-failed-user-accepted-observed-speed-for-release",
     "foregroundAcceptanceStatus": "not-tested",
     "latestCandidateCohortId": "v0.11.15-background-five-articles-1",
     "latestCandidateRunId": "v0.11.16-background-go-splash-long-1",
     "historicalMatrixInterpretation": "plannedArticleMatrix retains the most recent completed 0.11.15 historical cohort by article. It is not a mixed-version 0.11.16 acceptance matrix; the single 0.11.16 failure lives in candidateRuns.",
-    "status": "original-strict-target-not-achieved"
+    "status": "original-strict-target-not-achieved",
+    "userAcceptedReleaseGateReference": "releaseGate and candidateCohorts/v0.11.16-background-five-articles-release-1"
   },
   "scope": {
     "realRuns": "Installed userscript in daily Edge; own DOM probe using production segment collection and performance.now. No saved Key or GM storage was read by the probe.",
@@ -311,6 +312,31 @@
       "localArtifact": "deepl-v16-go-long-1.json",
       "bytes": 2215,
       "sha256": "b5066afb96cd9863499ccf694148b9e2a5d15b3d09cfb5713135fe06bb55ae8a"
+    },
+    {
+      "localArtifact": "deepl-v16-rust-short.json",
+      "bytes": 2162,
+      "sha256": "dae5beaecdd2538471bfdd700e428a3d11b7adb0c38a1fde626eeea598219768"
+    },
+    {
+      "localArtifact": "deepl-v16-go-medium.json",
+      "bytes": 1801,
+      "sha256": "6dc766e5d89aa7bfc5ebc2a3ae06b1d33d80a7a34d04a11ca96556443ceaf1c0"
+    },
+    {
+      "localArtifact": "deepl-v16-python-medium.json",
+      "bytes": 1702,
+      "sha256": "c567596b6a97ca2d1d91ef7064072e70fc2376f15241f57ede3d60d4b8936f6e"
+    },
+    {
+      "localArtifact": "deepl-v16-rust-medium-long.json",
+      "bytes": 1785,
+      "sha256": "7b9017315a470d270d1b5ca589be26ec5720f5ceaa2f1f2ce69c39bc778707dc"
+    },
+    {
+      "localArtifact": "deepl-v16-rust-short-metadata-original.json",
+      "bytes": 1823,
+      "sha256": "1be4a1b169088900dbc79dee5981ee7d29618faa0c2e2b1d677352319dffe7c1"
     }
   ],
   "historicalReference": {
@@ -1149,8 +1175,8 @@
       "Cancellation, settings preflight, shared cooldown notification and no automatic retry",
       "Model endpoint and stream mode unchanged"
     ],
-    "notAcceptedYet": "The original 15000 ms research target remains unachieved: 0.11.16 Go raw=15294.699999988079. The user explicitly accepted that observed speed and requested current 0.11.16 workflow release. Four remaining same-version pages and release workflow checks are pending in releaseGate.",
-    "nextResearchCandidate": "No further optimization candidate is planned: the human requested publication of current 0.11.16. Complete the four remaining 0.11.16 pages and normal release workflow; never mix prior 0.11.15 samples into the release matrix."
+    "notAcceptedYet": "Original strict research goal remains unachieved: actual 0.11.16 Go=15294.699999988079ms >15000. The human accepted observed speed, and all five actual 0.11.16 articles are complete with zero errors, so releaseGate passes. Publication is not yet complete.",
+    "nextResearchCandidate": "No further optimization. Current 0.11.16 is selected for the authorized release workflow after same-version five-article validation. CPU Profiler returned method not found and collected no profile."
   },
   "limitations": [
     "The measured Go runs have four versus six initial visible prose targets. Initial-viewport completion times are not a matched viewport comparison.",
@@ -1882,6 +1908,431 @@
           "changedAfterBuild": false
         }
       }
+    },
+    {
+      "id": "v0.11.16-background-five-articles-release-1",
+      "version": "0.11.16",
+      "status": "complete-user-accepted-release-original-strict-speed-failed",
+      "environment": "background-valid-viewport",
+      "realService": true,
+      "networkMocked": false,
+      "coldDocumentPerRun": true,
+      "userscriptTranslationCacheReused": false,
+      "articleCount": 5,
+      "fullArticleCompletionPassed": true,
+      "originalStrictMaxFullDoneMs": 15000,
+      "originalStrictSpeedPassedArticleCount": 4,
+      "originalStrictGatePassed": false,
+      "userAcceptedReleaseGatePassed": true,
+      "passed": false,
+      "passedFieldMeaning": "Original strict research gate; the distinct userAcceptedReleaseGatePassed field records the later human-authorized release criterion.",
+      "foregroundPerformance": "not-tested",
+      "articles": [
+        {
+          "article": "rust-1.85.1-short",
+          "version": "0.11.16",
+          "url": "https://blog.rust-lang.org/2025/03/18/Rust-1.85.1/",
+          "sourceArtifact": "deepl-v16-rust-short.json",
+          "measurement": "page performance.now; real DeepL; new document; no translation cache; background tab per user live-stream constraint",
+          "environment": "background-valid-viewport",
+          "browserContext": {
+            "tabActive": false,
+            "windowFocused": true
+          },
+          "validViewport": true,
+          "fullArticleComplete": true,
+          "originalStrictSpeedPassed": true,
+          "rawFullDoneMs": 3078.300000011921,
+          "userAcceptedReleaseCriterionPassed": true,
+          "navigationToClickMs": 73436.30004882812,
+          "result": {
+            "elapsedMs": 3078.300000011921,
+            "firstMs": 2855.800000011921,
+            "firstProseMs": 2855.800000011921,
+            "firstViewportProseMs": 2855.800000011921,
+            "firstVisibleProseDomReadyMs": 2855.800000011921,
+            "firstVisibleProseRafMs": 3190.100000023842,
+            "firstVisibleProseSourceId": 2,
+            "initialViewportAllDoneMs": 3072.800000011921,
+            "fullDoneMs": 3078.300000011921,
+            "doneAt": 1792936794727.3,
+            "clickedAt": 1792936791648.9001,
+            "navigationStartedAt": 1792936718212.6,
+            "toolbarReadyAt": 1792936791643.1,
+            "selectionLength": 0,
+            "visible": true,
+            "focused": true,
+            "visibilityFailures": 0,
+            "sourceChanged": false,
+            "rootTag": "body",
+            "sourceSegments": 17,
+            "sourceChars": 1352,
+            "uniqueSourceTexts": 17,
+            "completed": 17,
+            "failed": 0,
+            "pending": 0,
+            "total": 17,
+            "renderedSegments": 17,
+            "translatedChars": 616,
+            "chineseSegments": 17,
+            "viewportTargets": 5,
+            "initialViewportSourceIds": [
+              2,
+              3,
+              4,
+              7,
+              8
+            ],
+            "viewportCompleted": 5,
+            "unexpectedTranslations": 0,
+            "mappingConflicts": 0,
+            "status": "done",
+            "statusText": "翻译完成 · 17 / 17",
+            "errorCode": "",
+            "outputFingerprint": "c9beeb55414530525dc513530bde8f39153369f4ddc6280e51501827a39cda52",
+            "protectedCodeTranslations": 0,
+            "viewport": {
+              "width": 1280,
+              "height": 900,
+              "clientWidth": 1265,
+              "clientHeight": 900,
+              "scrollX": 0,
+              "scrollY": 0
+            }
+          },
+          "metadataCorrection": {
+            "field": "verifiedVersion",
+            "originalHostValue": "0.11.15",
+            "reason": "The host-side save helper retained its older closure value. Actual installed script was independently verified by Debugger as 0.11.16 with flushLoading before navigation and timing; timing/completeness values are unchanged."
+          }
+        },
+        {
+          "article": "go-errors-medium",
+          "version": "0.11.16",
+          "url": "https://go.dev/blog/errors-are-values",
+          "sourceArtifact": "deepl-v16-go-medium.json",
+          "measurement": "page performance.now; real DeepL; new document; no translation cache; background tab per user live-stream constraint",
+          "environment": "background-valid-viewport",
+          "browserContext": {
+            "tabActive": false,
+            "windowFocused": true
+          },
+          "validViewport": true,
+          "fullArticleComplete": true,
+          "originalStrictSpeedPassed": true,
+          "rawFullDoneMs": 3825.600000023842,
+          "userAcceptedReleaseCriterionPassed": true,
+          "navigationToClickMs": 74667.60009765625,
+          "result": {
+            "elapsedMs": 3825.600000023842,
+            "firstMs": 2989,
+            "firstProseMs": 3334.699999988079,
+            "firstViewportProseMs": 3334.699999988079,
+            "firstVisibleProseDomReadyMs": 3334.699999988079,
+            "firstVisibleProseRafMs": 3343.699999988079,
+            "firstVisibleProseSourceId": 3,
+            "initialViewportAllDoneMs": 3808,
+            "fullDoneMs": 3825.600000023842,
+            "doneAt": 1792936980474.8,
+            "clickedAt": 1792936976649.1,
+            "navigationStartedAt": 1792936901981.5,
+            "toolbarReadyAt": 1792936976632.2,
+            "selectionLength": 0,
+            "visible": true,
+            "focused": true,
+            "visibilityFailures": 0,
+            "sourceChanged": false,
+            "rootTag": "main",
+            "sourceSegments": 35,
+            "sourceChars": 6797,
+            "uniqueSourceTexts": 35,
+            "completed": 35,
+            "failed": 0,
+            "pending": 0,
+            "total": 35,
+            "renderedSegments": 35,
+            "translatedChars": 2595,
+            "chineseSegments": 35,
+            "viewportTargets": 7,
+            "initialViewportSourceIds": [
+              3,
+              4,
+              6,
+              7,
+              8,
+              9,
+              10
+            ],
+            "viewportCompleted": 7,
+            "unexpectedTranslations": 0,
+            "mappingConflicts": 0,
+            "status": "done",
+            "statusText": "翻译完成 · 35 / 35",
+            "errorCode": "",
+            "outputFingerprint": "e1fb64ab80102f56469fdb50bd4390c7a0dfa36dad47ec17a76b820c9a0052ba",
+            "protectedCodeTranslations": 0,
+            "viewport": {
+              "width": 1280,
+              "height": 900,
+              "clientWidth": 1265,
+              "clientHeight": 900,
+              "scrollX": 0,
+              "scrollY": 0
+            }
+          }
+        },
+        {
+          "article": "python-3.14",
+          "version": "0.11.16",
+          "url": "https://blog.python.org/2025/10/python-3140-final-is-here/",
+          "sourceArtifact": "deepl-v16-python-medium.json",
+          "measurement": "page performance.now; real DeepL; new document; no translation cache; background tab per user live-stream constraint",
+          "environment": "background-valid-viewport",
+          "browserContext": {
+            "tabActive": false,
+            "windowFocused": true
+          },
+          "validViewport": true,
+          "fullArticleComplete": true,
+          "originalStrictSpeedPassed": true,
+          "rawFullDoneMs": 3385.5,
+          "userAcceptedReleaseCriterionPassed": true,
+          "navigationToClickMs": 55405.60009765625,
+          "result": {
+            "elapsedMs": 3385.5,
+            "firstMs": 2530.399999976158,
+            "firstProseMs": null,
+            "firstViewportProseMs": null,
+            "firstVisibleProseDomReadyMs": null,
+            "firstVisibleProseRafMs": null,
+            "firstVisibleProseSourceId": null,
+            "initialViewportAllDoneMs": null,
+            "fullDoneMs": 3385.5,
+            "doneAt": 1792937094377.4,
+            "clickedAt": 1792937090991.5,
+            "navigationStartedAt": 1792937035585.9,
+            "toolbarReadyAt": 1792937090976.0999,
+            "selectionLength": 0,
+            "visible": true,
+            "focused": true,
+            "visibilityFailures": 0,
+            "sourceChanged": false,
+            "rootTag": "article",
+            "sourceSegments": 96,
+            "sourceChars": 4428,
+            "uniqueSourceTexts": 92,
+            "completed": 96,
+            "failed": 0,
+            "pending": 0,
+            "total": 96,
+            "renderedSegments": 96,
+            "translatedChars": 2002,
+            "chineseSegments": 80,
+            "viewportTargets": 0,
+            "initialViewportSourceIds": [],
+            "viewportCompleted": 0,
+            "unexpectedTranslations": 0,
+            "mappingConflicts": 0,
+            "status": "done",
+            "statusText": "翻译完成 · 96 / 96",
+            "errorCode": "",
+            "outputFingerprint": "f314d792aada963dc86dad4b7a7d248fe10aa6d18969429e8a7e5682407c3dbe",
+            "protectedCodeTranslations": 0,
+            "viewport": {
+              "width": 1280,
+              "height": 900,
+              "clientWidth": 1272,
+              "clientHeight": 900,
+              "scrollX": 0,
+              "scrollY": 0
+            }
+          },
+          "viewportInterpretation": "Valid 1280x900 with initial hero area and no initial qualified prose targets. Null initial viewport-prose clocks remain null; generic firstMs is not substituted."
+        },
+        {
+          "article": "rust-1.85-medium-long",
+          "version": "0.11.16",
+          "url": "https://blog.rust-lang.org/2025/02/20/Rust-1.85.0/",
+          "sourceArtifact": "deepl-v16-rust-medium-long.json",
+          "measurement": "page performance.now; real DeepL; new document; no translation cache; background tab per user live-stream constraint",
+          "environment": "background-valid-viewport",
+          "browserContext": {
+            "tabActive": false,
+            "windowFocused": true
+          },
+          "validViewport": true,
+          "fullArticleComplete": true,
+          "originalStrictSpeedPassed": true,
+          "rawFullDoneMs": 3637.7999999523163,
+          "userAcceptedReleaseCriterionPassed": true,
+          "navigationToClickMs": 38508.300048828125,
+          "result": {
+            "elapsedMs": 3637.7999999523163,
+            "firstMs": 2235.2999999523163,
+            "firstProseMs": 3038.5,
+            "firstViewportProseMs": 3038.5,
+            "firstVisibleProseDomReadyMs": 3038.5,
+            "firstVisibleProseRafMs": 3393.099999964237,
+            "firstVisibleProseSourceId": 2,
+            "initialViewportAllDoneMs": 3070.599999964237,
+            "fullDoneMs": 3637.7999999523163,
+            "doneAt": 1792937148415.4,
+            "clickedAt": 1792937144777.2,
+            "navigationStartedAt": 1792937106268.9,
+            "toolbarReadyAt": 1792937144759.2998,
+            "selectionLength": 0,
+            "visible": true,
+            "focused": true,
+            "visibilityFailures": 0,
+            "sourceChanged": false,
+            "rootTag": "body",
+            "sourceSegments": 66,
+            "sourceChars": 7869,
+            "uniqueSourceTexts": 66,
+            "completed": 66,
+            "failed": 0,
+            "pending": 0,
+            "total": 66,
+            "renderedSegments": 66,
+            "translatedChars": 3513,
+            "chineseSegments": 63,
+            "viewportTargets": 4,
+            "initialViewportSourceIds": [
+              2,
+              3,
+              4,
+              5
+            ],
+            "viewportCompleted": 4,
+            "unexpectedTranslations": 0,
+            "mappingConflicts": 0,
+            "status": "done",
+            "statusText": "翻译完成 · 66 / 66",
+            "errorCode": "",
+            "outputFingerprint": "d4a90b08f9c596d608809294e5d711cd4c24c8c80516bdb9d8c335fda0616f4c",
+            "protectedCodeTranslations": 0,
+            "viewport": {
+              "width": 1280,
+              "height": 900,
+              "clientWidth": 1265,
+              "clientHeight": 900,
+              "scrollX": 0,
+              "scrollY": 0
+            }
+          }
+        },
+        {
+          "article": "go-splash-long",
+          "version": "0.11.16",
+          "url": "https://go.dev/talks/2012/splash.article?utm_source=chatgpt.com",
+          "sourceArtifact": "deepl-v16-go-long-1.json",
+          "measurement": "page performance.now; real DeepL; new document; no translation cache; background tab per user live-stream constraint",
+          "environment": "background-valid-viewport",
+          "browserContext": {
+            "tabActive": false,
+            "windowFocused": true
+          },
+          "validViewport": true,
+          "fullArticleComplete": true,
+          "originalStrictSpeedPassed": false,
+          "rawFullDoneMs": 15294.699999988079,
+          "userAcceptedReleaseCriterionPassed": true,
+          "navigationToClickMs": 229215.19995117188,
+          "result": {
+            "elapsedMs": 15294.699999988079,
+            "firstMs": 3066.5,
+            "firstProseMs": 3066.5,
+            "firstViewportProseMs": 3066.5,
+            "firstVisibleProseDomReadyMs": 3066.5,
+            "firstVisibleProseRafMs": 3109.5,
+            "firstVisibleProseSourceId": 24,
+            "initialViewportAllDoneMs": 3453.100000023842,
+            "fullDoneMs": 15294.699999988079,
+            "doneAt": 1792936431603.0999,
+            "clickedAt": 1792936416307.4,
+            "navigationStartedAt": 1792936187092.2,
+            "toolbarReadyAt": 1792936416242.9,
+            "selectionLength": 0,
+            "visible": true,
+            "focused": true,
+            "visibilityFailures": 0,
+            "sourceChanged": false,
+            "rootTag": "article",
+            "sourceSegments": 251,
+            "sourceChars": 53505,
+            "uniqueSourceTexts": 251,
+            "completed": 251,
+            "failed": 0,
+            "pending": 0,
+            "total": 251,
+            "renderedSegments": 251,
+            "translatedChars": 18853,
+            "chineseSegments": 246,
+            "viewportTargets": 4,
+            "initialViewportSourceIds": [
+              24,
+              25,
+              26,
+              27
+            ],
+            "viewportCompleted": 4,
+            "unexpectedTranslations": 0,
+            "mappingConflicts": 0,
+            "status": "done",
+            "statusText": "翻译完成 · 251 / 251",
+            "errorCode": "",
+            "outputFingerprint": "c015f6bea64711a1e35662c675667bd6045f3122d32ec2b9a77190a28ebc9802",
+            "longTasks": [
+              {
+                "startTime": 229148.19999998808,
+                "duration": 283
+              },
+              {
+                "startTime": 229432.09999996424,
+                "duration": 65
+              },
+              {
+                "startTime": 233286.5,
+                "duration": 183
+              },
+              {
+                "startTime": 235403.09999996424,
+                "duration": 61
+              },
+              {
+                "startTime": 238553.19999998808,
+                "duration": 53
+              }
+            ],
+            "protectedCodeTranslations": 0,
+            "viewport": {
+              "width": 1280,
+              "height": 900,
+              "clientWidth": 1265,
+              "clientHeight": 900,
+              "scrollX": 0,
+              "scrollY": 0
+            }
+          }
+        }
+      ],
+      "readableBuildAssociation": {
+        "localArtifact": "deepl-v16-readable.user.js",
+        "bytes": 1034813,
+        "sha256": "b993d4ded078efe90f0902badcdbea00372a409cf2cfcf54537ca6f32f57d2a9",
+        "versionHeader": "0.11.16",
+        "installedSourceVerification": {
+          "source": "Primary-agent Debugger inspection supplied on 2026-10-25; no independent installed-wrapper source hash retained here.",
+          "observedVersion": "0.11.16",
+          "observedMarkers": [
+            "flushLoading",
+            "validateDispatch",
+            "near_translate_lane"
+          ],
+          "wholeWrappedSourceHashEqualsBundle": "not asserted; the manager wrapper changes installed source length/content"
+        }
+      },
+      "interpretation": "All five runs are actual version 0.11.16, complete with zero failed/pending segments and protected-code translations. Go still exceeds the original 15000 ms target; the human explicitly accepted the observed approximately 15.3-second speed, so product release acceptance passes separately. No 0.11.15 measurements are reused."
     }
   ],
   "rendererFrameMechanismEvidence": {
@@ -1980,7 +2431,7 @@
   },
   "candidatePreparations": {
     "version": "0.11.16",
-    "status": "selected-for-release-by-user-accepted-observed-speed-pending-four-articles-and-ci",
+    "status": "product-release-gate-passed-same-version-five-articles-workflow-pending",
     "readableBuild": {
       "localArtifact": "deepl-v16-readable.user.js",
       "bytes": 1034813,
@@ -2061,19 +2512,48 @@
     "requestBudgetChanged": false,
     "realArticleRuns": [
       {
-        "candidateRunId": "v0.11.16-background-go-splash-long-1",
+        "sourceArtifact": "deepl-v16-rust-short.json",
+        "article": "rust-1.85.1-short",
+        "rawFullDoneMs": 3078.300000011921,
+        "originalStrictSpeedPassed": true,
+        "userAcceptedReleaseCriterionPassed": true
+      },
+      {
+        "sourceArtifact": "deepl-v16-go-medium.json",
+        "article": "go-errors-medium",
+        "rawFullDoneMs": 3825.600000023842,
+        "originalStrictSpeedPassed": true,
+        "userAcceptedReleaseCriterionPassed": true
+      },
+      {
+        "sourceArtifact": "deepl-v16-python-medium.json",
+        "article": "python-3.14",
+        "rawFullDoneMs": 3385.5,
+        "originalStrictSpeedPassed": true,
+        "userAcceptedReleaseCriterionPassed": true
+      },
+      {
+        "sourceArtifact": "deepl-v16-rust-medium-long.json",
+        "article": "rust-1.85-medium-long",
+        "rawFullDoneMs": 3637.7999999523163,
+        "originalStrictSpeedPassed": true,
+        "userAcceptedReleaseCriterionPassed": true
+      },
+      {
         "sourceArtifact": "deepl-v16-go-long-1.json",
         "article": "go-splash-long",
         "rawFullDoneMs": 15294.699999988079,
-        "speedPassed": false
+        "originalStrictSpeedPassed": false,
+        "userAcceptedReleaseCriterionPassed": true
       }
     ],
     "finalAcceptance": false,
-    "interpretation": "Local validation remains recorded, but the first real 0.11.16 long Go sample strictly failed the 15000 ms gate. The five-article cohort was not completed. Prior 0.11.15 successes are not reused; this candidate is rejected for final acceptance.",
+    "interpretation": "Original strict 15000 ms acceptance remains false. Five actual 0.11.16 complete/zero-error samples now pass the distinct user-accepted product release gate; CI and publication remain separate.",
     "plannedRealArticleCount": 5,
-    "recordedRealArticleCount": 1,
-    "sameVersionFiveArticleCohortComplete": false,
-    "selectionBasis": "Explicit human decision recorded in userDecisionChange. Original speed-failure data is retained without alteration."
+    "recordedRealArticleCount": 5,
+    "sameVersionFiveArticleCohortComplete": true,
+    "selectionBasis": "Explicit human decision recorded in userDecisionChange. Original speed-failure data is retained without alteration.",
+    "releaseGatePassed": true
   },
   "v16LocalValidationEvidence": {
     "sourceArtifact": "deepl-v16-local-validation.json",
@@ -2260,11 +2740,15 @@
     }
   ],
   "cpuProfilerDiagnosticPlan": {
-    "status": "further-optimization-stopped-by-explicit-user-release-request",
+    "status": "stopped-no-cpu-profile-collected",
     "purpose": "Diagnose remaining CPU cost after the 0.11.16 long-article failure.",
     "acceptanceRun": false,
     "timingEligibleForAcceptance": false,
-    "interpretation": "Profiler-instrumented diagnostic runs must be stored separately from uninstrumented acceptance measurements; no profiling result is recorded here."
+    "interpretation": "Primary agent reported Profiler.enable returned method not found. No CPU profile was collected or fabricated. The user accepted observed speed and requested release, so optimization stopped; profiling is not acceptance evidence.",
+    "attemptedToolMethod": "Profiler.enable",
+    "toolResult": "method not found",
+    "cpuProfileCollected": false,
+    "recordedCpuProfileSamples": 0
   },
   "userDecisionChange": {
     "source": "Explicit human user messages in the current task, relayed by the primary agent after reporting the 0.11.16 Go observation.",
@@ -2281,13 +2765,13 @@
   },
   "releaseGate": {
     "version": "0.11.16",
-    "status": "preparing-draft-release-pending-four-same-version-articles-and-ci",
+    "status": "passed-user-accepted-speed-and-five-article-integrity-workflow-pending",
     "basis": "Explicit human acceptance of the observed current speed and explicit workflow release request.",
     "speedCriterion": "User-accepted observed approximately 15.3-second long-article speed; preserve exact raw timing and actual limits. The original strict <=15000 ms target is no longer a mandatory release gate.",
     "maxFullDoneMs": null,
     "originalStrictSpeedGoalPassed": false,
     "requiresSameVersionArticleCount": 5,
-    "sameVersionMeasuredArticleCount": 1,
+    "sameVersionMeasuredArticleCount": 5,
     "requiresFullSourceCompletion": true,
     "requiresFailedSegments": 0,
     "requiresPendingSegments": 0,
@@ -2297,28 +2781,136 @@
     "foregroundPerformance": "not-tested",
     "measuredArticleRuns": [
       {
-        "candidateRunId": "v0.11.16-background-go-splash-long-1",
-        "sourceArtifact": "deepl-v16-go-long-1.json",
+        "article": "rust-1.85.1-short",
+        "version": "0.11.16",
+        "url": "https://blog.rust-lang.org/2025/03/18/Rust-1.85.1/",
+        "sourceArtifact": "deepl-v16-rust-short.json",
+        "sourceSegments": 17,
+        "sourceCharsUtf16": 1352,
+        "uniqueSourceTexts": 17,
+        "rawFullDoneMs": 3078.300000011921,
+        "fullArticleComplete": true,
+        "failed": 0,
+        "pending": 0,
+        "mappingConflicts": 0,
+        "protectedCodeTranslations": 0,
+        "originalStrictSpeedPassed": true,
+        "userAcceptedReleaseCriterionPassed": true
+      },
+      {
+        "article": "go-errors-medium",
+        "version": "0.11.16",
+        "url": "https://go.dev/blog/errors-are-values",
+        "sourceArtifact": "deepl-v16-go-medium.json",
+        "sourceSegments": 35,
+        "sourceCharsUtf16": 6797,
+        "uniqueSourceTexts": 35,
+        "rawFullDoneMs": 3825.600000023842,
+        "fullArticleComplete": true,
+        "failed": 0,
+        "pending": 0,
+        "mappingConflicts": 0,
+        "protectedCodeTranslations": 0,
+        "originalStrictSpeedPassed": true,
+        "userAcceptedReleaseCriterionPassed": true
+      },
+      {
+        "article": "python-3.14",
+        "version": "0.11.16",
+        "url": "https://blog.python.org/2025/10/python-3140-final-is-here/",
+        "sourceArtifact": "deepl-v16-python-medium.json",
+        "sourceSegments": 96,
+        "sourceCharsUtf16": 4428,
+        "uniqueSourceTexts": 92,
+        "rawFullDoneMs": 3385.5,
+        "fullArticleComplete": true,
+        "failed": 0,
+        "pending": 0,
+        "mappingConflicts": 0,
+        "protectedCodeTranslations": 0,
+        "originalStrictSpeedPassed": true,
+        "userAcceptedReleaseCriterionPassed": true
+      },
+      {
+        "article": "rust-1.85-medium-long",
+        "version": "0.11.16",
+        "url": "https://blog.rust-lang.org/2025/02/20/Rust-1.85.0/",
+        "sourceArtifact": "deepl-v16-rust-medium-long.json",
+        "sourceSegments": 66,
+        "sourceCharsUtf16": 7869,
+        "uniqueSourceTexts": 66,
+        "rawFullDoneMs": 3637.7999999523163,
+        "fullArticleComplete": true,
+        "failed": 0,
+        "pending": 0,
+        "mappingConflicts": 0,
+        "protectedCodeTranslations": 0,
+        "originalStrictSpeedPassed": true,
+        "userAcceptedReleaseCriterionPassed": true
+      },
+      {
         "article": "go-splash-long",
+        "version": "0.11.16",
+        "url": "https://go.dev/talks/2012/splash.article?utm_source=chatgpt.com",
+        "sourceArtifact": "deepl-v16-go-long-1.json",
+        "sourceSegments": 251,
+        "sourceCharsUtf16": 53505,
+        "uniqueSourceTexts": 251,
         "rawFullDoneMs": 15294.699999988079,
         "fullArticleComplete": true,
+        "failed": 0,
+        "pending": 0,
+        "mappingConflicts": 0,
+        "protectedCodeTranslations": 0,
         "originalStrictSpeedPassed": false,
-        "speedAcceptedByUser": true
+        "userAcceptedReleaseCriterionPassed": true
       }
     ],
-    "remainingArticles": [
-      "rust-1.85.1-short",
-      "go-errors-medium",
-      "python-3.14",
-      "rust-1.85-medium-long"
-    ],
-    "sameVersionMatrixComplete": false,
+    "remainingArticles": [],
+    "sameVersionMatrixComplete": true,
     "localValidation": "Recorded: 1566/1566 with maxWorkers=2, both mocked-GM browser channels 22/22, type/repo/docs/boundaries/builds passed; original default-worker timeout remains in evidence.",
     "defaultLinuxCI": "pending",
-    "passed": false,
+    "passed": true,
     "releasePublished": false,
     "pagesDeployment": "pending",
     "greasyForkPublicVersionVerification": "pending",
-    "interpretation": "Release preparation is authorized, but this draft does not claim the four unmeasured same-version pages, CI, deployment or public-channel verification have completed. Original acceptance.passed remains false under the original strict research target."
+    "interpretation": "The user-accepted speed plus all five same-version complete/zero-error samples pass product acceptance. Original acceptance.passed remains false at maxFullDoneMs=15000. CI, pinned-SHA merge and public distribution verification are separate pending workflow obligations; product acceptance does not mean published.",
+    "scope": "Product release acceptance under explicit human speed acceptance, separate from required CI, merge, Release and public-channel publication steps.",
+    "candidateCohortId": "v0.11.16-background-five-articles-release-1",
+    "allMeasuredSamplesVersion": "0.11.16",
+    "allSamplesCompleteZeroFailureZeroPending": true
+  },
+  "metadataCorrections": [
+    {
+      "article": "rust-1.85.1-short",
+      "originalArtifact": "deepl-v16-rust-short-metadata-original.json",
+      "correctedArtifact": "deepl-v16-rust-short.json",
+      "field": "verifiedVersion",
+      "originalHostValue": "0.11.15",
+      "correctedValue": "0.11.16",
+      "allResultFieldsUnchanged": true,
+      "browserContextUnchanged": true,
+      "urlUnchanged": true,
+      "reason": "The host-side save helper retained its older closure value. Actual installed script was independently verified by Debugger as 0.11.16 with flushLoading before navigation and timing; timing/completeness values are unchanged.",
+      "independentVersionEvidence": "Primary-agent Debugger verification of actual installed version 0.11.16 and flushLoading before this article measurement; this was host save-helper closure metadata, not an observed script downgrade.",
+      "subsequentSaveMitigation": "Primary agent used an explicit version parameter for later saves rather than the captured helper closure value."
+    }
+  ],
+  "publicationWorkflow": {
+    "status": "awaiting-ci-merge-and-public-distribution-verification",
+    "version": "0.11.16",
+    "productReleaseGatePassed": true,
+    "ci": "pending",
+    "mainMerged": false,
+    "releasePublished": false,
+    "pagesDeployment": "pending",
+    "greasyForkPublicVersionVerification": "pending",
+    "source": "Primary-agent current workflow boundary; no completed publication is asserted.",
+    "draftCommitCI": {
+      "commit": "a5d74ab08358ce442db3b77f54bed2f7a185fd3d",
+      "status": "passed",
+      "source": "Release-review agent reported the initial draft commit Linux CI passed. The final evidence commit must run its own checks."
+    },
+    "finalEvidenceCommitCI": "pending"
   }
 }

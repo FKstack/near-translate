@@ -215,7 +215,8 @@ export class DeepLWebProvider implements TranslationProvider {
     return [];
   }
 
-  async *translate(rawInput: TranslationInput, signal: AbortSignal): AsyncIterable<TranslationEvent> {
+  async *translate(rawInput: TranslationInput, signal: AbortSignal,
+    beforeRequest?: () => Promise<void>): AsyncIterable<TranslationEvent> {
     checkAbort(signal);
     if (rawInput.task === 'sentence-analysis') {
       throw new TranslationFailure('CONFIG', 'DeepL 网页翻译仅提供译文，不支持长难句拆解；可切换到模型 API 使用该功能。');
@@ -245,7 +246,7 @@ export class DeepLWebProvider implements TranslationProvider {
       checkAbort(signal);
       // A queue entry belongs to this input only. Validate the entire response
       // before applying any of its positions to the local segment/part mapping.
-      const texts = await this.enqueue(pending.map(part => part.text), languages, signal);
+      const texts = await this.enqueue(pending.map(part => part.text), languages, signal, beforeRequest);
       checkAbort(signal);
       pending.forEach(({ segment, part, text }, index) => {
         let value = texts[index]!;
@@ -268,8 +269,9 @@ export class DeepLWebProvider implements TranslationProvider {
       ...(input.pageSegments ? { segments: translations } : {}) } };
   }
 
-  private async enqueue(texts: string[], languages: Readonly<LanguagePair>, signal: AbortSignal): Promise<string[]> {
-    try { return await this.scheduler.run(context => this.request(texts, languages, context), signal); }
+  private async enqueue(texts: string[], languages: Readonly<LanguagePair>, signal: AbortSignal,
+    beforeRequest?: () => Promise<void>): Promise<string[]> {
+    try { return await this.scheduler.run(context => this.request(texts, languages, context, beforeRequest), signal); }
     catch (error) {
       if (error instanceof RequestSchedulingFailure && error.kind === 'RATE_LIMIT') {
         throw limited((await this.getServiceStatus()).cooldownUntil);
@@ -296,7 +298,8 @@ export class DeepLWebProvider implements TranslationProvider {
     return delay;
   }
 
-  private async request(texts: string[], languages: Readonly<LanguagePair>, context: RequestContext): Promise<string[]> {
+  private async request(texts: string[], languages: Readonly<LanguagePair>, context: RequestContext,
+    beforeRequest?: () => Promise<void>): Promise<string[]> {
     const { signal } = context;
     try {
       checkAbort(signal);
@@ -307,6 +310,10 @@ export class DeepLWebProvider implements TranslationProvider {
       if (new TextEncoder().encode(body).byteLength > MAX_REQUEST_BYTES) {
         throw new TranslationFailure('INVALID_INPUT', 'DeepL 翻译请求内容过大，请缩短选区后重试。');
       }
+      // A caller's configuration may change while this batch waits for a slot
+      // or start window. Revalidate after admission, immediately before I/O.
+      if (beforeRequest) await beforeRequest();
+      checkAbort(signal);
       const response = await this.transport(body, signal);
       if (signal.aborted) { await response.body?.cancel().catch(() => {}); throw CANCELLED(); }
       if (response.status === 429) {

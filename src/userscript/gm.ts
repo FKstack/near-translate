@@ -20,9 +20,9 @@ export interface GMRequest {
   redirect: 'error';
   timeout: number;
   nocache: true;
-  onloadstart(response: GMResponse): void;
+  onloadstart?(response: GMResponse): void;
   onreadystatechange(response: GMResponse): void;
-  onprogress(response: GMResponse): void;
+  onprogress?(response: GMResponse): void;
   onload(response: GMResponse): void;
   onerror(): void;
   ontimeout(): void;

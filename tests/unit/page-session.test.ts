@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { JSDOM } from 'jsdom';
 import type { TranslationError, TranslationInput, TranslationServerMessage } from '../../src/shared/contracts';
 import { MAX_TEXT_LENGTH } from '../../src/shared/contracts';
 import type { PageSegment } from '../../src/page/segments';
@@ -49,6 +50,178 @@ function prioritize(session: PageTranslationSession, priorities: ReadonlyMap<Pag
 }
 
 describe('batched page translation session', () => {
+  it('avoids repeating new-item and whole-queue validation during cold dispatch', async () => {
+    const isCurrent = vi.fn((_source: PageSegment) => true);
+    const { session, requests } = setup(isCurrent);
+    const passages = Array.from({ length: 251 }, (_, index) => wide(index));
+    session.start(passages, { concurrency: 8, batchMaxItems: 1, batchTargetChars: 1_500 });
+    expect(isCurrent).toHaveBeenCalledTimes(251);
+    await flush();
+    expect(requests()).toHaveLength(8);
+    expect(isCurrent).toHaveBeenCalledTimes(275);
+    expect(isCurrent.mock.calls.filter(([source]) => source === passages[250])).toHaveLength(1);
+    session.dispose();
+  });
+
+  it('fully validates a waiting group only after its part fits the selected batch', async () => {
+    const isCurrent = vi.fn((_source: PageSegment) => true);
+    const { session, requests, input, done } = setup(isCurrent);
+    const first = segment('a'.repeat(60)), waiting = segment('b'.repeat(80)), filler = segment('c'.repeat(40));
+    session.start([first, waiting, filler], { concurrency: 1, batchTargetChars: 100, batchSeparatorChars: 0, packing: 'fill' });
+    isCurrent.mockClear();
+    await flush();
+    expect(input().pageSegments).toEqual([first.text, filler.text]);
+    expect(isCurrent.mock.calls.some(([source]) => source === waiting)).toBe(false);
+    done(); await flush();
+    expect(requests()).toHaveLength(2);
+    expect(input().pageSegments).toEqual([waiting.text]);
+    expect(isCurrent.mock.calls.some(([source]) => source === waiting)).toBe(true);
+    session.dispose();
+  });
+
+  it('never sends hidden, changed or removed sources after they wait for dispatch', async () => {
+    const actual = await vi.importActual<typeof import('../../src/page/segments')>('../../src/page/segments');
+    const dom = new JSDOM('<article><p id="first">First public passage.</p><p id="hidden">Hidden waiting passage.</p>'
+      + '<p id="changed">Changed waiting passage.</p><p id="removed">Removed waiting passage.</p><p id="tail">Eligible final passage.</p></article>');
+    try {
+      const doc = dom.window.document;
+      const sources = actual.collectPageSegments(doc.querySelector('article')!);
+      const { session, requests, input, done } = setup(actual.segmentIsCurrent);
+      session.start(sources, { concurrency: 1, batchMaxItems: 1 }); await flush();
+      expect(input().pageSegments).toEqual([sources[0]!.text]);
+      doc.getElementById('hidden')!.style.display = 'none';
+      doc.getElementById('changed')!.firstChild!.textContent = 'Changed source content after admission.';
+      doc.getElementById('removed')!.remove();
+      done(); await flush();
+      expect(requests()).toHaveLength(2);
+      expect(input().pageSegments).toEqual([sources[4]!.text]);
+      done(); await flush();
+      expect(session.state).toMatchObject({ status: 'done', completed: 2, skipped: 3, pending: 0 });
+      session.dispose();
+    } finally { dom.window.close(); }
+  });
+
+  it('falls back to an ordinary first batch if every visible-prose candidate became stale', async () => {
+    const { session, input, done, requests } = setup();
+    const staleVisible = segment('Initial visible prose.'), eligible = segment('Eligible remaining passage.');
+    session.start([staleVisible, eligible], { concurrency: 1, viewportPriority: true,
+      batchTargetChars: 1_500, firstBatchTargetChars: 800, firstBatchMaxItems: 2 });
+    prioritize(session, new Map([[staleVisible, visible], [eligible, far]]));
+    fixtures.stale.add(staleVisible);
+    await flush();
+    expect(requests()).toHaveLength(1);
+    expect(input().pageSegments).toEqual([eligible.text]);
+    done(); await flush();
+    expect(session.state).toMatchObject({ status: 'done', completed: 1, skipped: 1, pending: 0 });
+    session.dispose();
+  });
+
+  it.each([false, true])('dispatches a surviving far duplicate after its visible source became stale (other visible=%s)', async otherVisible => {
+    const { session, input, done, requests } = setup();
+    const staleVisible = segment('Duplicated visible passage.'), surviving = segment(staleVisible.text);
+    const another = segment('Another visible prose passage.');
+    session.start([staleVisible, surviving, ...(otherVisible ? [another] : [])], { concurrency: 1,
+      viewportPriority: true, batchTargetChars: 1_500, firstBatchTargetChars: 800, firstBatchMaxItems: 2 });
+    prioritize(session, new Map([[staleVisible, visible], [surviving, far], [another, { ...visible, distance: 10 }]]));
+    fixtures.stale.add(staleVisible);
+    await flush();
+    expect(requests()).toHaveLength(1);
+    expect(input().pageSegments).toEqual([otherVisible ? another.text : surviving.text]);
+    done(); await flush();
+    if (otherVisible) {
+      expect(requests()).toHaveLength(2);
+      expect(input().pageSegments).toEqual([surviving.text]);
+      done(); await flush();
+    }
+    expect(session.state).toMatchObject({ status: 'done', completed: otherVisible ? 2 : 1, skipped: 1, pending: 0 });
+    session.dispose();
+  });
+
+  it('filters a selected source invalidated by an earlier loading callback and can later translate its replacement', async () => {
+    const { session, onSegment, input, done, requests } = setup();
+    const first = segment('First selected passage.'), stale = segment('Later selected passage.');
+    onSegment.mockImplementation((source, view) => {
+      if (source === first && view.status === 'loading') fixtures.stale.add(stale);
+    });
+    session.start([first, stale], { concurrency: 1 }); await flush();
+    expect(input().pageSegments).toEqual([first.text]);
+    done(); await flush();
+    expect(session.state).toMatchObject({ status: 'done', completed: 1, skipped: 1, pending: 0 });
+    const replacement = { ...stale };
+    session.append([replacement]); await flush();
+    expect(requests()).toHaveLength(2);
+    expect(input().pageSegments).toEqual([replacement.text]);
+    done(); await flush();
+    expect(session.state).toMatchObject({ status: 'done', completed: 2, skipped: 1, pending: 0 });
+    session.dispose();
+  });
+
+  it('rechecks earlier selected sources after stale-cleanup callbacks without rescanning the waiting queue', async () => {
+    const { session, onSegment, input, done } = setup();
+    const first = segment('First selected passage.'), second = segment('Second selected passage.'), final = segment('Final eligible passage.');
+    onSegment.mockImplementation((source, view) => {
+      if (source === final && view.status === 'loading') fixtures.stale.add(first);
+      if (source === first && view.status === 'stopped') fixtures.stale.add(second);
+    });
+    session.start([first, second, final], { concurrency: 1 }); await flush();
+    expect(input().pageSegments).toEqual([final.text]);
+    done(); await flush();
+    expect(session.state).toMatchObject({ status: 'done', completed: 1, skipped: 2, pending: 0 });
+    session.dispose();
+  });
+
+  it('does not leave selected parts loading when cleanup invalidates every selected source', async () => {
+    const { session, onSegment, requests } = setup();
+    const first = segment('First selected passage.'), second = segment('Second selected passage.');
+    onSegment.mockImplementation((source, view) => {
+      if (source === first && view.status === 'loading') fixtures.stale.add(second);
+      if (source === second && view.status === 'stopped') fixtures.stale.add(first);
+    });
+    session.start([first, second], { concurrency: 1 }); await flush();
+    expect(requests()).toHaveLength(0);
+    expect(session.state).toMatchObject({ status: 'done', completed: 0, skipped: 2, pending: 0 });
+    session.dispose();
+  });
+
+  it.each(['cancel', 'reset', 'dispose'] as const)('does not dispatch an old batch after a loading callback calls %s', async action => {
+    const { session, onSegment, requests, input } = setup();
+    const original = segment('Original selected passage.'), replacement = segment('New generation passage.');
+    let changed = false;
+    onSegment.mockImplementation((_source, view) => {
+      if (view.status !== 'loading' || changed) return;
+      changed = true;
+      if (action === 'cancel') session.cancel();
+      else if (action === 'dispose') session.dispose();
+      else { session.reset(); session.start([replacement], { concurrency: 1 }); }
+    });
+    session.start([original], { concurrency: 1 }); await flush(); await flush();
+    if (action === 'reset') {
+      expect(requests()).toHaveLength(1);
+      expect(input().pageSegments).toEqual([replacement.text]);
+    } else expect(requests()).toHaveLength(0);
+    session.dispose();
+  });
+
+  it('keeps a surviving duplicate retryable if stale cleanup cancels during batch selection', async () => {
+    const { session, onSegment, requests, input, done } = setup();
+    const stale = segment('Duplicated waiting passage.'), surviving = segment(stale.text);
+    let cancelled = false;
+    onSegment.mockImplementation((source, view) => {
+      if (source === stale && view.status === 'stopped' && !cancelled) { cancelled = true; session.cancel(); }
+    });
+    session.start([stale, surviving], { concurrency: 1 });
+    fixtures.stale.add(stale);
+    await flush();
+    expect(requests()).toHaveLength(0);
+    expect(session.state).toMatchObject({ status: 'stopped', pending: 1, skipped: 1 });
+    session.retryFailed(); await flush();
+    expect(requests()).toHaveLength(1);
+    expect(input().pageSegments).toEqual([surviving.text]);
+    done(); await flush();
+    expect(session.state).toMatchObject({ status: 'done', completed: 1, pending: 0, skipped: 1 });
+    session.dispose();
+  });
+
   it('does not start a paragraph rejected by the view-owned current validator', async () => {
     const isCurrent = vi.fn(() => false); const { session, requests, onSegment } = setup(isCurrent);
     const paragraph = segment('Rejected by the reading view');
@@ -307,6 +480,46 @@ describe('batched page translation session', () => {
     }
     const sent = requests().flatMap(request => request.pageSegments!);
     expect(requests()).toHaveLength(37);
+    // Frozen from the pre-optimization Session with this exact proxy fixture.
+    expect(requests().map(request => request.pageSegments!.map(text => indices.get(text)))).toEqual([
+      [24],
+      [25, 26, 27, 0, 1, 2, 3, 232],
+      [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 29, 30, 32, 33, 159],
+      [28, 31, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 45, 46, 47, 49],
+      [50, 51, 53, 55, 44],
+      [54, 56, 58, 59, 48, 52, 67],
+      [60, 61, 65, 57, 95, 231],
+      [62, 68, 110],
+      [63, 64, 66, 74, 79, 106],
+      [69, 70, 71, 72, 73, 75, 78, 80, 114, 233],
+      [76, 77, 82, 83, 81],
+      [84, 85, 86, 87, 250],
+      [88, 89, 90, 91, 121, 124, 136],
+      [92, 93, 96, 97, 98, 100],
+      [94, 99, 101, 102, 119, 135],
+      [103, 104, 105, 107, 108, 113],
+      [109, 111, 112, 116, 132],
+      [115, 117, 118, 120, 123, 128, 130, 126, 144],
+      [122, 125, 138, 146, 154],
+      [127, 129, 131, 133, 134, 137, 140, 156, 158],
+      [139, 141, 142, 143, 150],
+      [145, 155, 161, 163, 165, 167, 147, 149],
+      [164, 166, 168, 170, 183, 157, 203],
+      [148, 151, 152, 153, 160, 162, 169, 171, 172, 174, 212, 234],
+      [173, 176, 177, 178, 187, 185, 226],
+      [179, 180, 181, 184, 227],
+      [182, 186, 188, 230, 240],
+      [175, 189, 190, 191, 192, 195, 229, 242, 243],
+      [193, 194, 244, 245, 246],
+      [196, 197, 198, 199, 238],
+      [200, 201, 202, 204, 205, 247],
+      [206, 207, 208, 209, 210],
+      [211, 213, 214, 215, 216, 248, 249],
+      [217, 223, 235],
+      [218, 222, 241],
+      [219, 239, 236, 224],
+      [220, 221, 225, 228, 237],
+    ]);
     expect(sent).toHaveLength(251); expect(new Set(sent).size).toBe(251);
     expect(sent.reduce((total, text) => total + text.length, 0)).toBe(53_505);
     expect(requests().every(request => request.pageSegments!.length <= 32

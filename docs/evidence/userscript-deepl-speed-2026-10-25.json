@@ -1,0 +1,2324 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-25",
+  "status": "preparing-release-after-explicit-user-speed-acceptance",
+  "acceptance": {
+    "authorizedPublicUrl": "https://go.dev/talks/2012/splash.article?utm_source=chatgpt.com",
+    "sourceSegments": 251,
+    "sourceCharsUtf16": 53505,
+    "uniqueSourceTexts": 251,
+    "completedRequired": 251,
+    "failedRequired": 0,
+    "pendingRequired": 0,
+    "maxFullDoneMs": 15000,
+    "translationCache": "none; fresh document for each real run",
+    "networkMocked": false,
+    "finalRealRuns": [],
+    "passed": false,
+    "multiArticleRequirement": "The user requires multiple public articles of different lengths. Each final-candidate run must complete the entire frozen production source set with zero failed or pending segments and fullDoneMs <= 15000; one successful short article does not accept the whole product.",
+    "plannedArticleMatrix": [
+      {
+        "article": "rust-1.85.1-short",
+        "url": "https://blog.rust-lang.org/2025/03/18/Rust-1.85.1/",
+        "finalCandidateStatus": "pending-next-candidate",
+        "measuredCandidateVersion": "0.11.15",
+        "sourceSegments": 17,
+        "sourceCharsUtf16": 1352,
+        "candidateFullDoneMs": 2858.100000023842,
+        "candidateComplete": true,
+        "candidateSpeedPassed": true,
+        "uniqueSourceTexts": 17,
+        "candidateEnvironment": "background-valid-viewport",
+        "candidateTabActive": false,
+        "candidateWindowFocused": true,
+        "candidateCohortId": "v0.11.15-background-five-articles-1"
+      },
+      {
+        "article": "go-errors-medium",
+        "url": "https://go.dev/blog/errors-are-values",
+        "finalCandidateStatus": "pending-next-candidate",
+        "measuredCandidateVersion": "0.11.15",
+        "sourceSegments": 35,
+        "sourceCharsUtf16": 6797,
+        "uniqueSourceTexts": 35,
+        "candidateFullDoneMs": 3870.099999964237,
+        "candidateComplete": true,
+        "candidateSpeedPassed": true,
+        "candidateEnvironment": "background-valid-viewport",
+        "candidateTabActive": false,
+        "candidateWindowFocused": true,
+        "candidateCohortId": "v0.11.15-background-five-articles-1"
+      },
+      {
+        "article": "python-3.14",
+        "url": "https://blog.python.org/2025/10/python-3140-final-is-here/",
+        "finalCandidateStatus": "pending-next-candidate",
+        "measuredCandidateVersion": "0.11.15",
+        "sourceSegments": 96,
+        "sourceCharsUtf16": 4428,
+        "uniqueSourceTexts": 92,
+        "candidateFullDoneMs": 4017.399999976158,
+        "candidateComplete": true,
+        "candidateSpeedPassed": true,
+        "candidateEnvironment": "background-valid-viewport",
+        "candidateTabActive": false,
+        "candidateWindowFocused": true,
+        "candidateCohortId": "v0.11.15-background-five-articles-1"
+      },
+      {
+        "article": "rust-1.85-medium-long",
+        "url": "https://blog.rust-lang.org/2025/02/20/Rust-1.85.0/",
+        "finalCandidateStatus": "pending-next-candidate",
+        "priorPlannedUrl": "https://blog.rust-lang.org/releases/1.85.0/",
+        "measuredCandidateVersion": "0.11.15",
+        "sourceSegments": 66,
+        "sourceCharsUtf16": 7869,
+        "uniqueSourceTexts": 66,
+        "candidateFullDoneMs": 3957.699999988079,
+        "candidateComplete": true,
+        "candidateSpeedPassed": true,
+        "candidateEnvironment": "background-valid-viewport",
+        "candidateTabActive": false,
+        "candidateWindowFocused": true,
+        "candidateCohortId": "v0.11.15-background-five-articles-1"
+      },
+      {
+        "article": "go-splash-long",
+        "url": "https://go.dev/talks/2012/splash.article?utm_source=chatgpt.com",
+        "finalCandidateStatus": "pending-next-candidate",
+        "measuredCandidateVersion": "0.11.15",
+        "sourceSegments": 251,
+        "sourceCharsUtf16": 53505,
+        "candidateFullDoneMs": 15226.600000023842,
+        "candidateComplete": true,
+        "candidateSpeedPassed": false,
+        "uniqueSourceTexts": 251,
+        "candidateEnvironment": "background-valid-viewport",
+        "candidateTabActive": false,
+        "candidateWindowFocused": true,
+        "candidateCohortId": "v0.11.15-background-five-articles-1"
+      }
+    ],
+    "finalViewportProtocol": {
+      "status": "background-protocol-valid-candidate-v0.11.16-rejected",
+      "source": "Primary-agent supported viewport-capability recovery and Playwright measurements supplied on 2026-10-25; no separate recovery artifact retained here.",
+      "requestedWidth": 1280,
+      "requestedHeight": 900,
+      "observedInnerWidth": 1280,
+      "observedInnerHeight": 900,
+      "observedDocumentClientWidth": 1265,
+      "observedDocumentClientHeight": 900,
+      "appliesTo": "Future final five-article matrix. It does not retroactively normalize earlier runs.",
+      "resetAfterTesting": "planned; not yet reported complete",
+      "testEnvironment": "Dedicated background test tabs at a verified nonzero 1280x900 viewport; the user can continue using the browser.",
+      "foregroundRequired": false,
+      "forceBrowserForeground": false,
+      "stateEvidenceRequirement": "Record actual management/control-level tab active and window focused state separately from page-level visibility/focus and dimensions for each run. Do not claim OS-foreground evidence from page booleans."
+    },
+    "supersededForegroundProtocol": {
+      "status": "superseded-by-user-browser-usage-constraint",
+      "formerRequirement": "For final acceptance, verify active target tab, focused browser window, visible/focused page and the requested nonzero viewport; the observed v0.11.14 normal-size run was not foreground-qualified.",
+      "formerReadiness": "The human confirmed foreground readiness before the primary agent began candidate 0.11.15 measurements. Per-run control and page evidence is still required; this readiness confirmation does not accept an unmeasured sample.",
+      "interpretation": "A prior plan/readiness statement only. The user subsequently clarified that a target tab cannot remain foreground while using the browser. No OS-foreground performance acceptance is claimed."
+    },
+    "environmentProtocol": {
+      "id": "dedicated-background-valid-viewport",
+      "reason": "The user is actively using the browser and cannot keep translation test tabs foreground. The primary agent adjusted the test environment to that user constraint.",
+      "candidateVersion": "0.11.16-rejected",
+      "dedicatedTestTabs": true,
+      "requestedWidth": 1280,
+      "requestedHeight": 900,
+      "network": "Real DeepL service; no response mocking",
+      "document": "New cold document without userscript translation cache",
+      "requiredOutcome": "Entire frozen production source set completed, zero failed and pending, raw fullDoneMs <= 15000 for each article",
+      "backgroundRunLabel": "background-valid-viewport",
+      "backgroundAcceptanceStatus": "original-strict-15000ms-target-failed-user-accepted-observed-speed-for-release",
+      "foregroundAcceptanceStatus": "not-tested",
+      "actualStateRecording": "Keep management tab/window state distinct from page visibility/focus; record the actual environment without forcing the user off their foreground tab.",
+      "scope": "Future final five-article measurements; earlier failing candidates and invalid viewport diagnostics retain their original evidence and do not become accepted retroactively.",
+      "currentCandidateStatus": "selected-for-release-after-explicit-user-speed-acceptance"
+    },
+    "backgroundAcceptanceStatus": "original-strict-15000ms-target-failed-user-accepted-observed-speed-for-release",
+    "foregroundAcceptanceStatus": "not-tested",
+    "latestCandidateCohortId": "v0.11.15-background-five-articles-1",
+    "latestCandidateRunId": "v0.11.16-background-go-splash-long-1",
+    "historicalMatrixInterpretation": "plannedArticleMatrix retains the most recent completed 0.11.15 historical cohort by article. It is not a mixed-version 0.11.16 acceptance matrix; the single 0.11.16 failure lives in candidateRuns.",
+    "status": "original-strict-target-not-achieved"
+  },
+  "scope": {
+    "realRuns": "Installed userscript in daily Edge; own DOM probe using production segment collection and performance.now. No saved Key or GM storage was read by the probe.",
+    "localExperiments": "Unmodified Tampermonkey 5.4.1 in isolated Chrome-for-Testing 156.0.8078.4; fixed localhost JSON; no mocked GM API; external traffic blocked.",
+    "retainedData": "Timing, counters, status, boolean correctness checks and artifact hashes only. No translation text, request body, cookies or credentials."
+  },
+  "sourceArtifacts": [
+    {
+      "localArtifact": "deepl-userscript-speed-baseline.json",
+      "bytes": 1408,
+      "sha256": "191cdd8910182cdfbc3bc4ea8bc52481fe2154f355ed6e26dfc328ab354aa8a8"
+    },
+    {
+      "localArtifact": "deepl-userscript-speed-after-1.json",
+      "bytes": 1470,
+      "sha256": "3ac0000e585b8210fe57e836793710d6a0d45329971f77435dd62cfed37cfd2a"
+    },
+    {
+      "localArtifact": "tm-parallel-isolated-MOl8gy/result.json",
+      "bytes": 19368,
+      "sha256": "3781135f7b815f42b62bf5ead5fb904d2e887ff456752c6d9c4fd500d1a1d346"
+    },
+    {
+      "localArtifact": "tm-parallel-isolated-MOl8gy/result-lanes.json",
+      "bytes": 18658,
+      "sha256": "ce9359cbd244a6c52f812d907e398134e468a37cbd421a1464480bcb979de34b"
+    },
+    {
+      "localArtifact": "deepl-userscript-speed-lanes-go-1.json",
+      "bytes": 1557,
+      "sha256": "d3418b57b71bb4c6b108232d90f3454d179c9fd25eb72a1af517bd987d09321a"
+    },
+    {
+      "localArtifact": "deepl-final-go-long.json",
+      "bytes": 1551,
+      "sha256": "516c2931a1ffa8c4e93f2cfad6ab0d70ae346a32f50507010af2097f8e135881"
+    },
+    {
+      "localArtifact": "deepl-final-rust-short.json",
+      "bytes": 1513,
+      "sha256": "65c83918b4ed74e261b19bd922c0a7bc892310a14ce37069e46001dd473b7489"
+    },
+    {
+      "localArtifact": "tm-text-callbacks-Fik3Id/result-flushed.json",
+      "bytes": 26388,
+      "sha256": "a4aee8ea4b2dca2a546edf8fc5f984a490392e2fba4aba8dfb5008c81081eedb"
+    },
+    {
+      "localArtifact": "deepl-v14-go-long.json",
+      "bytes": 2515,
+      "sha256": "bd55b1fdd77a708cddae7d46f2e39abc3b4cd4952b2ac7a7c916781bb186777c"
+    },
+    {
+      "localArtifact": "deepl-v14-go-normal-1.json",
+      "bytes": 2150,
+      "sha256": "45053d2832bbe58aa8f1c0637ad3f7f4ea20ebd8fed48d60fec4c9362c0f9455"
+    },
+    {
+      "localArtifact": "deepl-dom-cpu-diagnostic.json",
+      "bytes": 997,
+      "sha256": "ce8f04255cf3b958bc622efd2777c7c0ae8041e3609f3d7749196560905fdac9"
+    },
+    {
+      "localArtifact": "deepl-session-cpu-planning-2026-10-25.json",
+      "bytes": 13573,
+      "sha256": "b563d451dd7dc9bb43ed9864b5a7ca5ea7de1a2a315756aad98e4a44cead0688"
+    },
+    {
+      "localArtifact": "session-startup-planning-comparison.mjs",
+      "bytes": 6141,
+      "sha256": "b4ef374610f4cc039ac898824ee43efe915000e4b14983f8ec60ed801ba40c7d"
+    },
+    {
+      "localArtifact": "deepl-v15-rust-short.json",
+      "bytes": 1763,
+      "sha256": "d89bbe38e60650e0b94b32be720198fd20813de66f6a1c6a183eeed90d717074"
+    },
+    {
+      "localArtifact": "deepl-v15-go-medium.json",
+      "bytes": 1830,
+      "sha256": "a4b1606de7b714cf856ad02d59b2f96a13e605ec1b30a1c9e0e178bb9eb28f1d"
+    },
+    {
+      "localArtifact": "deepl-v15-python-medium.json",
+      "bytes": 1724,
+      "sha256": "840926dc32589212b49b3af27771661c4dfb51a7843daa2a9b77d277693ad4a1"
+    },
+    {
+      "localArtifact": "deepl-v15-rust-medium-long.json",
+      "bytes": 1799,
+      "sha256": "38673a6bef4eda1b5204f92f0383f811765da99ab95aabf3309e75cdf2cce959"
+    },
+    {
+      "localArtifact": "deepl-v15-go-long-1.json",
+      "bytes": 1941,
+      "sha256": "246f3566088f6c2702ea1f6ad6241a2afb9268ed1fe5d15f80baa2973d6499b2"
+    },
+    {
+      "localArtifact": "deepl-v15-readable.user.js",
+      "bytes": 1031725,
+      "sha256": "37894d4ca0281add61f11f6e223d225c42ff644ceb9d2314d790a4859f53efa7",
+      "retention": "Local built candidate artifact; only metadata/hash included in repository evidence, no full script copied."
+    },
+    {
+      "localArtifact": "deepl-render-frame-mechanism-2026-10-25.json",
+      "bytes": 3170,
+      "sha256": "3bf56cba617face80e8a430c1c1e32861c205405c1bda303afb7ba83d99b20da",
+      "retention": "Only metadata/hash retained here; no full helper, bundle or generated source copied into the evidence."
+    },
+    {
+      "localArtifact": "renderer-frame-mechanism.mjs",
+      "bytes": 5613,
+      "sha256": "a6c4b22c8d42fbaa19d2faa4a74651d5c40ec6bde2da1d40094ec3e2372c3ad8",
+      "retention": "Only metadata/hash retained here; no full helper, bundle or generated source copied into the evidence."
+    },
+    {
+      "localArtifact": "deepl-v16-readable.user.js",
+      "bytes": 1034813,
+      "sha256": "b993d4ded078efe90f0902badcdbea00372a409cf2cfcf54537ca6f32f57d2a9",
+      "retention": "Only metadata/hash retained here; no full helper, bundle or generated source copied into the evidence."
+    },
+    {
+      "localArtifact": "deepl-v16-local-validation.json",
+      "bytes": 1964,
+      "sha256": "7877ab080269d8308142c9db0912e6b9408e75a88429097070c378b174ce1e9c",
+      "retention": "Only metadata/hash retained here; full local logs and machine reports are not copied."
+    },
+    {
+      "localArtifact": "deepl-v16-e2e-userscript-results.json",
+      "bytes": 26912,
+      "sha256": "f0bbd4d0391cc19e9702829e7dc66d998687973b9c4c266cac8ad76474a32de4",
+      "retention": "Only metadata/hash retained here; full local logs and machine reports are not copied."
+    },
+    {
+      "localArtifact": "deepl-v16-e2e-greasyfork-results.json",
+      "bytes": 26907,
+      "sha256": "26bd071092c6fbe8cc1c61c4a3386375a8d7cec601e7c44a297f6a32e7bd975d",
+      "retention": "Only metadata/hash retained here; full local logs and machine reports are not copied."
+    },
+    {
+      "localArtifact": "deepl-v16-unit.log",
+      "bytes": 1492,
+      "sha256": "da91bed40c0fffb70da764f8cf5331aa0d5176217d55b203ac023c52bf8d7d60",
+      "retention": "Only metadata/hash retained here; full local logs and machine reports are not copied."
+    },
+    {
+      "localArtifact": "deepl-v16-release-dry-run-retry.log",
+      "bytes": 233,
+      "sha256": "c7ceae410a9a4346a99306ac73c522da6f9b934c11297f42c90d5919461a08e7",
+      "retention": "Only metadata/hash retained here; full local logs and machine reports are not copied."
+    },
+    {
+      "localArtifact": "deepl-v16-unit-workers2.log",
+      "bytes": 523,
+      "sha256": "d09eee5d357dec6f8a3cd68309b5a3be3e891140bc47665c573c42177a2f6baa",
+      "retention": "Only metadata/hash retained here; full local logs and machine reports are not copied."
+    },
+    {
+      "localArtifact": "deepl-v16-build-chrome.log",
+      "bytes": 843,
+      "sha256": "880059c46574a3b218d2b7d90805e6c47bae41aeb1169c139b2943f6b6ea6fe1",
+      "retention": "Only metadata/hash retained here; full local logs and machine reports are not copied."
+    },
+    {
+      "localArtifact": "deepl-v16-go-long-1.json",
+      "bytes": 2215,
+      "sha256": "b5066afb96cd9863499ccf694148b9e2a5d15b3d09cfb5713135fe06bb55ae8a"
+    }
+  ],
+  "historicalReference": {
+    "report": "docs/reports/DEEPL_PERFORMANCE_V5_2026-10-22.md",
+    "successfulFullDoneMs": 14295,
+    "firstVisibleProseDomReadyMs": 1420,
+    "sourceSegments": 251,
+    "sourceCharsUtf16": 53505,
+    "postRequests": 37,
+    "successfulHttpStatus": 200,
+    "independentRepeat": {
+      "afterPreviousClickMs": 94004,
+      "limitedRequest": 21,
+      "httpStatus": 429,
+      "completed": 118,
+      "total": 251
+    },
+    "interpretation": "A successful historical sample, not a stable availability guarantee or a new userscript acceptance result."
+  },
+  "realRuns": [
+    {
+      "version": "0.11.10",
+      "stage": "released-text-response-serial-baseline",
+      "measurement": "page performance.now, production PageBenchmarkProbe",
+      "navigationToClickMs": 149704.89990234375,
+      "fullArticleComplete": true,
+      "speedPassed": false,
+      "result": {
+        "elapsedMs": 74229.30000001192,
+        "firstMs": 2600.800000011921,
+        "firstProseMs": 2600.800000011921,
+        "firstViewportProseMs": 2600.800000011921,
+        "firstVisibleProseDomReadyMs": 2600.800000011921,
+        "firstVisibleProseRafMs": 3391.100000023842,
+        "firstVisibleProseSourceId": 24,
+        "initialViewportAllDoneMs": 4866.5,
+        "fullDoneMs": 74229.30000001192,
+        "doneAt": 1792909378139.5,
+        "clickedAt": 1792909303908,
+        "navigationStartedAt": 1792909154203.1,
+        "toolbarReadyAt": 1792909255562.6,
+        "selectionLength": 0,
+        "visible": true,
+        "focused": true,
+        "visibilityFailures": 0,
+        "sourceChanged": false,
+        "rootTag": "article",
+        "sourceSegments": 251,
+        "sourceChars": 53505,
+        "uniqueSourceTexts": 251,
+        "completed": 251,
+        "failed": 0,
+        "pending": 0,
+        "total": 251,
+        "renderedSegments": 251,
+        "translatedChars": 18861,
+        "chineseSegments": 246,
+        "viewportTargets": 4,
+        "initialViewportSourceIds": [
+          24,
+          25,
+          26,
+          27
+        ],
+        "viewportCompleted": 4,
+        "unexpectedTranslations": 0,
+        "mappingConflicts": 0,
+        "status": "done",
+        "statusText": "翻译完成 · 251 / 251",
+        "errorCode": "",
+        "outputFingerprint": "a90f26de0b0034330cb578c3678fe4e779c6eabf4f627580d0069af9357bf534"
+      }
+    },
+    {
+      "version": "0.11.11",
+      "stage": "unreleased-provider-concurrency-only-candidate",
+      "measurement": "page performance.now, production PageBenchmarkProbe, no userscript translation cache",
+      "navigationToClickMs": 347704,
+      "fullArticleComplete": true,
+      "speedPassed": false,
+      "result": {
+        "elapsedMs": 77291.10000002384,
+        "firstMs": 2782.600000023842,
+        "firstProseMs": 2782.600000023842,
+        "firstViewportProseMs": 2782.600000023842,
+        "firstVisibleProseDomReadyMs": 2782.600000023842,
+        "firstVisibleProseRafMs": 3177.399999976158,
+        "firstVisibleProseSourceId": 24,
+        "initialViewportAllDoneMs": 6303.100000023842,
+        "fullDoneMs": 77291.10000002384,
+        "doneAt": 1792910194724.6,
+        "clickedAt": 1792910117433,
+        "navigationStartedAt": 1792909769729,
+        "toolbarReadyAt": 1792910117397.6,
+        "selectionLength": 0,
+        "visible": true,
+        "focused": true,
+        "visibilityFailures": 0,
+        "sourceChanged": false,
+        "rootTag": "article",
+        "sourceSegments": 251,
+        "sourceChars": 53505,
+        "uniqueSourceTexts": 251,
+        "completed": 251,
+        "failed": 0,
+        "pending": 0,
+        "total": 251,
+        "renderedSegments": 251,
+        "translatedChars": 18833,
+        "chineseSegments": 246,
+        "viewportTargets": 6,
+        "initialViewportSourceIds": [
+          24,
+          25,
+          26,
+          27,
+          29,
+          30
+        ],
+        "viewportCompleted": 6,
+        "unexpectedTranslations": 0,
+        "mappingConflicts": 0,
+        "status": "done",
+        "statusText": "翻译完成 · 251 / 251",
+        "errorCode": "",
+        "outputFingerprint": "8c59825898fe21176088e9d3334efa31ed7a9b26ccf2e798778450b5e9ef8105"
+      }
+    },
+    {
+      "version": "0.11.12",
+      "stage": "unreleased-fixed-query-lane-candidate",
+      "article": "go-splash-long",
+      "url": "https://go.dev/talks/2012/splash.article?utm_source=chatgpt.com",
+      "sourceArtifact": "deepl-userscript-speed-lanes-go-1.json",
+      "measurement": "page performance.now, new document, production source mapping, no translation cache",
+      "navigationToClickMs": 49552.699951171875,
+      "fullArticleComplete": true,
+      "speedPassed": false,
+      "result": {
+        "elapsedMs": 15024.600000023842,
+        "firstMs": 2819.600000023842,
+        "firstProseMs": 2819.600000023842,
+        "firstViewportProseMs": 2819.600000023842,
+        "firstVisibleProseDomReadyMs": 2819.600000023842,
+        "firstVisibleProseRafMs": 3625.300000011921,
+        "firstVisibleProseSourceId": 24,
+        "initialViewportAllDoneMs": 3340.300000011921,
+        "fullDoneMs": 15024.600000023842,
+        "doneAt": 1792911006710,
+        "clickedAt": 1792910991684.8,
+        "navigationStartedAt": 1792910942132.1,
+        "toolbarReadyAt": 1792910991650.1,
+        "selectionLength": 0,
+        "visible": true,
+        "focused": true,
+        "visibilityFailures": 0,
+        "sourceChanged": false,
+        "rootTag": "article",
+        "sourceSegments": 251,
+        "sourceChars": 53505,
+        "uniqueSourceTexts": 251,
+        "completed": 251,
+        "failed": 0,
+        "pending": 0,
+        "total": 251,
+        "renderedSegments": 251,
+        "translatedChars": 18876,
+        "chineseSegments": 246,
+        "viewportTargets": 6,
+        "initialViewportSourceIds": [
+          24,
+          25,
+          26,
+          27,
+          29,
+          30
+        ],
+        "viewportCompleted": 6,
+        "unexpectedTranslations": 0,
+        "mappingConflicts": 0,
+        "status": "done",
+        "statusText": "翻译完成 · 251 / 251",
+        "errorCode": "",
+        "outputFingerprint": "42de7be11aab20b377a95253078acce00ae53f56d2078b0f4d9536bcb01adaa6"
+      }
+    },
+    {
+      "version": "0.11.13",
+      "stage": "unreleased-fixed-query-lanes-minimal-text-callbacks",
+      "article": "go-splash-long",
+      "url": "https://go.dev/talks/2012/splash.article?utm_source=chatgpt.com",
+      "sourceArtifact": "deepl-final-go-long.json",
+      "measurement": "page performance.now; real DeepL; new document; no userscript translation cache",
+      "navigationToClickMs": 50528.89990234375,
+      "fullArticleComplete": true,
+      "speedPassed": false,
+      "result": {
+        "elapsedMs": 15052.099999964237,
+        "firstMs": 2646.300000011921,
+        "firstProseMs": 2646.300000011921,
+        "firstViewportProseMs": 2646.300000011921,
+        "firstVisibleProseDomReadyMs": 2646.300000011921,
+        "firstVisibleProseRafMs": 3529.399999976158,
+        "firstVisibleProseSourceId": 24,
+        "initialViewportAllDoneMs": 3235.5,
+        "fullDoneMs": 15052.099999964237,
+        "doneAt": 1792911839175.9001,
+        "clickedAt": 1792911824123,
+        "navigationStartedAt": 1792911773594.1,
+        "toolbarReadyAt": 1792911824088,
+        "selectionLength": 0,
+        "visible": true,
+        "focused": true,
+        "visibilityFailures": 0,
+        "sourceChanged": false,
+        "rootTag": "article",
+        "sourceSegments": 251,
+        "sourceChars": 53505,
+        "uniqueSourceTexts": 251,
+        "completed": 251,
+        "failed": 0,
+        "pending": 0,
+        "total": 251,
+        "renderedSegments": 251,
+        "translatedChars": 18851,
+        "chineseSegments": 246,
+        "viewportTargets": 4,
+        "initialViewportSourceIds": [
+          24,
+          25,
+          26,
+          27
+        ],
+        "viewportCompleted": 4,
+        "unexpectedTranslations": 0,
+        "mappingConflicts": 0,
+        "status": "done",
+        "statusText": "翻译完成 · 251 / 251",
+        "errorCode": "",
+        "outputFingerprint": "3a9e92476f675db95594023059ad1a1d77fa9ce68804bfdd2680af262a89a17d",
+        "protectedCodeTranslations": 0
+      }
+    },
+    {
+      "version": "0.11.13",
+      "stage": "unreleased-fixed-query-lanes-minimal-text-callbacks",
+      "article": "rust-1.85.1-short",
+      "url": "https://blog.rust-lang.org/2025/03/18/Rust-1.85.1/",
+      "sourceArtifact": "deepl-final-rust-short.json",
+      "measurement": "page performance.now; real DeepL; new document; no userscript translation cache",
+      "navigationToClickMs": 383945.5,
+      "fullArticleComplete": true,
+      "speedPassed": true,
+      "result": {
+        "elapsedMs": 3064,
+        "firstMs": 2284.199999988079,
+        "firstProseMs": 2284.199999988079,
+        "firstViewportProseMs": 2284.199999988079,
+        "firstVisibleProseDomReadyMs": 2284.199999988079,
+        "firstVisibleProseRafMs": 2285.099999964237,
+        "firstVisibleProseSourceId": 2,
+        "initialViewportAllDoneMs": 3059.199999988079,
+        "fullDoneMs": 3064,
+        "doneAt": 1792911706310,
+        "clickedAt": 1792911703245.9,
+        "navigationStartedAt": 1792911319300.4,
+        "toolbarReadyAt": 1792911703240.5999,
+        "selectionLength": 0,
+        "visible": true,
+        "focused": true,
+        "visibilityFailures": 0,
+        "sourceChanged": false,
+        "rootTag": "body",
+        "sourceSegments": 17,
+        "sourceChars": 1352,
+        "uniqueSourceTexts": 17,
+        "completed": 17,
+        "failed": 0,
+        "pending": 0,
+        "total": 17,
+        "renderedSegments": 17,
+        "translatedChars": 619,
+        "chineseSegments": 17,
+        "viewportTargets": 5,
+        "initialViewportSourceIds": [
+          2,
+          3,
+          4,
+          7,
+          8
+        ],
+        "viewportCompleted": 5,
+        "unexpectedTranslations": 0,
+        "mappingConflicts": 0,
+        "status": "done",
+        "statusText": "翻译完成 · 17 / 17",
+        "errorCode": "",
+        "outputFingerprint": "8664fa1e5e2166bd40dc96d8fd0c8e16837589b8ece7a65ab9ed24ac5eb325ff",
+        "protectedCodeTranslations": 0
+      }
+    },
+    {
+      "version": "0.11.14",
+      "stage": "unreleased-single-snapshot-ancestor-cache",
+      "article": "go-splash-long",
+      "url": "https://go.dev/talks/2012/splash.article?utm_source=chatgpt.com",
+      "sourceArtifact": "deepl-v14-go-normal-1.json",
+      "measurement": "page performance.now; real DeepL; 1280x900; new document; no translation cache",
+      "navigationToClickMs": 160591.19995117188,
+      "validity": "valid-viewport-not-foreground-qualified",
+      "fullArticleComplete": true,
+      "speedPassed": false,
+      "eligibleForFinalForegroundAcceptance": false,
+      "controlStateObservation": {
+        "source": "Primary-agent browser control observation supplied on 2026-10-25; these control-level values are not fields in the timing artifact.",
+        "tabActive": false,
+        "windowFocused": false,
+        "pageReportsFocused": true,
+        "interpretation": "Page-level visible/focused booleans do not substitute for an active browser tab in a focused window. The raw timing exceeds 15000 ms and is not a final foreground sample."
+      },
+      "result": {
+        "elapsedMs": 15632.600000023842,
+        "firstMs": 3248.600000023842,
+        "firstProseMs": 3248.600000023842,
+        "firstViewportProseMs": 3248.600000023842,
+        "firstVisibleProseDomReadyMs": 3248.600000023842,
+        "firstVisibleProseRafMs": 3609.699999988079,
+        "firstVisibleProseSourceId": 24,
+        "initialViewportAllDoneMs": 3824.100000023842,
+        "fullDoneMs": 15632.600000023842,
+        "doneAt": 1792914516722.3,
+        "clickedAt": 1792914501089.3,
+        "navigationStartedAt": 1792914340498.1,
+        "toolbarReadyAt": 1792914390070,
+        "selectionLength": 0,
+        "visible": true,
+        "focused": true,
+        "visibilityFailures": 0,
+        "sourceChanged": false,
+        "rootTag": "article",
+        "sourceSegments": 251,
+        "sourceChars": 53505,
+        "uniqueSourceTexts": 251,
+        "completed": 251,
+        "failed": 0,
+        "pending": 0,
+        "total": 251,
+        "renderedSegments": 251,
+        "translatedChars": 18871,
+        "chineseSegments": 246,
+        "viewportTargets": 4,
+        "initialViewportSourceIds": [
+          24,
+          25,
+          26,
+          27
+        ],
+        "viewportCompleted": 4,
+        "unexpectedTranslations": 0,
+        "mappingConflicts": 0,
+        "status": "done",
+        "statusText": "翻译完成 · 251 / 251",
+        "errorCode": "",
+        "outputFingerprint": "b86cea50f342e4d8f21d2d4c7fa36fededb88022fd1955cea2749f3fea0c4400",
+        "protectedCodeTranslations": 0,
+        "longTasks": [
+          {
+            "startTime": 160532.69999998808,
+            "duration": 608
+          },
+          {
+            "startTime": 163822.5,
+            "duration": 71
+          },
+          {
+            "startTime": 164411.39999997616,
+            "duration": 53
+          },
+          {
+            "startTime": 164557.19999998808,
+            "duration": 58
+          },
+          {
+            "startTime": 165193.80000001192,
+            "duration": 152
+          }
+        ],
+        "viewport": {
+          "width": 1280,
+          "height": 900,
+          "clientWidth": 1265,
+          "clientHeight": 900,
+          "scrollX": 0,
+          "scrollY": 0
+        }
+      },
+      "acceptanceProtocolNote": "This intermediate sample strictly failed the time gate. Its lack of OS-foreground qualification is preserved as environment metadata, not a new prohibition on the later user-authorized background protocol."
+    }
+  ],
+  "staticFinding": {
+    "managerVersion": "5.4.1",
+    "backgroundJsSha256": "0514363b47446a60cb7e4ac83dc2e64ab8219c1f73ea55d81aa092de6bb38596",
+    "pageJsSha256": "1bcb0b697c71be07e026e07c54a50d8fae29ac76b7d8cf300453d4203fc34128",
+    "anchors": [
+      "background.js:952-956 QA queues by method plus exact URL",
+      "background.js:1092 assigns Ki=QA",
+      "background.js:469-471 error/manual request path enters QA and releases its entry after response headers",
+      "background.js:331-332 Hn/Wn URL canonicalization retains query"
+    ],
+    "finding": "Removing the two application-level serial queues does not remove the manager exact-URL serial admission. manual and error take the same manager path.",
+    "scope": "Only this hashed manager package was inspected; no browser runtime or manager checks were modified."
+  },
+  "localExperiments": {
+    "serverDelayBeforeHeadersMs": 500,
+    "requestsPerBatch": 8,
+    "browser": "156.0.8078.4",
+    "managerVersion": "5.4.1",
+    "externalAllowed": false,
+    "gmMocked": false,
+    "sameExactUrl": {
+      "rawErrorText": {
+        "elapsedMs": 4301,
+        "serverMaxActive": 1,
+        "successfulOnloadCount": 8
+      },
+      "adapterErrorText": {
+        "elapsedMs": 4278,
+        "elapsedEndMarker": "next manual batch start; this adapter trace has no explicit batch-end event",
+        "serverMaxActive": 1,
+        "validBodyCount": 8
+      },
+      "manualText": {
+        "elapsedMs": 4269,
+        "serverMaxActive": 1,
+        "successfulOnloadCount": 8,
+        "conclusion": "Rejected as a speed candidate: still serial."
+      },
+      "manualRedirectProbe": {
+        "requestedStatuses": [
+          302,
+          307,
+          308
+        ],
+        "observedCallbacks": [
+          {
+            "kind": "redirect:load",
+            "at": 1792910427707,
+            "requestedStatus": 302,
+            "status": 301,
+            "sameDestination": true
+          },
+          {
+            "kind": "redirect:load",
+            "at": 1792910427832,
+            "requestedStatus": 307,
+            "status": 301,
+            "sameDestination": true
+          },
+          {
+            "kind": "redirect:load",
+            "at": 1792910427958,
+            "requestedStatus": 308,
+            "status": 301,
+            "sameDestination": true
+          }
+        ],
+        "sinkRequestCount": 0
+      }
+    },
+    "fixedQueryLanes": {
+      "queryParameter": "near_translate_lane",
+      "laneNumbers": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "samePath": true,
+      "redirect": "error",
+      "anonymous": true,
+      "responseType": "text",
+      "elapsedMs": 1161,
+      "serverMaxActive": 6,
+      "successfulResponses": [
+        {
+          "kind": "lane-json:success",
+          "at": 1792910543982,
+          "lane": 0,
+          "status": 200,
+          "bodyLaneMatches": true,
+          "headerLaneMatches": true
+        },
+        {
+          "kind": "lane-json:success",
+          "at": 1792910543982,
+          "lane": 1,
+          "status": 200,
+          "bodyLaneMatches": true,
+          "headerLaneMatches": true
+        },
+        {
+          "kind": "lane-json:success",
+          "at": 1792910544001,
+          "lane": 2,
+          "status": 200,
+          "bodyLaneMatches": true,
+          "headerLaneMatches": true
+        },
+        {
+          "kind": "lane-json:success",
+          "at": 1792910544001,
+          "lane": 3,
+          "status": 200,
+          "bodyLaneMatches": true,
+          "headerLaneMatches": true
+        },
+        {
+          "kind": "lane-json:success",
+          "at": 1792910544017,
+          "lane": 4,
+          "status": 200,
+          "bodyLaneMatches": true,
+          "headerLaneMatches": true
+        },
+        {
+          "kind": "lane-json:success",
+          "at": 1792910544018,
+          "lane": 5,
+          "status": 200,
+          "bodyLaneMatches": true,
+          "headerLaneMatches": true
+        },
+        {
+          "kind": "lane-json:success",
+          "at": 1792910544483,
+          "lane": 6,
+          "status": 200,
+          "bodyLaneMatches": true,
+          "headerLaneMatches": true
+        },
+        {
+          "kind": "lane-json:success",
+          "at": 1792910544483,
+          "lane": 7,
+          "status": 200,
+          "bodyLaneMatches": true,
+          "headerLaneMatches": true
+        }
+      ],
+      "serverRequestTimes": [
+        {
+          "phase": "/lane-json",
+          "lane": 0,
+          "receivedAt": 1792910543458,
+          "finishedAt": 1792910543959
+        },
+        {
+          "phase": "/lane-json",
+          "lane": 1,
+          "receivedAt": 1792910543464,
+          "finishedAt": 1792910543965
+        },
+        {
+          "phase": "/lane-json",
+          "lane": 2,
+          "receivedAt": 1792910543472,
+          "finishedAt": 1792910543972
+        },
+        {
+          "phase": "/lane-json",
+          "lane": 3,
+          "receivedAt": 1792910543478,
+          "finishedAt": 1792910543979
+        },
+        {
+          "phase": "/lane-json",
+          "lane": 4,
+          "receivedAt": 1792910543488,
+          "finishedAt": 1792910543988
+        },
+        {
+          "phase": "/lane-json",
+          "lane": 5,
+          "receivedAt": 1792910543488,
+          "finishedAt": 1792910543988
+        },
+        {
+          "phase": "/lane-json",
+          "lane": 6,
+          "receivedAt": 1792910543961,
+          "finishedAt": 1792910544462
+        },
+        {
+          "phase": "/lane-json",
+          "lane": 7,
+          "receivedAt": 1792910543970,
+          "finishedAt": 1792910544470
+        }
+      ],
+      "redirectRequests": [
+        {
+          "phase": "/lane-redirect",
+          "lane": 0,
+          "status": 302,
+          "receivedAt": 1792910544615,
+          "bytes": 73
+        },
+        {
+          "phase": "/lane-redirect",
+          "lane": 1,
+          "status": 307,
+          "receivedAt": 1792910544623,
+          "bytes": 73
+        },
+        {
+          "phase": "/lane-redirect",
+          "lane": 2,
+          "status": 308,
+          "receivedAt": 1792910544630,
+          "bytes": 73
+        },
+        {
+          "phase": "/lane-redirect",
+          "lane": 3,
+          "status": 302,
+          "receivedAt": 1792910544639,
+          "bytes": 73
+        },
+        {
+          "phase": "/lane-redirect",
+          "lane": 4,
+          "status": 307,
+          "receivedAt": 1792910544646,
+          "bytes": 73
+        },
+        {
+          "phase": "/lane-redirect",
+          "lane": 5,
+          "status": 308,
+          "receivedAt": 1792910544654,
+          "bytes": 73
+        },
+        {
+          "phase": "/lane-redirect",
+          "lane": 6,
+          "status": 302,
+          "receivedAt": 1792910544662,
+          "bytes": 73
+        },
+        {
+          "phase": "/lane-redirect",
+          "lane": 7,
+          "status": 307,
+          "receivedAt": 1792910544669,
+          "bytes": 73
+        }
+      ],
+      "redirectRejectedCount": 8,
+      "sinkRequestCount": 0,
+      "interpretation": "This HTTP/1.1 localhost run observed six server requests at once. It proves removal of exact-URL serial waiting, not eight simultaneous server arrivals or real DeepL full-article speed."
+    },
+    "minimalTextCallbacks": {
+      "sourceArtifact": "tm-text-callbacks-Fik3Id/result-flushed.json",
+      "managerVersion": "5.4.1",
+      "browser": "156.0.8078.4",
+      "gmMocked": false,
+      "externalAllowed": false,
+      "proxyFlushesHeaders": true,
+      "serverBodyDelayAfterHeadersMs": 100,
+      "requestsPerVariant": 8,
+      "sampleCountPerVariant": 1,
+      "method": "Two copied current adapters, baseline restores onloadstart and onprogress. A metadata-only wrapper forwards real GM requests and callbacks unchanged; the localhost server flushes response headers before a complete Chinese/emoji JSON body.",
+      "variants": {
+        "baseline": {
+          "elapsedMs": 347,
+          "observedCallbacks": 40,
+          "callbackCounts": {
+            "onloadstart": 8,
+            "onprogress": 8,
+            "onreadystatechange": 16,
+            "onload": 8,
+            "onerror": 0,
+            "ontimeout": 0,
+            "onabort": 0
+          },
+          "perLaneCompleteness": [
+            {
+              "lane": 0,
+              "headerStatus": 200,
+              "bodyComplete": true,
+              "headersToBodyMs": 79
+            },
+            {
+              "lane": 1,
+              "headerStatus": 200,
+              "bodyComplete": true,
+              "headersToBodyMs": 85
+            },
+            {
+              "lane": 2,
+              "headerStatus": 200,
+              "bodyComplete": true,
+              "headersToBodyMs": 81
+            },
+            {
+              "lane": 3,
+              "headerStatus": 200,
+              "bodyComplete": true,
+              "headersToBodyMs": 78
+            },
+            {
+              "lane": 4,
+              "headerStatus": 200,
+              "bodyComplete": true,
+              "headersToBodyMs": 79
+            },
+            {
+              "lane": 5,
+              "headerStatus": 200,
+              "bodyComplete": true,
+              "headersToBodyMs": 84
+            },
+            {
+              "lane": 6,
+              "headerStatus": 200,
+              "bodyComplete": true,
+              "headersToBodyMs": 94
+            },
+            {
+              "lane": 7,
+              "headerStatus": 200,
+              "bodyComplete": true,
+              "headersToBodyMs": 93
+            }
+          ]
+        },
+        "minimal": {
+          "elapsedMs": 341,
+          "observedCallbacks": 24,
+          "callbackCounts": {
+            "onloadstart": 0,
+            "onprogress": 0,
+            "onreadystatechange": 16,
+            "onload": 8,
+            "onerror": 0,
+            "ontimeout": 0,
+            "onabort": 0
+          },
+          "perLaneCompleteness": [
+            {
+              "lane": 0,
+              "headerStatus": 200,
+              "bodyComplete": true,
+              "headersToBodyMs": 79
+            },
+            {
+              "lane": 1,
+              "headerStatus": 200,
+              "bodyComplete": true,
+              "headersToBodyMs": 79
+            },
+            {
+              "lane": 2,
+              "headerStatus": 200,
+              "bodyComplete": true,
+              "headersToBodyMs": 81
+            },
+            {
+              "lane": 3,
+              "headerStatus": 200,
+              "bodyComplete": true,
+              "headersToBodyMs": 77
+            },
+            {
+              "lane": 4,
+              "headerStatus": 200,
+              "bodyComplete": true,
+              "headersToBodyMs": 80
+            },
+            {
+              "lane": 5,
+              "headerStatus": 200,
+              "bodyComplete": true,
+              "headersToBodyMs": 82
+            },
+            {
+              "lane": 6,
+              "headerStatus": 200,
+              "bodyComplete": true,
+              "headersToBodyMs": 96
+            },
+            {
+              "lane": 7,
+              "headerStatus": 200,
+              "bodyComplete": true,
+              "headersToBodyMs": 96
+            }
+          ]
+        }
+      },
+      "requestedRedirectStatuses": [
+        302,
+        307,
+        308
+      ],
+      "redirectRejectedCount": 3,
+      "sinkRequestCount": 0,
+      "interpretation": "One local sample reduced observed callbacks from 40 to 24 and elapsed time from 347 to 341 ms. It preserves early response-state callbacks and full-body completion, but neither its 6 ms difference nor its absolute timing predicts real Go/DeepL speed."
+    }
+  },
+  "liveEndpointQualification": {
+    "source": "Primary-agent tool result, one request on 2026-10-25; no separate raw artifact retained in this evidence",
+    "transport": "Node fetch; not a userscript end-to-end performance run",
+    "url": "https://oneshot-free.www.deepl.com/v1/translate?near_translate_lane=0",
+    "requestCount": 1,
+    "publicSampleOnly": true,
+    "credentials": "omit",
+    "redirect": "error",
+    "authorization": "None (anonymous marker, not a credential)",
+    "status": 200,
+    "validChineseTranslation": true,
+    "elapsedMs": 1290,
+    "networkMocked": false,
+    "fullArticlePerformanceEvidence": false
+  },
+  "candidateBoundary": {
+    "proposal": "A private DeepL-only pool of eight fixed query URLs on the same origin and path, with free-lane leasing until full text request completion or cancellation.",
+    "preserve": [
+      "One provider owns maxConcurrent=8, intervalMs=100 and 30 starts per 12000ms",
+      "Anonymous requests and redirect:error; exact finalUrl check for each selected fixed lane",
+      "1500 UTF-16 units and at most 32 items per batch",
+      "Cancellation, settings preflight, shared cooldown notification and no automatic retry",
+      "Model endpoint and stream mode unchanged"
+    ],
+    "notAcceptedYet": "The original 15000 ms research target remains unachieved: 0.11.16 Go raw=15294.699999988079. The user explicitly accepted that observed speed and requested current 0.11.16 workflow release. Four remaining same-version pages and release workflow checks are pending in releaseGate.",
+    "nextResearchCandidate": "No further optimization candidate is planned: the human requested publication of current 0.11.16. Complete the four remaining 0.11.16 pages and normal release workflow; never mix prior 0.11.15 samples into the release matrix."
+  },
+  "limitations": [
+    "The measured Go runs have four versus six initial visible prose targets. Initial-viewport completion times are not a matched viewport comparison.",
+    "Browser, network, server cache and load are not controlled. Translation cache in each fresh document was not reused.",
+    "The real-run artifacts do not retain per-request HTTP timing or the daily browser/manager exact version. Do not infer those values from the isolated fixture version.",
+    "Navigation-to-click includes tool preparation and version inspection. It is preserved separately, and click-to-result is not reported as navigation-to-result.",
+    "No final multi-article acceptance is claimed. The strict 15000 ms limit is evaluated on unrounded elapsed values; 15024.6 and 15052.1 ms fail.",
+    "The 0.11.14 zero-sized viewport diagnostic is excluded from acceptance and same-conditions CPU comparisons. A restored viewport cannot retroactively repair that sample.",
+    "The v0.11.14 1280x900 run had control-level tabActive=false and windowFocused=false despite page-level visible/focused=true; it is an intermediate failing candidate, not a final foreground acceptance sample.",
+    "The final protocol permits background test tabs because the user must continue using the browser. Any eventual acceptance is labeled background; OS-foreground performance remains untested unless independently measured."
+  ],
+  "diagnosticRuns": [
+    {
+      "version": "0.11.14",
+      "article": "go-splash-long",
+      "url": "https://go.dev/talks/2012/splash.article?utm_source=chatgpt.com",
+      "sourceArtifact": "deepl-v14-go-long.json",
+      "measurement": "page performance.now; real DeepL; new document; no translation cache",
+      "validity": "invalid-viewport",
+      "eligibleForAcceptance": false,
+      "eligibleForSameConditionsCpuComparison": false,
+      "acceptanceClassification": "excluded-invalid-viewport",
+      "recordedSourceSetComplete": true,
+      "navigationToClickMs": 53242.60009765625,
+      "exclusionReasons": [
+        "The recorded viewport was width=0,height=0, with zero initial viewport targets and null visible-prose timing.",
+        "The primary agent also observed screenshot failure: Cannot take screenshot with 0 width. The screenshot failure has no separate artifact recorded here.",
+        "visible=true, focused=true and visibilityFailures=0 do not establish a valid viewport."
+      ],
+      "timingInterpretation": "The recorded 15011.099999964237 ms is not a normal performance or CPU comparison sample. It also strictly exceeds 15000 ms; no acceptance claim is made.",
+      "result": {
+        "elapsedMs": 15011.099999964237,
+        "firstMs": 2820.899999976158,
+        "firstProseMs": null,
+        "firstViewportProseMs": null,
+        "firstVisibleProseDomReadyMs": null,
+        "firstVisibleProseRafMs": null,
+        "firstVisibleProseSourceId": null,
+        "initialViewportAllDoneMs": null,
+        "fullDoneMs": 15011.099999964237,
+        "doneAt": 1792914079062.3,
+        "clickedAt": 1792914064050.6,
+        "navigationStartedAt": 1792914010808,
+        "toolbarReadyAt": 1792914064008.3,
+        "selectionLength": 0,
+        "visible": true,
+        "focused": true,
+        "visibilityFailures": 0,
+        "sourceChanged": false,
+        "rootTag": "article",
+        "sourceSegments": 251,
+        "sourceChars": 53505,
+        "uniqueSourceTexts": 251,
+        "completed": 251,
+        "failed": 0,
+        "pending": 0,
+        "total": 251,
+        "renderedSegments": 251,
+        "translatedChars": 18827,
+        "chineseSegments": 246,
+        "viewportTargets": 0,
+        "initialViewportSourceIds": [],
+        "viewportCompleted": 0,
+        "unexpectedTranslations": 0,
+        "mappingConflicts": 0,
+        "status": "done",
+        "statusText": "翻译完成 · 251 / 251",
+        "errorCode": "",
+        "outputFingerprint": "cee71129ff05fbe86d7452124dd8d1a0ed086de7368b3be95a6c3e778324a902",
+        "protectedCodeTranslations": 0,
+        "longTasks": [
+          {
+            "startTime": 53198.39999997616,
+            "duration": 364
+          },
+          {
+            "startTime": 53563.30000001192,
+            "duration": 72
+          },
+          {
+            "startTime": 56045.80000001192,
+            "duration": 62
+          },
+          {
+            "startTime": 56108.69999998808,
+            "duration": 112
+          },
+          {
+            "startTime": 56577.60000002384,
+            "duration": 70
+          },
+          {
+            "startTime": 56695.10000002384,
+            "duration": 72
+          },
+          {
+            "startTime": 56791.30000001192,
+            "duration": 66
+          },
+          {
+            "startTime": 56960.30000001192,
+            "duration": 63
+          },
+          {
+            "startTime": 57199.30000001192,
+            "duration": 54
+          },
+          {
+            "startTime": 57384.69999998808,
+            "duration": 62
+          },
+          {
+            "startTime": 57755.19999998808,
+            "duration": 59
+          }
+        ],
+        "viewport": {
+          "width": 0,
+          "height": 0,
+          "scrollX": 96,
+          "scrollY": 28,
+          "visibility": "visible",
+          "focused": true
+        }
+      }
+    }
+  ],
+  "offlineCpuMechanismEvidence": {
+    "version": "0.11.14",
+    "source": "Diagnostic-agent execution result supplied on 2026-10-25; no separate numeric artifact retained in this evidence.",
+    "method": "The actual git HEAD prior viewport.ts and the candidate viewport.ts were separately TypeScript-transpiled and executed in the same offline VM fixture.",
+    "fixture": {
+      "sourceSegments": 251,
+      "originalTextNodesPerSegment": 2,
+      "originalTextNodes": 502,
+      "sharedAncestors": [
+        "html",
+        "body",
+        "article"
+      ]
+    },
+    "cacheScope": "Hidden-ancestor WeakMap is scoped to one source snapshot, never shared across snapshots or documents.",
+    "styleReadsBefore": 3012,
+    "styleReadsAfter": 254,
+    "styleReadsRemoved": 2758,
+    "reductionPercent": 91.56706507304116,
+    "measuredOriginalTextRangesBefore": 502,
+    "measuredOriginalTextRangesAfter": 502,
+    "allPriorityValuesEqual": true,
+    "networkUsed": false,
+    "interpretation": "Deterministic operation counts, not a real-page wall-clock speed result. Do not compare the invalid zero-sized run with later restored-viewport runs as evidence of CPU benefit.",
+    "reproducibleUnitTest": {
+      "path": "tests/unit/page-viewport.test.ts",
+      "test": "reads each shared ancestor once across 251 paragraphs and their original text ranges",
+      "assertedCandidateStyleReads": 254,
+      "assertedOriginalTextRanges": 502,
+      "baseline3012Provenance": "Diagnostic-agent execution of git HEAD actual prior function in the offline VM; retained only in tool output, not an independent artifact file."
+    }
+  },
+  "toolingIncident": {
+    "operation": "Page.bringToFront",
+    "observedBlockedDurationMinutesApprox": 24,
+    "source": "Primary-agent observation; no separate incident timestamps retained here.",
+    "translationTimingIncluded": false,
+    "resolution": "The primary agent stopped using this command.",
+    "interpretation": "Browser automation blocking is not translation elapsed time."
+  },
+  "domCpuDiagnostic": {
+    "sourceArtifact": "deepl-dom-cpu-diagnostic.json",
+    "scope": "Pure DOM operation timing in a 1280x900 page; zero translation requests. It is not an end-to-end network translation benchmark.",
+    "networkMocked": false,
+    "translationRequests": 0,
+    "sourceSegments": 251,
+    "sourceCharsUtf16": 53505,
+    "dimensions": {
+      "width": 1280,
+      "height": 900
+    },
+    "collect": {
+      "ms": 44.40000003576279,
+      "styleReads": 567,
+      "count": 251,
+      "chars": 53505
+    },
+    "currentSourceValidationPasses": [
+      {
+        "ms": 54.5,
+        "styleReads": 1676,
+        "valid": 251
+      },
+      {
+        "ms": 40.5,
+        "styleReads": 1676,
+        "valid": 251
+      },
+      {
+        "ms": 41.60000002384186,
+        "styleReads": 1676,
+        "valid": 251
+      },
+      {
+        "ms": 39.80000001192093,
+        "styleReads": 1676,
+        "valid": 251
+      },
+      {
+        "ms": 40.19999998807907,
+        "styleReads": 1676,
+        "valid": 251
+      },
+      {
+        "ms": 39.30000001192093,
+        "styleReads": 1676,
+        "valid": 251
+      },
+      {
+        "ms": 39.59999996423721,
+        "styleReads": 1676,
+        "valid": 251
+      },
+      {
+        "ms": 40.40000003576279,
+        "styleReads": 1676,
+        "valid": 251
+      }
+    ],
+    "validationPassCount": 8,
+    "validationMinMs": 39.30000001192093,
+    "validationMaxMs": 54.5,
+    "viewportSnapshot": {
+      "ms": 9.5,
+      "styleReads": 529
+    },
+    "interpretation": "These operation timings and getComputedStyle counts locate CPU work. They neither measure network speedup nor prove the 15-second full-translation gate. This real DOM workload is distinct from the offline shared-ancestor VM fixture."
+  },
+  "sessionCpuPlanningMechanismEvidence": {
+    "candidateVersion": "0.11.15",
+    "sourceArtifact": "deepl-session-cpu-planning-2026-10-25.json",
+    "helperArtifact": "session-startup-planning-comparison.mjs",
+    "generatedAt": "2026-10-25T08:20:03.017Z",
+    "fixture": "Saved Go length/frozen-priority proxy, not a reconstruction of historical network payloads.",
+    "source": {
+      "segments": 251,
+      "utf16Units": 53505
+    },
+    "sessionSourceHashes": {
+      "before": "dcc088945911f96bc82757c52820d7bc43097e8fcc893f46dfcdffe9e3f3b2ab",
+      "after": "5c339aa170e89cf2878cb1c9bfe0e804cb23a9961401e18f500121738bc80c84"
+    },
+    "networkRequests": 0,
+    "measurementType": "Deterministic current-source predicate counts; no real network or wall-clock speed measurement.",
+    "initialPump": {
+      "concurrency": 8,
+      "before": {
+        "appendChecks": 502,
+        "initialCurrentCalls": 2302,
+        "initialRequests": 8,
+        "batchCount": 8,
+        "syntheticBatchPayloadSha256": "f95e7742250414731489160583faa16125a03f7e8df658947c17ea3e40d01163",
+        "state": {
+          "status": "running",
+          "total": 251,
+          "completed": 0,
+          "failed": 0,
+          "skipped": 0,
+          "pending": 251,
+          "limitReached": false
+        }
+      },
+      "after": {
+        "appendChecks": 251,
+        "initialCurrentCalls": 465,
+        "initialRequests": 8,
+        "batchCount": 8,
+        "syntheticBatchPayloadSha256": "f95e7742250414731489160583faa16125a03f7e8df658947c17ea3e40d01163",
+        "state": {
+          "status": "running",
+          "total": 251,
+          "completed": 0,
+          "failed": 0,
+          "skipped": 0,
+          "pending": 251,
+          "limitReached": false
+        }
+      },
+      "sameBatchContentAndOrder": true
+    },
+    "serialPlanning": {
+      "concurrency": 1,
+      "before": {
+        "appendChecks": 502,
+        "initialCurrentCalls": 754,
+        "totalChecks": 5275,
+        "batchCount": 37,
+        "syntheticBatchPayloadSha256": "4aca23bf225d9ad18548e61946ada167f04e1d32946d282500ed5b9f45d998e1",
+        "state": {
+          "status": "done",
+          "total": 251,
+          "completed": 251,
+          "failed": 0,
+          "skipped": 0,
+          "pending": 0,
+          "limitReached": false
+        }
+      },
+      "after": {
+        "appendChecks": 251,
+        "initialCurrentCalls": 255,
+        "totalChecks": 1256,
+        "batchCount": 37,
+        "syntheticBatchPayloadSha256": "4aca23bf225d9ad18548e61946ada167f04e1d32946d282500ed5b9f45d998e1",
+        "state": {
+          "status": "done",
+          "total": 251,
+          "completed": 251,
+          "failed": 0,
+          "skipped": 0,
+          "pending": 0,
+          "limitReached": false
+        }
+      },
+      "sameBatchContentAndOrder": true
+    },
+    "rawHashFieldSemantics": "The raw artifact calls the array hash wireSha256. It hashes synthetic provider batch contents/order within this fixture; it is not a recovered real DeepL request or historical wire payload.",
+    "retainedChecks": "Per diagnostic-agent review, the candidate retains full current-source eligibility validation immediately before sending the selected group, plus generation/preflight checks. Counts include candidate safety revalidation.",
+    "interpretation": "The fixture preserves saved Go text lengths and frozen viewport-priority proxies while using synthetic text. Equal synthetic batch hashes prove content/order equivalence only within this proxy. They do not prove historical payload reconstruction or any millisecond/network benefit."
+  },
+  "candidateCohorts": [
+    {
+      "id": "v0.11.15-background-five-articles-1",
+      "version": "0.11.15",
+      "status": "failed-strict-speed-gate",
+      "environment": "background-valid-viewport",
+      "realService": true,
+      "networkMocked": false,
+      "coldDocumentPerRun": true,
+      "userscriptTranslationCacheReused": false,
+      "requiredRawFullDoneMsAtMost": 15000,
+      "articleCount": 5,
+      "fullArticleCompletionPassed": true,
+      "speedPassedArticleCount": 4,
+      "failedArticles": [
+        "go-splash-long"
+      ],
+      "passed": false,
+      "finalAcceptance": false,
+      "foregroundPerformance": "not-tested",
+      "environmentEvidence": "All five raw artifacts record tabActive=false, windowFocused=true, page visible=true/focused=true and actual nonzero dimensions separately.",
+      "articles": [
+        {
+          "article": "rust-1.85.1-short",
+          "version": "0.11.15",
+          "url": "https://blog.rust-lang.org/2025/03/18/Rust-1.85.1/",
+          "sourceArtifact": "deepl-v15-rust-short.json",
+          "measurement": "page performance.now; real DeepL; new document; no translation cache; background tab per user live-stream constraint",
+          "environment": "background-valid-viewport",
+          "browserContext": {
+            "tabActive": false,
+            "windowFocused": true
+          },
+          "validViewport": true,
+          "fullArticleComplete": true,
+          "speedPassed": true,
+          "rawFullDoneMs": 2858.100000023842,
+          "navigationToClickMs": 86098.0,
+          "result": {
+            "elapsedMs": 2858.100000023842,
+            "firstMs": 2503,
+            "firstProseMs": 2503,
+            "firstViewportProseMs": 2503,
+            "firstVisibleProseDomReadyMs": 2503,
+            "firstVisibleProseRafMs": 3154.5,
+            "firstVisibleProseSourceId": 2,
+            "initialViewportAllDoneMs": 2852.900000035763,
+            "fullDoneMs": 2858.100000023842,
+            "doneAt": 1792934674866.5999,
+            "clickedAt": 1792934672008.4,
+            "navigationStartedAt": 1792934585910.4,
+            "toolbarReadyAt": 1792934672003.2998,
+            "selectionLength": 0,
+            "visible": true,
+            "focused": true,
+            "visibilityFailures": 0,
+            "sourceChanged": false,
+            "rootTag": "body",
+            "sourceSegments": 17,
+            "sourceChars": 1352,
+            "uniqueSourceTexts": 17,
+            "completed": 17,
+            "failed": 0,
+            "pending": 0,
+            "total": 17,
+            "renderedSegments": 17,
+            "translatedChars": 621,
+            "chineseSegments": 17,
+            "viewportTargets": 5,
+            "initialViewportSourceIds": [
+              2,
+              3,
+              4,
+              7,
+              8
+            ],
+            "viewportCompleted": 5,
+            "unexpectedTranslations": 0,
+            "mappingConflicts": 0,
+            "status": "done",
+            "statusText": "翻译完成 · 17 / 17",
+            "errorCode": "",
+            "outputFingerprint": "905f86832f4d4f90083ef80cf590ca90d456e3d98e712a19889f04715712fd64",
+            "protectedCodeTranslations": 0,
+            "viewport": {
+              "width": 1280,
+              "height": 900,
+              "clientWidth": 1265,
+              "clientHeight": 900,
+              "scrollX": 0,
+              "scrollY": 0
+            }
+          }
+        },
+        {
+          "article": "go-errors-medium",
+          "version": "0.11.15",
+          "url": "https://go.dev/blog/errors-are-values",
+          "sourceArtifact": "deepl-v15-go-medium.json",
+          "measurement": "page performance.now; real DeepL; new document; no translation cache; background tab per user live-stream constraint",
+          "environment": "background-valid-viewport",
+          "browserContext": {
+            "tabActive": false,
+            "windowFocused": true
+          },
+          "validViewport": true,
+          "fullArticleComplete": true,
+          "speedPassed": true,
+          "rawFullDoneMs": 3870.099999964237,
+          "navigationToClickMs": 75350.69995117188,
+          "result": {
+            "elapsedMs": 3870.099999964237,
+            "firstMs": 2743.800000011921,
+            "firstProseMs": 3161.899999976158,
+            "firstViewportProseMs": 3161.899999976158,
+            "firstVisibleProseDomReadyMs": 3161.899999976158,
+            "firstVisibleProseRafMs": 3733.599999964237,
+            "firstVisibleProseSourceId": 3,
+            "initialViewportAllDoneMs": 3616.199999988079,
+            "fullDoneMs": 3870.099999964237,
+            "doneAt": 1792934803669.0999,
+            "clickedAt": 1792934799798.9,
+            "navigationStartedAt": 1792934724448.2,
+            "toolbarReadyAt": 1792934799785.8,
+            "selectionLength": 0,
+            "visible": true,
+            "focused": true,
+            "visibilityFailures": 0,
+            "sourceChanged": false,
+            "rootTag": "main",
+            "sourceSegments": 35,
+            "sourceChars": 6797,
+            "uniqueSourceTexts": 35,
+            "completed": 35,
+            "failed": 0,
+            "pending": 0,
+            "total": 35,
+            "renderedSegments": 35,
+            "translatedChars": 2594,
+            "chineseSegments": 35,
+            "viewportTargets": 7,
+            "initialViewportSourceIds": [
+              3,
+              4,
+              6,
+              7,
+              8,
+              9,
+              10
+            ],
+            "viewportCompleted": 7,
+            "unexpectedTranslations": 0,
+            "mappingConflicts": 0,
+            "status": "done",
+            "statusText": "翻译完成 · 35 / 35",
+            "errorCode": "",
+            "outputFingerprint": "f0972b5d7168c3896fbaa8bdb6c16fd34bde2e6de4e040a9a673e2d90afa313f",
+            "protectedCodeTranslations": 0,
+            "viewport": {
+              "width": 1280,
+              "height": 900,
+              "clientWidth": 1265,
+              "clientHeight": 900,
+              "scrollX": 0,
+              "scrollY": 0
+            }
+          }
+        },
+        {
+          "article": "python-3.14",
+          "version": "0.11.15",
+          "url": "https://blog.python.org/2025/10/python-3140-final-is-here/",
+          "sourceArtifact": "deepl-v15-python-medium.json",
+          "measurement": "page performance.now; real DeepL; new document; no translation cache; background tab per user live-stream constraint",
+          "environment": "background-valid-viewport",
+          "browserContext": {
+            "tabActive": false,
+            "windowFocused": true
+          },
+          "validViewport": true,
+          "fullArticleComplete": true,
+          "speedPassed": true,
+          "rawFullDoneMs": 4017.399999976158,
+          "navigationToClickMs": 82836.60009765625,
+          "result": {
+            "elapsedMs": 4017.399999976158,
+            "firstMs": 2612.699999988079,
+            "firstProseMs": null,
+            "firstViewportProseMs": null,
+            "firstVisibleProseDomReadyMs": null,
+            "firstVisibleProseRafMs": null,
+            "firstVisibleProseSourceId": null,
+            "initialViewportAllDoneMs": null,
+            "fullDoneMs": 4017.399999976158,
+            "doneAt": 1792934962060.9,
+            "clickedAt": 1792934958043.3,
+            "navigationStartedAt": 1792934875206.7,
+            "toolbarReadyAt": 1792934958026.5999,
+            "selectionLength": 0,
+            "visible": true,
+            "focused": true,
+            "visibilityFailures": 0,
+            "sourceChanged": false,
+            "rootTag": "article",
+            "sourceSegments": 96,
+            "sourceChars": 4428,
+            "uniqueSourceTexts": 92,
+            "completed": 96,
+            "failed": 0,
+            "pending": 0,
+            "total": 96,
+            "renderedSegments": 96,
+            "translatedChars": 2001,
+            "chineseSegments": 80,
+            "viewportTargets": 0,
+            "initialViewportSourceIds": [],
+            "viewportCompleted": 0,
+            "unexpectedTranslations": 0,
+            "mappingConflicts": 0,
+            "status": "done",
+            "statusText": "翻译完成 · 96 / 96",
+            "errorCode": "",
+            "outputFingerprint": "547221e5e796d43f2df2a04d1b3db028832dc5e5920b43779359f3a79bef55a8",
+            "protectedCodeTranslations": 0,
+            "viewport": {
+              "width": 1280,
+              "height": 900,
+              "clientWidth": 1272,
+              "clientHeight": 900,
+              "scrollX": 0,
+              "scrollY": 0
+            }
+          },
+          "viewportInterpretation": "Valid 1280x900 viewport with zero initial qualified prose targets; primary-agent page observation identified the initial hero area. Null viewport-prose clocks are not a zero-sized viewport error and are not replaced by the generic firstMs."
+        },
+        {
+          "article": "rust-1.85-medium-long",
+          "version": "0.11.15",
+          "url": "https://blog.rust-lang.org/2025/02/20/Rust-1.85.0/",
+          "sourceArtifact": "deepl-v15-rust-medium-long.json",
+          "measurement": "page performance.now; real DeepL; new document; no translation cache; background tab per user live-stream constraint",
+          "environment": "background-valid-viewport",
+          "browserContext": {
+            "tabActive": false,
+            "windowFocused": true
+          },
+          "validViewport": true,
+          "fullArticleComplete": true,
+          "speedPassed": true,
+          "rawFullDoneMs": 3957.699999988079,
+          "navigationToClickMs": 73024.60009765625,
+          "result": {
+            "elapsedMs": 3957.699999988079,
+            "firstMs": 3033.099999964237,
+            "firstProseMs": 3068.599999964237,
+            "firstViewportProseMs": 3068.599999964237,
+            "firstVisibleProseDomReadyMs": 3068.599999964237,
+            "firstVisibleProseRafMs": 4023.399999976158,
+            "firstVisibleProseSourceId": 2,
+            "initialViewportAllDoneMs": 3083.5,
+            "fullDoneMs": 3957.699999988079,
+            "doneAt": 1792935132973.5,
+            "clickedAt": 1792935129015.6,
+            "navigationStartedAt": 1792935055991,
+            "toolbarReadyAt": 1792935128997.5,
+            "selectionLength": 0,
+            "visible": true,
+            "focused": true,
+            "visibilityFailures": 0,
+            "sourceChanged": false,
+            "rootTag": "body",
+            "sourceSegments": 66,
+            "sourceChars": 7869,
+            "uniqueSourceTexts": 66,
+            "completed": 66,
+            "failed": 0,
+            "pending": 0,
+            "total": 66,
+            "renderedSegments": 66,
+            "translatedChars": 3515,
+            "chineseSegments": 63,
+            "viewportTargets": 4,
+            "initialViewportSourceIds": [
+              2,
+              3,
+              4,
+              5
+            ],
+            "viewportCompleted": 4,
+            "unexpectedTranslations": 0,
+            "mappingConflicts": 0,
+            "status": "done",
+            "statusText": "翻译完成 · 66 / 66",
+            "errorCode": "",
+            "outputFingerprint": "d143efeba7a6d79e6d0119f6c692c20714441ac0a03e7bed7c742ed675539642",
+            "protectedCodeTranslations": 0,
+            "viewport": {
+              "width": 1280,
+              "height": 900,
+              "clientWidth": 1265,
+              "clientHeight": 900,
+              "scrollX": 0,
+              "scrollY": 0
+            }
+          }
+        },
+        {
+          "article": "go-splash-long",
+          "version": "0.11.15",
+          "url": "https://go.dev/talks/2012/splash.article?utm_source=chatgpt.com",
+          "sourceArtifact": "deepl-v15-go-long-1.json",
+          "measurement": "page performance.now; real DeepL; new document; no translation cache; background tab per user live-stream constraint",
+          "environment": "background-valid-viewport",
+          "browserContext": {
+            "tabActive": false,
+            "windowFocused": true
+          },
+          "validViewport": true,
+          "fullArticleComplete": true,
+          "speedPassed": false,
+          "rawFullDoneMs": 15226.600000023842,
+          "navigationToClickMs": 635783.3999023438,
+          "result": {
+            "elapsedMs": 15226.600000023842,
+            "firstMs": 3153.300000011921,
+            "firstProseMs": 3153.300000011921,
+            "firstViewportProseMs": 3153.300000011921,
+            "firstVisibleProseDomReadyMs": 3153.300000011921,
+            "firstVisibleProseRafMs": 3584.899999976158,
+            "firstVisibleProseSourceId": 24,
+            "initialViewportAllDoneMs": 3731.300000011921,
+            "fullDoneMs": 15226.600000023842,
+            "doneAt": 1792934465010.1,
+            "clickedAt": 1792934449783,
+            "navigationStartedAt": 1792933813999.6,
+            "toolbarReadyAt": 1792934311508.2002,
+            "selectionLength": 0,
+            "visible": true,
+            "focused": true,
+            "visibilityFailures": 0,
+            "sourceChanged": false,
+            "rootTag": "article",
+            "sourceSegments": 251,
+            "sourceChars": 53505,
+            "uniqueSourceTexts": 251,
+            "completed": 251,
+            "failed": 0,
+            "pending": 0,
+            "total": 251,
+            "renderedSegments": 251,
+            "translatedChars": 18848,
+            "chineseSegments": 246,
+            "viewportTargets": 4,
+            "initialViewportSourceIds": [
+              24,
+              25,
+              26,
+              27
+            ],
+            "viewportCompleted": 4,
+            "unexpectedTranslations": 0,
+            "mappingConflicts": 0,
+            "status": "done",
+            "statusText": "翻译完成 · 251 / 251",
+            "errorCode": "",
+            "outputFingerprint": "69021754f28beb964d52f175ea6ecb58b776533925a1494f53411f764341d9c8",
+            "longTasks": [
+              {
+                "startTime": 635727,
+                "duration": 294
+              }
+            ],
+            "protectedCodeTranslations": 0,
+            "viewport": {
+              "width": 1280,
+              "height": 900,
+              "clientWidth": 1265,
+              "clientHeight": 900,
+              "scrollX": 0,
+              "scrollY": 0
+            }
+          }
+        }
+      ],
+      "interpretation": "All five samples complete with zero failed/pending segments and protected-code translations. The long Go article strictly exceeds 15000 ms, so this same-version cohort fails. Four passing shorter articles cannot be reused as candidate 0.11.16 evidence.",
+      "readableBuildAssociation": {
+        "localArtifact": "deepl-v15-readable.user.js",
+        "bytes": 1031725,
+        "sha256": "37894d4ca0281add61f11f6e223d225c42ff644ceb9d2314d790a4859f53efa7",
+        "versionHeader": "0.11.15",
+        "installedSourceVerification": {
+          "source": "Primary-agent Debugger inspection of the installed Tampermonkey script supplied on 2026-10-25; no separate installed-source artifact hash retained here.",
+          "observedVersion": "0.11.15",
+          "observedMarkers": [
+            "validateDispatch",
+            "near_translate_lane"
+          ],
+          "comparison": "The installed source includes the Tampermonkey wrapper and is larger than the readable bundle. Byte-for-byte or whole-source hash equality is not asserted."
+        },
+        "sessionSourceContinuity": {
+          "source": "Diagnostic-agent confirmation supplied on 2026-10-25",
+          "changedAfterBuild": false
+        }
+      }
+    }
+  ],
+  "rendererFrameMechanismEvidence": {
+    "candidateVersion": "0.11.16",
+    "sourceArtifact": "deepl-render-frame-mechanism-2026-10-25.json",
+    "helperArtifact": "renderer-frame-mechanism.mjs",
+    "generatedAt": "2026-10-25T13:42:50.627Z",
+    "fixture": "Synthetic 251-paragraph DOM; cold selected IDs reused from the saved Go length/frozen-priority planning proxy. Not a network or browser timing benchmark.",
+    "networkRequests": 0,
+    "rendererSourceHashes": {
+      "before": "b7d8f6f82aadd52e9deab3c0685a6847abb0abcc195b3720f09be21d22f1e558",
+      "after": "fc2df364d12ae6b432069f4757f8241f5721dc7baf1f1269cc80aceb3a135598"
+    },
+    "coldEightBatchProxy": {
+      "selectedSourceCount": 71,
+      "before": {
+        "sourceSegments": 71,
+        "synchronous": {
+          "styleReads": 71,
+          "insertions": 71,
+          "scheduledFrames": 0
+        },
+        "afterFrame": {
+          "styleReads": 71,
+          "insertions": 71,
+          "readsAfterFirstInsertion": 70,
+          "eventKindTransitions": 141,
+          "allReadsBeforeFirstInsertion": false,
+          "renderedLoadingHosts": 71
+        },
+        "originalTextUnchanged": true
+      },
+      "after": {
+        "sourceSegments": 71,
+        "synchronous": {
+          "styleReads": 0,
+          "insertions": 0,
+          "scheduledFrames": 1
+        },
+        "afterFrame": {
+          "styleReads": 355,
+          "insertions": 71,
+          "readsAfterFirstInsertion": 0,
+          "eventKindTransitions": 1,
+          "allReadsBeforeFirstInsertion": true,
+          "renderedLoadingHosts": 71
+        },
+        "originalTextUnchanged": true
+      }
+    },
+    "all251": {
+      "before": {
+        "sourceSegments": 251,
+        "synchronous": {
+          "styleReads": 251,
+          "insertions": 251,
+          "scheduledFrames": 0
+        },
+        "afterFrame": {
+          "styleReads": 251,
+          "insertions": 251,
+          "readsAfterFirstInsertion": 250,
+          "eventKindTransitions": 501,
+          "allReadsBeforeFirstInsertion": false,
+          "renderedLoadingHosts": 251
+        },
+        "originalTextUnchanged": true
+      },
+      "after": {
+        "sourceSegments": 251,
+        "synchronous": {
+          "styleReads": 0,
+          "insertions": 0,
+          "scheduledFrames": 1
+        },
+        "afterFrame": {
+          "styleReads": 1255,
+          "insertions": 251,
+          "readsAfterFirstInsertion": 0,
+          "eventKindTransitions": 1,
+          "allReadsBeforeFirstInsertion": true,
+          "renderedLoadingHosts": 251
+        },
+        "originalTextUnchanged": true
+      }
+    },
+    "note": "Extra full validity reads in the deferred frame preserve eligibility. The mechanism removes synchronous host writes and read/write interleaving; it does not prove a wall-clock speedup.",
+    "scope": "Synthetic DOM operation ordering only. The saved Go planning proxy selected 71 loading hosts across its first eight planned batches; this is not an observed Tampermonkey per-POST count.",
+    "preservedEligibility": "Deferred-frame full eligibility checks remain. Total style reads rise from 71 to 355 for the 71-source fixture and from 251 to 1255 for the full fixture; the claimed mechanism is separating reads from writes and removing synchronous cold-path host insertion, not eliminating total reads.",
+    "reviewedBehaviorSource": "Diagnostic-agent review and focused render/mount/session tests, reported on 2026-10-25.",
+    "reviewedBehavior": [
+      "client.start and fake-transport microtask occur before loading-host insertion in session unit tests.",
+      "Done rendering remains immediate, and stale loading frames do not overwrite completed results."
+    ],
+    "interpretation": "Read/write ordering and synchronous operation counts do not establish a wall-clock or real-service speedup. The offline plan remains 37 batches with unchanged budget policy."
+  },
+  "candidatePreparations": {
+    "version": "0.11.16",
+    "status": "selected-for-release-by-user-accepted-observed-speed-pending-four-articles-and-ci",
+    "readableBuild": {
+      "localArtifact": "deepl-v16-readable.user.js",
+      "bytes": 1034813,
+      "sha256": "b993d4ded078efe90f0902badcdbea00372a409cf2cfcf54537ca6f32f57d2a9",
+      "versionHeader": "0.11.16",
+      "installedSourceVerification": {
+        "source": "Primary-agent Debugger inspection supplied on 2026-10-25; no independent installed-wrapper source hash retained here.",
+        "observedVersion": "0.11.16",
+        "observedMarkers": [
+          "flushLoading",
+          "validateDispatch",
+          "near_translate_lane"
+        ],
+        "wholeWrappedSourceHashEqualsBundle": "not asserted; the manager wrapper changes installed source length/content"
+      }
+    },
+    "validation": {
+      "source": "Local summary deepl-v16-local-validation.json and both machine-readable browser reports, with raw log hashes retained as metadata.",
+      "focusedRenderMountSession": {
+        "passed": 103,
+        "total": 103
+      },
+      "fullUnitWithMaxWorkers2": {
+        "passed": 1566,
+        "total": 1566,
+        "originalAssertionsUnchanged": true,
+        "originalTimeoutsUnchanged": true,
+        "filesPassed": 64,
+        "durationSeconds": 32.34,
+        "sourceLog": "deepl-v16-unit-workers2.log"
+      },
+      "default64WorkerAttempt": {
+        "passed": 1565,
+        "timedOut": 1,
+        "timeoutMs": 5000,
+        "timedOutOperation": "real Git dry-run",
+        "interpretation": "Retained failed attempt; high worker count is reported as an environment condition, not silently converted to a pass.",
+        "observedTimeoutMs": 5095,
+        "sourceLog": "deepl-v16-unit.log"
+      },
+      "singleTimedOutTestRerun": {
+        "passed": true,
+        "originalTimeoutMs": 5000,
+        "skipped": 10,
+        "sourceLog": "deepl-v16-release-dry-run-retry.log"
+      },
+      "failureLogRetention": "Default-suite timeout, original-threshold retry, complete 2-worker suite and initial sandbox EPERM logs are retained locally and identified by bytes/SHA-256 in sourceArtifacts.",
+      "typecheck": "passed",
+      "repositoryCheck": "passed",
+      "docs": "passed",
+      "moduleBoundaries": "passed",
+      "chromeBuild": "passed",
+      "edgeBuild": "passed",
+      "githubUserscriptBuild": "passed",
+      "greasyforkReadableBuild": "passed",
+      "githubUserscriptBrowserScenarios": {
+        "planned": 22,
+        "passed": 22,
+        "failed": 0,
+        "status": "passed",
+        "sourceArtifact": "deepl-v16-e2e-userscript-results.json",
+        "mockGmTransport": true,
+        "realDeepLRequests": 0
+      },
+      "greasyforkUserscriptBrowserScenarios": {
+        "planned": 22,
+        "passed": 22,
+        "failed": 0,
+        "status": "passed",
+        "sourceArtifact": "deepl-v16-e2e-greasyfork-results.json",
+        "mockGmTransport": true,
+        "realDeepLRequests": 0
+      },
+      "defaultLinuxCI": "pending"
+    },
+    "productSourceFrozen": true,
+    "connectionPrewarmingAdded": false,
+    "requestBudgetChanged": false,
+    "realArticleRuns": [
+      {
+        "candidateRunId": "v0.11.16-background-go-splash-long-1",
+        "sourceArtifact": "deepl-v16-go-long-1.json",
+        "article": "go-splash-long",
+        "rawFullDoneMs": 15294.699999988079,
+        "speedPassed": false
+      }
+    ],
+    "finalAcceptance": false,
+    "interpretation": "Local validation remains recorded, but the first real 0.11.16 long Go sample strictly failed the 15000 ms gate. The five-article cohort was not completed. Prior 0.11.15 successes are not reused; this candidate is rejected for final acceptance.",
+    "plannedRealArticleCount": 5,
+    "recordedRealArticleCount": 1,
+    "sameVersionFiveArticleCohortComplete": false,
+    "selectionBasis": "Explicit human decision recorded in userDecisionChange. Original speed-failure data is retained without alteration."
+  },
+  "v16LocalValidationEvidence": {
+    "sourceArtifact": "deepl-v16-local-validation.json",
+    "generatedAt": "2026-10-25T13:53:09.3633019Z",
+    "version": "0.11.16",
+    "productSourceChangedDuringChecks": false,
+    "dailyEdgeOperated": false,
+    "realDeepLRequests": 0,
+    "heavyTasksEnded": true,
+    "defaultSuite": {
+      "failed": 1,
+      "reason": "release-tools real Git dry-run exceeded unchanged 5000ms timeout at 5095ms",
+      "passed": 1565,
+      "log": "deepl-v16-unit.log"
+    },
+    "originalThresholdSingleRetry": {
+      "skipped": 10,
+      "passed": 1,
+      "log": "deepl-v16-release-dry-run-retry.log"
+    },
+    "completeSuiteWorkers2": {
+      "log": "deepl-v16-unit-workers2.log",
+      "timeoutChanged": false,
+      "durationSeconds": 32.34,
+      "failed": 0,
+      "passed": 1566,
+      "filesPassed": 64
+    },
+    "checks": {
+      "docs": "passed",
+      "boundaries": "passed",
+      "typecheck": "passed",
+      "repo": "passed"
+    },
+    "builds": {
+      "edge": {
+        "status": "passed",
+        "log": "deepl-v16-build-edge.log"
+      },
+      "chrome": {
+        "status": "passed",
+        "log": "deepl-v16-build-chrome-retry.log",
+        "initialSandboxEPERMLog": "deepl-v16-build-chrome.log"
+      },
+      "greasyfork": {
+        "status": "passed",
+        "log": "deepl-v16-build-greasyfork.log"
+      },
+      "userscript": {
+        "status": "passed",
+        "log": "deepl-v16-build-userscript.log"
+      }
+    },
+    "browserHarness": {
+      "userscript": {
+        "sourceArtifact": "deepl-v16-e2e-userscript-results.json",
+        "status": "passed",
+        "passed": 22,
+        "unexpected": 0,
+        "skipped": 0,
+        "flaky": 0,
+        "durationMs": 32287.331000000002,
+        "mockGmTransport": true,
+        "realDeepLRequests": 0,
+        "profile": "Independent headless Chrome runtime"
+      },
+      "greasyfork": {
+        "sourceArtifact": "deepl-v16-e2e-greasyfork-results.json",
+        "status": "passed",
+        "passed": 22,
+        "unexpected": 0,
+        "skipped": 0,
+        "flaky": 0,
+        "durationMs": 33818.661,
+        "mockGmTransport": true,
+        "realDeepLRequests": 0,
+        "profile": "Independent headless Chrome runtime"
+      }
+    },
+    "frozenRendererSha256": "fc2df364d12ae6b432069f4757f8241f5721dc7baf1f1269cc80aceb3a135598",
+    "frozenRendererTestSha256": "92a12d8da77f48822e22723a44de702779fb78c2b12031cae562f0fb51cd3a25",
+    "defaultLinuxCI": "pending",
+    "interpretation": "Local regression validation only. Browser harness uses mocked GM in an independent headless Chrome runtime and made no real DeepL requests. The original default-suite timeout and initial Chrome sandbox EPERM are retained alongside successful checks; no real article speed is inferred."
+  },
+  "candidateRuns": [
+    {
+      "id": "v0.11.16-background-go-splash-long-1",
+      "version": "0.11.16",
+      "article": "go-splash-long",
+      "url": "https://go.dev/talks/2012/splash.article?utm_source=chatgpt.com",
+      "sourceArtifact": "deepl-v16-go-long-1.json",
+      "measurement": "page performance.now; real DeepL; new document; no translation cache; background tab per user live-stream constraint",
+      "environment": "background-valid-viewport",
+      "browserContext": {
+        "tabActive": false,
+        "windowFocused": true
+      },
+      "validViewport": true,
+      "fullArticleComplete": true,
+      "speedPassed": false,
+      "requiredRawFullDoneMsAtMost": 15000,
+      "rawFullDoneMs": 15294.699999988079,
+      "candidateDecision": "rejected-first-long-article-exceeds-strict-time-gate",
+      "finalAcceptance": false,
+      "navigationToClickMs": 229215.19995117188,
+      "result": {
+        "elapsedMs": 15294.699999988079,
+        "firstMs": 3066.5,
+        "firstProseMs": 3066.5,
+        "firstViewportProseMs": 3066.5,
+        "firstVisibleProseDomReadyMs": 3066.5,
+        "firstVisibleProseRafMs": 3109.5,
+        "firstVisibleProseSourceId": 24,
+        "initialViewportAllDoneMs": 3453.100000023842,
+        "fullDoneMs": 15294.699999988079,
+        "doneAt": 1792936431603.0999,
+        "clickedAt": 1792936416307.4,
+        "navigationStartedAt": 1792936187092.2,
+        "toolbarReadyAt": 1792936416242.9,
+        "selectionLength": 0,
+        "visible": true,
+        "focused": true,
+        "visibilityFailures": 0,
+        "sourceChanged": false,
+        "rootTag": "article",
+        "sourceSegments": 251,
+        "sourceChars": 53505,
+        "uniqueSourceTexts": 251,
+        "completed": 251,
+        "failed": 0,
+        "pending": 0,
+        "total": 251,
+        "renderedSegments": 251,
+        "translatedChars": 18853,
+        "chineseSegments": 246,
+        "viewportTargets": 4,
+        "initialViewportSourceIds": [
+          24,
+          25,
+          26,
+          27
+        ],
+        "viewportCompleted": 4,
+        "unexpectedTranslations": 0,
+        "mappingConflicts": 0,
+        "status": "done",
+        "statusText": "翻译完成 · 251 / 251",
+        "errorCode": "",
+        "outputFingerprint": "c015f6bea64711a1e35662c675667bd6045f3122d32ec2b9a77190a28ebc9802",
+        "longTasks": [
+          {
+            "startTime": 229148.19999998808,
+            "duration": 283
+          },
+          {
+            "startTime": 229432.09999996424,
+            "duration": 65
+          },
+          {
+            "startTime": 233286.5,
+            "duration": 183
+          },
+          {
+            "startTime": 235403.09999996424,
+            "duration": 61
+          },
+          {
+            "startTime": 238553.19999998808,
+            "duration": 53
+          }
+        ],
+        "protectedCodeTranslations": 0,
+        "viewport": {
+          "width": 1280,
+          "height": 900,
+          "clientWidth": 1265,
+          "clientHeight": 900,
+          "scrollX": 0,
+          "scrollY": 0
+        }
+      },
+      "interpretation": "One real 0.11.16 sample, not a completed five-article cohort. Full completion and the strict speed requirement are separate; 251/251 with zero failures still fails at 15294.699999988079 ms. No 0.11.15 articles are added to this candidate.",
+      "releaseInterpretationAfterUserDecision": "The original strict-speed rejection remains historical evidence. The user subsequently accepted this observed speed and selected version 0.11.16 for workflow release; remaining same-version pages and release checks are pending."
+    }
+  ],
+  "cpuProfilerDiagnosticPlan": {
+    "status": "further-optimization-stopped-by-explicit-user-release-request",
+    "purpose": "Diagnose remaining CPU cost after the 0.11.16 long-article failure.",
+    "acceptanceRun": false,
+    "timingEligibleForAcceptance": false,
+    "interpretation": "Profiler-instrumented diagnostic runs must be stored separately from uninstrumented acceptance measurements; no profiling result is recorded here."
+  },
+  "userDecisionChange": {
+    "source": "Explicit human user messages in the current task, relayed by the primary agent after reporting the 0.11.16 Go observation.",
+    "acceptedSpeedQuote": "当前速度我想了想可以接收",
+    "releaseRequestQuote": "现在将当前代码合并发布，采用工作流",
+    "appliesToVersion": "0.11.16",
+    "observedAcceptedGoFullDoneMs": 15294.699999988079,
+    "observedAcceptedGoCompleted": 251,
+    "observedAcceptedGoSourceCharsUtf16": 53505,
+    "decision": "Stop further optimization and publish current 0.11.16 through the repository workflow, while finishing same-version article completeness validation.",
+    "originalStrictTargetMs": 15000,
+    "originalStrictTargetPassed": false,
+    "interpretation": "The human explicitly accepted the observed approximately 15.3-second speed. This changes the release decision; it does not round down the measurement or retroactively pass the original 15000 ms target."
+  },
+  "releaseGate": {
+    "version": "0.11.16",
+    "status": "preparing-draft-release-pending-four-same-version-articles-and-ci",
+    "basis": "Explicit human acceptance of the observed current speed and explicit workflow release request.",
+    "speedCriterion": "User-accepted observed approximately 15.3-second long-article speed; preserve exact raw timing and actual limits. The original strict <=15000 ms target is no longer a mandatory release gate.",
+    "maxFullDoneMs": null,
+    "originalStrictSpeedGoalPassed": false,
+    "requiresSameVersionArticleCount": 5,
+    "sameVersionMeasuredArticleCount": 1,
+    "requiresFullSourceCompletion": true,
+    "requiresFailedSegments": 0,
+    "requiresPendingSegments": 0,
+    "requiresMappingConflicts": 0,
+    "requiresProtectedCodeTranslations": 0,
+    "environment": "background-valid-viewport",
+    "foregroundPerformance": "not-tested",
+    "measuredArticleRuns": [
+      {
+        "candidateRunId": "v0.11.16-background-go-splash-long-1",
+        "sourceArtifact": "deepl-v16-go-long-1.json",
+        "article": "go-splash-long",
+        "rawFullDoneMs": 15294.699999988079,
+        "fullArticleComplete": true,
+        "originalStrictSpeedPassed": false,
+        "speedAcceptedByUser": true
+      }
+    ],
+    "remainingArticles": [
+      "rust-1.85.1-short",
+      "go-errors-medium",
+      "python-3.14",
+      "rust-1.85-medium-long"
+    ],
+    "sameVersionMatrixComplete": false,
+    "localValidation": "Recorded: 1566/1566 with maxWorkers=2, both mocked-GM browser channels 22/22, type/repo/docs/boundaries/builds passed; original default-worker timeout remains in evidence.",
+    "defaultLinuxCI": "pending",
+    "passed": false,
+    "releasePublished": false,
+    "pagesDeployment": "pending",
+    "greasyForkPublicVersionVerification": "pending",
+    "interpretation": "Release preparation is authorized, but this draft does not claim the four unmeasured same-version pages, CI, deployment or public-channel verification have completed. Original acceptance.passed remains false under the original strict research target."
+  }
+}

@@ -11,7 +11,7 @@ export const SELECTED_TEXT = 'Concurrency does not imply parallelism.';
 export const SELECTED_TRANSLATION = '并发不意味着并行。';
 export const INERT_TRANSLATION = '<img src=x onerror="window.translationExecuted=true">译文保持纯文本。';
 
-type MockRequest = { url: string; method: string; responseType?: string; anonymous?: boolean; headers?: Record<string, string>; data: string;
+type MockRequest = { url: string; method: string; responseType?: string; anonymous?: boolean; redirect?: string; headers?: Record<string, string>; data: string;
   body: { text: string[]; target_lang: string; messages?: Array<{ role: string; content: string }> } };
 type TransportEvent = { url: string; type: 'start' | 'load' | 'chunk' | 'partial' | 'eof' | 'failure' | 'cancel' | 'abort' | 'text'; crossRealm?: boolean; splitsUtf8?: boolean };
 export type HarnessState = { requests: MockRequest[]; rejected: string[]; tabs: string[]; menus: Map<number, { title: string; callback: () => unknown }>;
@@ -186,7 +186,7 @@ export async function installUserscript(page: Page, settingsPage = false, update
           if ((options.url === modelEndpoint || options.url === ollamaEndpoint) && options.method === 'POST') {
             const data = options.data ?? '';
             const body = JSON.parse(data) as MockRequest['body'];
-            state.requests.push({ url: options.url, method: options.method, responseType: options.responseType, anonymous: options.anonymous, headers: options.headers, data, body });
+            state.requests.push({ url: options.url, method: options.method, responseType: options.responseType, anonymous: options.anonymous, redirect: options.redirect, headers: options.headers, data, body });
             if (failures > 0) { failures--; done = true; event('failure'); options.onerror?.({ error: 'Simulated GM network failure' }); return; }
             const sse = (content: string) => `data: ${JSON.stringify({ choices: [{ delta: { content } }] })}\n\n`;
             const user = body.messages?.find(message => message.role === 'user');
@@ -198,7 +198,8 @@ export async function installUserscript(page: Page, settingsPage = false, update
             deliver(sse(deltas[0]!), deltas.slice(1).map(sse).join('') + 'data: [DONE]\n\n', 'text/event-stream');
             return;
           }
-          if (options.url !== endpoint || options.method !== 'POST') {
+          const deepLLanes = Array.from({ length: 8 }, (_, lane) => `${endpoint}?near_translate_lane=${lane}`);
+          if (!deepLLanes.includes(options.url) || options.method !== 'POST') {
             done = true;
             state.rejected.push(options.url);
             options.onerror?.({ error: 'Unexpected remote request in isolated userscript E2E.' });
@@ -206,7 +207,7 @@ export async function installUserscript(page: Page, settingsPage = false, update
           }
           const data = options.data ?? '';
           const body = JSON.parse(data) as { text: string[]; target_lang: string };
-          state.requests.push({ url: options.url, method: options.method, responseType: options.responseType, anonymous: options.anonymous, data, body });
+          state.requests.push({ url: options.url, method: options.method, responseType: options.responseType, anonymous: options.anonymous, redirect: options.redirect, data, body });
           if (failures > 0) { failures--; done = true; event('failure'); options.onerror?.({ error: 'Simulated GM network failure' }); return; }
           const payload = { translations: body.text.map(text => ({ text: translate(text) })) };
           deliver(JSON.stringify(payload), '', 'application/json');

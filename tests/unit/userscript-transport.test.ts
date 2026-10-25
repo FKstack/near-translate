@@ -56,15 +56,46 @@ afterEach(async () => {
 });
 
 describe('Tampermonkey response and request boundaries', () => {
+  it('notifies its internal owner once at complete text, isolates hook errors, and ignores late callbacks', async () => {
+    const onSettled = vi.fn(() => { throw new Error('Internal owner hook failure.'); });
+    const pending = observed(createGMFetch(ENDPOINT, undefined, { responseType: 'text', onSettled })(ENDPOINT, {
+      method: 'POST', body: '{}', credentials: 'omit', redirect: 'error',
+    }));
+    requests[0]!.details.onreadystatechange(response({ readyState: 2 }));
+    const text = observed((await pending).text());
+    expect(onSettled).not.toHaveBeenCalled();
+    requests[0]!.details.onload(response({ responseText: 'complete' }));
+    await expect(text).resolves.toBe('complete');
+    expect(onSettled).toHaveBeenCalledOnce();
+    requests[0]!.details.onabort(); requests[0]!.details.onerror();
+    expect(onSettled).toHaveBeenCalledOnce();
+  });
+
+  it('settles synchronously completed GM callbacks before request assignment without double notification', async () => {
+    const onSettled = vi.fn();
+    const abort = vi.fn();
+    vi.stubGlobal('GM_xmlhttpRequest', (details: GMRequest) => {
+      details.onload(response({ responseText: 'synchronous' }));
+      return { abort };
+    });
+    const responseValue = await createGMFetch(ENDPOINT, undefined, { responseType: 'text', onSettled })(ENDPOINT, {
+      method: 'POST', body: '{}', credentials: 'omit', redirect: 'error',
+    });
+    expect(await responseValue.text()).toBe('synchronous');
+    expect(onSettled).toHaveBeenCalledOnce();
+    expect(abort).toHaveBeenCalledOnce();
+  });
+
   it('reads complete JSON from text onload without waiting for a manager stream EOF', async () => {
     const pending = request({}, undefined, 'text');
     const source = stream();
     const getReader = vi.spyOn(source.body, 'getReader');
     expect(requests[0]!.details.responseType).toBe('text');
-    requests[0]!.details.onloadstart(response({ status: 0, readyState: 1, response: source.body }));
-    requests[0]!.details.onreadystatechange(response({ readyState: 2 }));
+    expect(requests[0]!.details.onloadstart).toBeUndefined();
+    expect(requests[0]!.details.onprogress).toBeUndefined();
+    requests[0]!.details.onreadystatechange(response({ readyState: 2, response: source.body }));
     const text = observed((await pending).text());
-    requests[0]!.details.onprogress(response({ readyState: 3, responseText: 'discard this partial text' }));
+    requests[0]!.details.onreadystatechange(response({ readyState: 3, responseText: 'discard this partial text' }));
     const payload = JSON.stringify({ translations: [{ text: '图书馆每天早上九点开放。' }] });
     requests[0]!.details.onload(response({ responseText: payload }));
     await expect(text).resolves.toBe(payload);
@@ -73,10 +104,29 @@ describe('Tampermonkey response and request boundaries', () => {
     source.controller.close();
   });
 
+  it('preserves early text headers and cancellation before its complete body', async () => {
+    const onSettled = vi.fn();
+    const controller = new AbortController();
+    const pending = observed(createGMFetch(ENDPOINT, undefined, { responseType: 'text', onSettled })(ENDPOINT, {
+      method: 'POST', body: '{}', credentials: 'omit', redirect: 'error', signal: controller.signal,
+    }));
+    requests[0]!.details.onreadystatechange(response({ readyState: 2 }));
+    const responseValue = await pending;
+    const text = observed(responseValue.text());
+    expect(responseValue.status).toBe(200);
+    expect(onSettled).not.toHaveBeenCalled();
+    controller.abort();
+    await expect(text).rejects.toMatchObject({ name: 'AbortError' });
+    expect(requests[0]!.abort).toHaveBeenCalledOnce();
+    expect(onSettled).toHaveBeenCalledOnce();
+    requests[0]!.details.onload(response({ responseText: 'late' }));
+    expect(onSettled).toHaveBeenCalledOnce();
+  });
+
   it('reads cross-realm Uint8Array chunks and preserves UTF-8 characters split between chunks', async () => {
     const pending = request();
     const source = stream();
-    requests[0]!.details.onloadstart(response({ response: source.body }));
+    requests[0]!.details.onloadstart!(response({ response: source.body }));
     const text = observed((await pending).text());
     const bytes = new TextEncoder().encode('前🙂后');
     const chunks = [bytes.subarray(0, 2), bytes.subarray(2, 5), bytes.subarray(5)];
@@ -94,7 +144,7 @@ describe('Tampermonkey response and request boundaries', () => {
   it('copies only the visible range of a cross-realm byte view', async () => {
     const pending = request();
     const source = stream();
-    requests[0]!.details.onloadstart(response({ response: source.body }));
+    requests[0]!.details.onloadstart!(response({ response: source.body }));
     const text = observed((await pending).text());
     const bytes = runInNewContext('new Uint8Array([88, 111, 107, 89]).subarray(1, 3)') as Uint8Array;
     source.controller.enqueue(bytes);
@@ -106,7 +156,7 @@ describe('Tampermonkey response and request boundaries', () => {
     it(`rejects a ${Array.isArray(invalid) ? 'plain array' : 'forged byte-shaped object'} instead of treating it as bytes`, async () => {
       const pending = request();
       const source = stream();
-      requests[0]!.details.onloadstart(response({ response: source.body }));
+      requests[0]!.details.onloadstart!(response({ response: source.body }));
       const text = observed((await pending).text());
       source.controller.enqueue(invalid as unknown as Uint8Array);
       await expect(text).rejects.toBeInstanceOf(TypeError);
@@ -121,7 +171,7 @@ describe('Tampermonkey response and request boundaries', () => {
     const source = stream();
     let opened = false;
     void pending.then(() => { opened = true; }, () => {});
-    requests[0]!.details.onloadstart(response({ status: 0, readyState: 1, response: source.body }));
+    requests[0]!.details.onloadstart!(response({ status: 0, readyState: 1, response: source.body }));
     source.controller.enqueue(new TextEncoder().encode('early '));
     await settle();
     expect(opened).toBe(false);
@@ -137,7 +187,7 @@ describe('Tampermonkey response and request boundaries', () => {
   it('does not truncate a response when onload precedes the end of its stream', async () => {
     const pending = request();
     const source = stream();
-    requests[0]!.details.onloadstart(response({ response: source.body }));
+    requests[0]!.details.onloadstart!(response({ response: source.body }));
     const result = await pending;
     const reader = result.body!.getReader();
     source.controller.enqueue(new TextEncoder().encode('first '));
@@ -158,7 +208,7 @@ describe('Tampermonkey response and request boundaries', () => {
       const pending = request({ signal: controller.signal });
       const source = stream();
       const getReader = vi.spyOn(source.body, 'getReader');
-      requests[0]!.details.onloadstart(response({ status: 0, readyState: 1, response: source.body }));
+      requests[0]!.details.onloadstart!(response({ status: 0, readyState: 1, response: source.body }));
       if (action === 'cancel') controller.abort();
       else requests[0]!.details.onreadystatechange(response({ status: 302, readyState: 2 }));
       await expect(pending).rejects.toMatchObject(action === 'cancel' ? { name: 'AbortError' } : { code: 'NETWORK', retryable: false });
@@ -174,7 +224,7 @@ describe('Tampermonkey response and request boundaries', () => {
     const source = stream();
     const owner = source.body.getReader();
     try {
-      expect(() => requests[0]!.details.onloadstart(response({ response: source.body }))).not.toThrow();
+      expect(() => requests[0]!.details.onloadstart!(response({ response: source.body }))).not.toThrow();
       await expect(observed((await pending).text())).rejects.toBeInstanceOf(TypeError);
       await settle();
       expect(requests[0]!.abort).toHaveBeenCalledOnce();
@@ -189,7 +239,7 @@ describe('Tampermonkey response and request boundaries', () => {
       const provider = new OpenAICompatibleProvider({ provider: 'deepseek', apiKey: KEY, model: 'fixture-model', baseUrl: 'https://transport-fixture.invalid' }, createGMFetch(ENDPOINT));
       const pending = observed(collect(provider));
       const source = stream();
-      requests[0]!.details.onloadstart(response({ status, response: source.body }));
+      requests[0]!.details.onloadstart!(response({ status, response: source.body }));
       await expect(pending).rejects.toMatchObject({ code });
       await settle();
       expect(requests[0]!.abort).toHaveBeenCalledOnce();
@@ -216,7 +266,7 @@ describe('Tampermonkey response and request boundaries', () => {
   it('cancels the underlying GM request and reader when the exposed body is cancelled', async () => {
     const pending = request();
     const source = stream();
-    requests[0]!.details.onloadstart(response({ response: source.body }));
+    requests[0]!.details.onloadstart!(response({ response: source.body }));
     await (await pending).body!.cancel();
     await settle();
     expect(requests[0]!.abort).toHaveBeenCalledOnce();
@@ -235,7 +285,7 @@ describe('Tampermonkey response and request boundaries', () => {
   for (const fields of [{ status: 302 }, { finalUrl: 'https://different-fixture.invalid/chat/completions' }]) {
     it(`rejects a ${fields.status ? 'redirect status' : 'different final destination'} and stops the GM request`, async () => {
       const pending = request();
-      requests[0]!.details.onloadstart(response(fields));
+      requests[0]!.details.onloadstart!(response(fields));
       await expect(pending).rejects.toMatchObject({ code: 'NETWORK', retryable: false });
       expect(requests[0]!.abort).toHaveBeenCalledOnce();
       expect(requests[0]!.details).toMatchObject({ anonymous: true, redirect: 'error' });

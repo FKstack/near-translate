@@ -84,9 +84,14 @@ export class PageBenchmarkProbe {
     if (this.active && !this.isForeground()) this.visibilityFailures++;
   };
 
-  constructor(private readonly page: Document = document) {
+  constructor(private readonly page: Document = document, private readonly expectedUrl = PUBLIC_GO_URL) {
+    let expected: URL;
+    try { expected = new URL(expectedUrl); }
+    catch { throw new Error('Probe requires an absolute HTTP(S) page URL.'); }
+    if (!['http:', 'https:'].includes(expected.protocol)) throw new Error('Probe requires an absolute HTTP(S) page URL.');
     if (!page.defaultView || !page.body) throw new Error('Public page document is not ready.');
     this.view = page.defaultView;
+    this.ensurePublicPage();
     this.bodyObserver = new MutationObserver(() => this.update());
     this.bodyObserver.observe(page.body, { subtree: true, childList: true, characterData: true,
       attributes: true, attributeFilter: ['data-state'] });
@@ -98,7 +103,8 @@ export class PageBenchmarkProbe {
   private isForeground(): boolean { return this.page.visibilityState === 'visible' && this.page.hasFocus(); }
   private bar(): ShadowRoot | null { return this.page.querySelector('near-page-translate')?.shadowRoot ?? null; }
   private ensurePublicPage(): void {
-    if (this.view.location.href !== PUBLIC_GO_URL) throw new Error('Probe is restricted to the exact public Go URL.');
+    if (this.view.location.href !== this.expectedUrl) throw new Error(this.expectedUrl === PUBLIC_GO_URL
+      ? 'Probe is restricted to the exact public Go URL.' : 'Probe is restricted to the exact authorized page URL.');
   }
 
   readiness() {
@@ -154,6 +160,8 @@ export class PageBenchmarkProbe {
   }
 
   private update(): void {
+    // A retained observer must not inspect a document after same-tab navigation.
+    if (this.view.location.href !== this.expectedUrl) return;
     const root = this.bar();
     if (root && root !== this.observedBar) {
       this.barObserver?.disconnect(); this.observedBar = root;

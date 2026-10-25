@@ -25,6 +25,9 @@ const snapshots = new WeakMap<PageSegment, { values: string[]; languages: Readon
 
 function excludedElement(element: Element, styleOf: (element: Element) => CSSStyleDeclaration | undefined): boolean {
   if (EXCLUDED_TAGS.has(element.tagName) || element.matches(OWN_SELECTOR) || element.matches(CODE_SELECTOR)) return true;
+  const roles = (element.getAttribute('role') ?? '').toLowerCase().split(/\s+/);
+  if (element.tagName === 'NAV' || roles.some(role => ['navigation', 'banner', 'contentinfo'].includes(role))
+    || (element.tagName === 'FOOTER' && !element.closest('article,main'))) return true;
   if (element.hasAttribute('hidden') || element.getAttribute('aria-hidden') === 'true'
     || element.getAttribute('translate')?.toLowerCase() === 'no'
     || element.classList.contains('notranslate') || element.getAttribute('role') === 'textbox') return true;
@@ -49,6 +52,11 @@ export function selectPageTranslationRoot(page: Document = document): HTMLElemen
     const candidates = [...page.querySelectorAll<HTMLElement>(tag)].filter(eligible);
     if (candidates.length === 1) return candidates[0]!;
   }
+  // Older DocBook documentation has no article/main landmark. Only recognize
+  // an intact section bounded by its two navigation blocks, not a generic div.
+  const sections = [...page.querySelectorAll<HTMLElement>('.navheader + .sect1')]
+    .filter(candidate => eligible(candidate) && candidate.nextElementSibling?.matches('.navfooter'));
+  if (sections.length === 1) return sections[0]!;
   return page.body;
 }
 

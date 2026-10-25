@@ -34,6 +34,50 @@ describe('language-aware asynchronous segment validity', () => {
 });
 
 describe('bounded page segment collection', () => {
+  it('skips site navigation landmarks and the site footer while retaining article headings and notes', () => {
+    const dom = new JSDOM(`<!doctype html><html lang="en"><body>
+      <nav><a href="/">Site navigation</a></nav>
+      <div role="navigation"><p>Version switcher navigation</p></div>
+      <div role="banner"><p>Site announcement banner</p></div>
+      <article><header><h1>Article title</h1></header><p>The complete article paragraph.</p>
+        <footer><p>Author and source notes.</p></footer></article>
+      <footer><p>Site copyright and contact details.</p></footer>
+      <div role="contentinfo"><p>Site policy links.</p></div>
+    </body></html>`);
+    try {
+      expect(collectPageSegments(dom.window.document.body).map(segment => segment.text)).toEqual([
+        'Article title', 'The complete article paragraph.', 'Author and source notes.',
+      ]);
+    } finally { dom.window.close(); }
+  });
+
+  it('collects the bounded DocBook body without site versions, document navigation or correction forms', () => {
+    // Preserve the public PostgreSQL page's layout, using synthetic prose.
+    const dom = new JSDOM(`<!doctype html><html lang="en"><body>
+      <nav><a href="/">Site navigation</a></nav>
+      <div><p>Supported versions and release links</p></div>
+      <div id="docContent">
+        <div class="navheader"><table><tr><td>Previous document</td><td>Next document</td></tr></table></div>
+        <div class="sect1" id="tutorial-body"><div class="titlepage"><h2>Document title</h2></div>
+          <p>The <code>INSERT</code> command adds a row to the table.</p>
+          <pre>INSERT INTO sample VALUES (42);</pre><p>Read the next example carefully.</p>
+        </div>
+        <div class="navfooter"><table><tr><td>Previous chapter</td><td>Next chapter</td></tr></table></div>
+      </div>
+      <div id="docComments"><h2>Submit a correction</h2><p>Report documentation feedback.</p></div>
+      <footer><p>Site copyright information.</p></footer>
+    </body></html>`);
+    try {
+      const root = selectPageTranslationRoot(dom.window.document);
+      expect(root.id).toBe('tutorial-body');
+      expect(collectPageSegments(root).map(segment => segment.text)).toEqual([
+        'Document title', 'The INSERT command adds a row to the table.', 'Read the next example carefully.',
+      ]);
+      root.nextElementSibling!.remove();
+      expect(selectPageTranslationRoot(dom.window.document)).toBe(dom.window.document.body);
+    } finally { dom.window.close(); }
+  });
+
   it('stops traversing after one overflow segment while preserving whole paragraphs', () => {
     const dom = new JSDOM('<!doctype html><html lang="en"><body><article></article></body></html>');
     try {

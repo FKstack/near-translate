@@ -52,6 +52,7 @@ type FakeState = {
   cancellations: number;
   failText?: string;
   failStatus: number;
+  networkFailure?: boolean;
   failuresRemaining: number;
   slowAll: boolean;
   delayTail: boolean;
@@ -89,6 +90,7 @@ async function installFakeApi(): Promise<void> {
       // HTTP-level failures affect a whole request; a selected passage failure below
       // exercises valid streamed siblings followed by an interrupted batch.
       if (fail && !state.failText) {
+        if (state.networkFailure) throw new TypeError('Simulated fixture network failure.');
         return new Response('{}', { status: state.failStatus });
       }
       const encoder = new TextEncoder();
@@ -452,12 +454,44 @@ test('a rate limit stops queued paragraphs instead of repeatedly calling the API
   });
   await page.getByRole('button', { name: '翻译整个页面', exact: true }).click();
   await page.locator('near-page-translate .np-primary').hover();
-  await expect(page.getByRole('button', { name: '重试失败段落', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: '重试未完成部分', exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: '停止翻译', exact: true })).toHaveCount(0);
   const stopped = await state();
   await page.waitForTimeout(300);
   expect((await state()).batches).toBe(stopped.batches);
   expect(stopped.batches).toBe(1);
+});
+
+test('a network failure uses one recovery bar, leaves source paragraphs intact and retries only on demand', async () => {
+  const original = await page.locator('main').innerHTML();
+  await worker.evaluate(() => {
+    const fake = (globalThis as unknown as { __nearPageTest: FakeState }).__nearPageTest;
+    fake.networkFailure = true; fake.failuresRemaining = 1;
+  });
+  await page.getByRole('button', { name: '翻译整个页面', exact: true }).click();
+  const bar = page.locator('near-page-translate');
+  await expect(bar.locator('.np-bar')).toHaveAttribute('data-error-code', 'NETWORK');
+  await expect(bar.locator('.np-bar')).toHaveAttribute('data-status', 'stopped');
+  await expect(bar.locator('.np-bar')).toHaveAttribute('data-failed', '0');
+  await bar.locator('.np-primary').hover();
+  await expect(bar.getByRole('status')).toContainText('无法连接翻译服务');
+  await expect(bar.getByRole('button', { name: '重试未完成部分', exact: true })).toBeVisible();
+  await expect(page.locator('near-page-translation[data-near-translation]')).toHaveCount(0);
+  expect(await page.locator('main').innerHTML()).toBe(original);
+  const stopped = await state();
+  expect(stopped.batches).toBe(1);
+  expect(stopped.requests).toHaveLength(8);
+  await page.waitForTimeout(300);
+  expect((await state()).batches).toBe(stopped.batches);
+  await page.screenshot({ path: resolve('.output/translation-network-recovery.png'), fullPage: true });
+  await bar.getByRole('button', { name: '重试未完成部分', exact: true }).click();
+  await expect(page.getByText('为软件工程服务的语言设计', { exact: true })).toBeVisible();
+  await expect(bar.locator('.np-bar')).toHaveAttribute('data-status', 'done');
+  await expect(bar.locator('.np-bar')).not.toHaveAttribute('data-error-code');
+  await expect(page.locator('near-page-translation[data-state="error"]')).toHaveCount(0);
+  const recovered = await state();
+  expect(recovered.batches).toBe(2);
+  expect(recovered.requests).toHaveLength(stopped.requests.length * 2);
 });
 
 test('missing API key offers settings and sends no page content', async () => {

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { TranslationInput, TranslationServerMessage } from '../../src/shared/contracts';
+import type { TranslationError, TranslationInput, TranslationServerMessage } from '../../src/shared/contracts';
 import { MAX_TEXT_LENGTH } from '../../src/shared/contracts';
 import type { PageSegment } from '../../src/page/segments';
 import { PAGE_BATCH_MAX_ITEMS, PAGE_BATCH_TARGET_CHARS, PAGE_CONCURRENCY } from '../../src/page/batches';
@@ -34,7 +34,7 @@ function setup(isCurrent?: (segment: PageSegment) => boolean) {
     const results = translations ?? input(worker).pageSegments!.map(text => `译文：${text}`);
     clients[worker]!.receive({ type: 'result', requestId: id(worker), result: { kind: 'text', translation: results.join('\n\n'), segments: results } });
   };
-  const fail = (worker = 0, code: 'SERVER' | 'RATE_LIMIT' | 'AUTH' = 'SERVER') => clients[worker]!.receive({
+  const fail = (worker = 0, code: TranslationError['code'] = 'SERVER') => clients[worker]!.receive({
     type: 'error', requestId: id(worker), error: { code, message: code, retryable: code !== 'AUTH' },
   });
   const requests = () => clients.flatMap(client => client.start.mock.calls.map(([request]) => request));
@@ -483,13 +483,51 @@ describe('batched page translation session', () => {
     const { session, requests, fail, clients } = setup();
     session.start(Array.from({ length: PAGE_CONCURRENCY + 3 }, (_, index) => wide(index))); await flush();
     fail(0, 'RATE_LIMIT'); await flush();
-    expect(session.state).toMatchObject({ status: 'stopped', failed: 1, pending: PAGE_CONCURRENCY + 2, error: { code: 'RATE_LIMIT' } });
+    expect(session.state).toMatchObject({ status: 'stopped', failed: 0, pending: PAGE_CONCURRENCY + 3, error: { code: 'RATE_LIMIT' } });
     session.append([segment('new dynamic paragraph')]); await flush();
     expect(requests()).toHaveLength(PAGE_CONCURRENCY);
     expect(clients.every(client => client.cancel.mock.calls.length >= 2)).toBe(true);
     session.retryFailed(); await flush();
     expect(requests()).toHaveLength(PAGE_CONCURRENCY * 2);
     expect(session.state.error).toBeUndefined(); session.dispose();
+  });
+
+  it.each(['AUTH', 'BALANCE', 'CONFIG', 'DISCONNECTED', 'NETWORK', 'TIMEOUT'] as const)(
+    'shows one session-level %s failure and stops active and queued batches without paragraph errors', async code => {
+      const { session, requests, clients, fail, onSegment } = setup();
+      session.start(Array.from({ length: PAGE_CONCURRENCY + 5 }, (_, index) => wide(index)));
+      await flush(); fail(0, code); await flush();
+      expect(session.state).toMatchObject({ status: 'stopped', completed: 0, failed: 0,
+        pending: PAGE_CONCURRENCY + 5, error: { code } });
+      expect(onSegment.mock.calls.some(([, update]) => update.status === 'error')).toBe(false);
+      expect(clients.every(client => client.cancel.mock.calls.length >= 2)).toBe(true);
+      session.append([segment('New content after the service stopped')]); await flush();
+      expect(requests()).toHaveLength(PAGE_CONCURRENCY);
+      session.dispose();
+    });
+
+  it('keeps streamed successes and retries only unfinished text after a network failure', async () => {
+    const { session, requests, input, partial, fail, done, clients, id, onSegment } = setup();
+    const passages = ['first success', 'second unfinished', 'third waiting', 'fourth waiting'].map(segment);
+    session.start(passages, { concurrency: 1, batchMaxItems: 2 }); await flush();
+    const previousRequest = id();
+    partial(0, 0, '已完成的译文'); fail(0, 'NETWORK'); await flush();
+    expect(session.state).toMatchObject({ status: 'stopped', total: 4, completed: 1, pending: 3, failed: 0,
+      error: { code: 'NETWORK' } });
+    expect(onSegment.mock.calls.filter(([, update]) => update.status === 'error')).toHaveLength(0);
+    expect(onSegment.mock.calls.filter(([item, update]) => item === passages[0] && update.status === 'stopped')).toHaveLength(0);
+    clients[0]!.receive({ type: 'result', requestId: previousRequest,
+      result: { kind: 'text', translation: '迟到的结果', segments: ['覆盖成功', '迟到结果'] } });
+    session.append([segment('Dynamically loaded while stopped')]); await flush();
+    expect(requests()).toHaveLength(1);
+    session.retryFailed(); await flush();
+    expect(input().pageSegments).toEqual(['second unfinished', 'third waiting']);
+    done(); await flush(); expect(input().pageSegments).toEqual(['fourth waiting']);
+    done(); await flush();
+    expect(session.state).toMatchObject({ status: 'done', completed: 4, pending: 0, failed: 0, error: undefined });
+    expect(onSegment.mock.calls.filter(([item, update]) => item === passages[0] && update.status === 'done'))
+      .toEqual([[passages[0], { status: 'done', text: '已完成的译文' }]]);
+    session.dispose();
   });
 
   it('preserves streamed successes and retries only unfinished passages after a batch fails', async () => {

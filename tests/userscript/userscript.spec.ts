@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import { createEncryptedKeyVault } from '../../src/platform/key-vault';
 import { INERT_TRANSLATION, MODEL_ENDPOINT, OLLAMA_ENDPOINT, SELECTED_TEXT, SELECTED_TRANSLATION, installUserscript, selectParagraph, settingsClick, settingsField } from './harness';
 
@@ -16,6 +16,18 @@ async function legacySettings(provider: 'deepseek' | 'ollama' = 'deepseek'): Pro
       connectionRevision: 1, profiles: { [provider]: profile } },
     [STORAGE_PREFIX + 'key-vault:v1']: vault,
   };
+}
+
+async function saveModelSettings(page: Page): Promise<Record<string, unknown>> {
+  const state = await installUserscript(page, true);
+  await expect.poll(() => state.evaluate(state => Boolean(state.settingsRoot?.querySelector('select')))).toBe(true);
+  await settingsField(state, '翻译方式', 'model');
+  await settingsField(state, 'DeepSeek API Key', 'fake-stream-model-key');
+  await settingsField(state, '划词翻译附带附近一句上下文', false);
+  await settingsField(state, '长句翻译后追加句子拆解（额外一次模型请求）', false);
+  await settingsClick(state, '保存设置');
+  await expect.poll(() => state.evaluate(state => state.settingsRoot?.querySelector('[role="status"]')?.textContent)).toContain('设置已保存');
+  return state.evaluate(state => Object.fromEntries(state.storage));
 }
 
 test('fresh installation reads articles without API setup or translation requests', async ({ page }) => {
@@ -162,20 +174,150 @@ test('a saved model Key works in new article documents without unlocking or ente
   const storage = await state.evaluate(state => Object.fromEntries(state.storage));
   for (let index = 0; index < 2; index++) {
     const article = await page.context().newPage();
-    const articleState = await installUserscript(article, false, {}, storage);
+    const articleState = await installUserscript(article, false, {}, storage, { pauseAfterFirstDelta: true });
     await expect(article.getByRole('button', { name: '翻译整个页面', exact: true })).toBeVisible();
     expect(await articleState.evaluate(state => [...state.menus.values()].map(menu => menu.title))).not.toContain('近译 · 解锁本页模型 Key');
     await selectParagraph(article, '#selection');
     await article.getByRole('button', { name: '翻译选中文字', exact: true }).click();
-    await expect(article.getByRole('dialog', { name: '翻译结果', exact: true }).getByText(SELECTED_TRANSLATION, { exact: true })).toBeVisible();
+    const card = article.getByRole('dialog', { name: '翻译结果', exact: true });
+    await expect(card.locator('.nt-text')).toHaveText(SELECTED_TRANSLATION.slice(0, 2));
+    await expect(card.locator('.nt-loading')).toBeVisible();
+    const beforeEof = await articleState.evaluate(state => state.transportEvents);
+    expect(beforeEof.some(event => event.type === 'load')).toBe(true);
+    expect(beforeEof.some(event => event.type === 'eof')).toBe(false);
+    const chunks = beforeEof.filter(event => event.type === 'chunk');
+    expect(chunks.length).toBeGreaterThan(1);
+    expect(chunks.every(event => event.crossRealm === true)).toBe(true);
+    expect(chunks.some(event => event.splitsUtf8)).toBe(true);
+    await articleState.evaluate(state => state.releaseStreams());
+    await expect(card.getByText(SELECTED_TRANSLATION, { exact: true })).toBeVisible();
+    await expect(card.locator('.nt-loading')).toHaveCount(0);
     const requests = await articleState.evaluate(state => state.requests);
     expect(requests).toHaveLength(1);
-    expect(requests[0]).toMatchObject({ url: MODEL_ENDPOINT, anonymous: true, headers: { authorization: 'Bearer fake-saved-model-key' } });
+    expect(requests[0]).toMatchObject({ url: MODEL_ENDPOINT, responseType: 'stream', anonymous: true, headers: { authorization: 'Bearer fake-saved-model-key' } });
     expect(await article.evaluate(() => document.documentElement.outerHTML)).not.toContain('fake-saved-model-key');
     expect(await article.evaluate(() => Object.getOwnPropertyNames(window).filter(key => /^GM(?:_|$)/.test(key)))).toEqual([]);
     expect(await articleState.evaluate(state => state.rejected)).toEqual([]);
     await article.close();
   }
+});
+
+test('the explicit complete-responseText compatibility path still translates model responses', async ({ page }) => {
+  const storage = await saveModelSettings(page);
+  const state = await installUserscript(page, false, {}, storage, { responseMode: 'text' });
+  await expect(page.getByRole('button', { name: '翻译整个页面', exact: true })).toBeVisible();
+  await selectParagraph(page, '#selection');
+  await page.getByRole('button', { name: '翻译选中文字', exact: true }).click();
+  await expect(page.getByRole('dialog', { name: '翻译结果', exact: true }).locator('.nt-text')).toHaveText(SELECTED_TRANSLATION);
+  expect((await state.evaluate(state => state.requests))[0]).toMatchObject({ responseType: 'stream' });
+  expect(await state.evaluate(state => state.transportEvents.map(event => event.type))).toEqual(['text']);
+});
+
+test('a saved DeepSeek Key translates whole-page batches through cross-realm NDJSON streams', async ({ page }) => {
+  const storage = await saveModelSettings(page);
+  const state = await installUserscript(page, false, {}, storage, { pauseAfterFirstDelta: true });
+  await page.getByRole('button', { name: '翻译整个页面', exact: true }).click();
+  const bar = page.locator('near-page-translate .np-bar');
+  await expect(page.locator('near-page-translation[data-state="done"]').first()).toBeVisible();
+  await expect(bar).toHaveAttribute('data-status', 'running');
+  expect(await state.evaluate(state => state.transportEvents.some(event => event.type === 'eof'))).toBe(false);
+  await state.evaluate(state => state.releaseStreams());
+  await expect(bar).toHaveAttribute('data-status', 'done');
+  const total = Number(await bar.getAttribute('data-total'));
+  expect(total).toBeGreaterThan(3);
+  await expect(bar).toHaveAttribute('data-completed', String(total));
+  await expect(bar).toHaveAttribute('data-failed', '0');
+  await expect(page.locator('near-page-translation[data-state="done"]')).toHaveCount(total);
+  await expect(page.locator('near-page-translation[data-state="error"]')).toHaveCount(0);
+  await expect(page.getByText(SELECTED_TRANSLATION, { exact: true })).toBeVisible();
+  await expect(page.getByText(INERT_TRANSLATION, { exact: true })).toBeVisible();
+  await expect(page.locator('near-page-translation img')).toHaveCount(0);
+  const requests = await state.evaluate(state => state.requests);
+  expect(requests.length).toBeGreaterThan(0);
+  const sources: string[] = [];
+  for (const request of requests) {
+    expect(request).toMatchObject({ url: MODEL_ENDPOINT, responseType: 'stream', anonymous: true, headers: { authorization: 'Bearer fake-stream-model-key' } });
+    const user = request.body.messages?.find(message => message.role === 'user');
+    const batch = JSON.parse(user!.content) as { segments: Array<{ i: number; text: string }> };
+    expect(batch.segments.length).toBeGreaterThan(1);
+    sources.push(...batch.segments.map(segment => segment.text));
+  }
+  expect(sources).toContain(SELECTED_TEXT);
+  expect(sources.join('\n')).not.toMatch(/Do not translate|must not leave|已有中文|Website navigation|Original page control/);
+  const chunks = await state.evaluate(state => state.transportEvents.filter(event => event.type === 'chunk'));
+  expect(chunks.every(event => event.crossRealm)).toBe(true);
+  expect(chunks.some(event => event.splitsUtf8)).toBe(true);
+  expect(await state.evaluate(state => state.rejected)).toEqual([]);
+});
+
+test('closing a translation card cancels a live GM stream and prevents late output', async ({ page }) => {
+  const storage = await saveModelSettings(page);
+  const errors: string[] = [];
+  page.on('pageerror', error => errors.push(error.message));
+  const state = await installUserscript(page, false, {}, storage, { pauseAfterFirstDelta: true });
+  await expect(page.getByRole('button', { name: '翻译整个页面', exact: true })).toBeVisible();
+  await selectParagraph(page, '#selection');
+  await page.getByRole('button', { name: '翻译选中文字', exact: true }).click();
+  const card = page.getByRole('dialog', { name: '翻译结果', exact: true });
+  await expect(card.locator('.nt-text')).toHaveText(SELECTED_TRANSLATION.slice(0, 2));
+  await card.getByRole('button', { name: '关闭翻译', exact: true }).click();
+  await expect.poll(() => state.evaluate(state => state.transportEvents.some(event => event.type === 'abort'))).toBe(true);
+  await state.evaluate(state => state.releaseStreams());
+  await expect(card).toHaveCount(0);
+  expect(await state.evaluate(state => state.transportEvents.some(event => event.type === 'eof'))).toBe(false);
+  expect(await state.evaluate(state => state.requests.length)).toBe(1);
+  expect(await state.evaluate(state => state.rejected)).toEqual([]);
+  expect(errors).toEqual([]);
+});
+
+test('a GM stream read failure becomes a retryable card error after partial output', async ({ page }) => {
+  const storage = await saveModelSettings(page);
+  const errors: string[] = [];
+  page.on('pageerror', error => errors.push(error.message));
+  const state = await installUserscript(page, false, {}, storage, { pauseAfterFirstDelta: true, failAfterFirstDelta: true });
+  await expect(page.getByRole('button', { name: '翻译整个页面', exact: true })).toBeVisible();
+  await selectParagraph(page, '#selection');
+  await page.getByRole('button', { name: '翻译选中文字', exact: true }).click();
+  const card = page.getByRole('dialog', { name: '翻译结果', exact: true });
+  await expect(card.locator('.nt-text')).toHaveText(SELECTED_TRANSLATION.slice(0, 2));
+  await state.evaluate(state => state.releaseStreams());
+  await expect(card.getByRole('alert')).toBeVisible();
+  await expect(card.getByRole('button', { name: '重试', exact: true })).toBeVisible();
+  await expect(card.locator('.nt-loading')).toHaveCount(0);
+  expect(await state.evaluate(state => state.transportEvents.some(event => event.type === 'failure'))).toBe(true);
+  expect(await state.evaluate(state => state.transportEvents.some(event => event.type === 'eof'))).toBe(false);
+  expect(await state.evaluate(state => state.requests.length)).toBe(1);
+  expect(await card.textContent()).not.toContain('Simulated GM stream');
+  expect(errors).toEqual([]);
+});
+
+test('a whole-page network failure pauses its queue with one notice until the user retries', async ({ page }) => {
+  const state = await installUserscript(page, false, {}, {}, { failRequests: 1 });
+  await page.getByRole('button', { name: '翻译整个页面', exact: true }).click();
+  const bar = page.locator('near-page-translate .np-bar');
+  await expect(bar).toHaveAttribute('data-status', 'stopped');
+  await expect(bar).toHaveAttribute('data-error-code', 'NETWORK');
+  await expect(bar.getByRole('status')).not.toBeEmpty();
+  await expect(bar.getByRole('status')).toHaveCount(1);
+  await expect(page.locator('near-page-translation[data-state="error"]')).toHaveCount(0);
+  const requestCount = await state.evaluate(state => state.requests.length);
+  await page.locator('#source-article').evaluate(article => {
+    const paragraph = document.createElement('p');
+    paragraph.textContent = 'Content added while paused must wait for an explicit translation request.';
+    article.append(paragraph);
+  });
+  await page.mouse.wheel(0, 300);
+  await page.waitForTimeout(250);
+  expect(await state.evaluate(state => state.requests.length)).toBe(requestCount);
+  await state.evaluate(state => state.failNextRequests(0));
+  await page.locator('near-page-translate .np-primary').hover();
+  await bar.getByRole('button', { name: '重试未完成部分', exact: true }).click();
+  await expect(page.getByText(SELECTED_TRANSLATION, { exact: true })).toBeVisible();
+  await expect(bar).toHaveAttribute('data-status', 'done');
+  await expect(bar).not.toHaveAttribute('data-error-code', 'NETWORK');
+  await expect(page.locator('near-page-translation[data-state="error"]')).toHaveCount(0);
+  expect(await state.evaluate(state => state.requests.length)).toBeGreaterThan(requestCount);
+  expect(await state.evaluate(state => state.rejected)).toEqual([]);
 });
 
 test('deleting the saved Key stops model translation in a later document', async ({ page }) => {

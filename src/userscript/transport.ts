@@ -16,6 +16,14 @@ function headersFrom(raw = ''): Headers {
   return headers;
 }
 
+function streamBytes(value: unknown): Uint8Array | undefined {
+  // Manager streams can hand us views from another JavaScript realm. Their
+  // bytes are valid even though instanceof against this realm's constructor fails.
+  if (!ArrayBuffer.isView(value)) return;
+  try { return new Uint8Array(new Uint8Array(value.buffer, value.byteOffset, value.byteLength)); }
+  catch { return; } // A detached buffer cannot be read.
+}
+
 /** A provider-bound adapter: the caller cannot supply arbitrary network destinations. */
 export function createGMFetch(endpoint: string, beforeRequest?: () => Promise<void>): typeof fetch {
   return (async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
@@ -46,7 +54,8 @@ export function createGMFetch(endpoint: string, beforeRequest?: () => Promise<vo
       let cursor = 0;
       let bytes = 0;
       let streamController!: ReadableStreamDefaultController<Uint8Array>;
-      let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
+      let managerStream: ReadableStream<unknown> | undefined;
+      let reader: ReadableStreamDefaultReader<unknown> | undefined;
       const encoder = new TextEncoder();
       const body = new ReadableStream<Uint8Array>({
         start(controller) { streamController = controller; },
@@ -61,7 +70,8 @@ export function createGMFetch(endpoint: string, beforeRequest?: () => Promise<vo
         if (finished) return; finished = true; cleanup();
         reject(error);
         try { streamController.error(error); } catch { /* Already closed by the consumer. */ }
-        void reader?.cancel().catch(() => {});
+        if (reader) void reader.cancel().catch(() => {});
+        else void managerStream?.cancel().catch(() => {});
         try { request?.abort(); } catch { /* A closed GM request needs no further cleanup. */ }
       };
       const onAbort = () => fail(signal?.reason ?? aborted());
@@ -91,18 +101,26 @@ export function createGMFetch(endpoint: string, beforeRequest?: () => Promise<vo
         return responseOpened;
       };
       const receive = (response: GMResponse, complete = false) => {
-        if (!open(response) || finished) return;
+        if (finished) return;
         const value = response.response;
-        if (!streaming && value && typeof (value as ReadableStream<Uint8Array>).getReader === 'function') {
+        // onloadstart is where Tampermonkey supplies the stream. Headers may
+        // arrive later, and that later event need not repeat the stream object.
+        if (!streaming && value && typeof (value as ReadableStream<unknown>).getReader === 'function') {
+          managerStream = value as ReadableStream<unknown>;
+        }
+        if (!open(response) || finished) return;
+        if (!streaming && managerStream) {
           streaming = true;
-          reader = (value as ReadableStream<Uint8Array>).getReader();
+          try { reader = managerStream.getReader(); }
+          catch { fail(networkFailure()); return; }
           void (async () => {
             try {
               while (!finished) {
                 const chunk = await reader!.read();
                 if (chunk.done) { close(); return; }
-                if (!(chunk.value instanceof Uint8Array)) { fail(networkFailure()); return; }
-                push(chunk.value);
+                const bytes = streamBytes(chunk.value);
+                if (!bytes) { fail(networkFailure()); return; }
+                push(bytes);
               }
             } catch { fail(networkFailure()); }
             finally { try { reader?.releaseLock(); } catch { /* Pending cancellation. */ } }

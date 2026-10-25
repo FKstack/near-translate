@@ -47,7 +47,7 @@ interface Worker {
   client: PageTranslationClient;
   active?: { tasks: Task[]; requestId: string; generation: number };
 }
-const STOP_ERRORS = new Set<TranslationError['code']>(['AUTH', 'BALANCE', 'CONFIG', 'RATE_LIMIT', 'DISCONNECTED']);
+const STOP_ERRORS = new Set<TranslationError['code']>(['AUTH', 'BALANCE', 'CONFIG', 'RATE_LIMIT', 'DISCONNECTED', 'NETWORK', 'TIMEOUT']);
 const INVALID_BATCH: TranslationError = { code: 'INVALID_RESPONSE', message: '整页译文不完整，请重试失败段落。', retryable: true };
 
 /** Owns one bounded page session, including independent batches and all in-flight transports. */
@@ -338,8 +338,12 @@ export class PageTranslationSession {
         this.complete(active.tasks[0]!, event.result.translation);
       } else this.failTasks(active.tasks, INVALID_BATCH);
     } else {
-      this.failTasks(active.tasks, event.error);
-      if (STOP_ERRORS.has(event.error.code)) { this.error = event.error; this.stopWork(); this.status = 'stopped'; }
+      if (STOP_ERRORS.has(event.error.code)) {
+        // A connection or service-wide failure belongs to the session bar, not
+        // every paragraph in this batch. Keep completed text and wait for the
+        // user's next action before sending any unfinished work again.
+        this.error = event.error; this.stopWork(); this.status = 'stopped';
+      } else this.failTasks(active.tasks, event.error);
     }
     this.reconcileStatus(); this.changed(); this.schedulePump();
   }

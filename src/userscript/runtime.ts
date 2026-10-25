@@ -9,13 +9,13 @@ import { KeyVaultError } from '../platform/key-vault';
 import { readReadingPreferences, saveReadingPreferences } from '../platform/reading-preferences';
 import { FreeTranslationCheck } from '../platform/free-translation-check';
 import { completionEndpoint, getProvider } from '../shared/api-config';
-import { DEEPL_WEB_ENDPOINT } from '../shared/translation-engine';
 import { DEEPL_WEB_SCHEDULING } from '../shared/translation-policy';
 import { readLanguagePair, supportsWordDetails } from '../shared/languages';
 import { KEY_VAULT_STORAGE_KEY } from '../shared/key-vault';
 import { REQUEST_TIMEOUT_MS, TRANSLATION_PORT, type TranslationServerMessage, type TranslationError } from '../shared/contracts';
 import { browser, emitRuntimeMessage, observeLocalStorage, registerRuntimeHandlers, type UserscriptPort } from './browser';
 import { createGMFetch } from './transport';
+import { createDeepLUserscriptTransport } from './deepl-transport';
 import { isSettingsPage } from './locations';
 
 const SETTINGS_KEY = 'settings:v1';
@@ -30,21 +30,18 @@ export async function installRuntime(options: { onOpenSettings: () => void }): P
   let settingsQueue = Promise.resolve();
   let epoch = 0;
   const jobs = new Map<AbortController, { engine?: string; fail: (error: TranslationError) => void }>();
-  const queue = new RequestScheduler<void>({ maxConcurrent: 1, maxQueuedRequests: 64, intervalMs: 200 });
+  const modelQueue = new RequestScheduler<void>({ maxConcurrent: 1, maxQueuedRequests: 64, intervalMs: 200 });
   const readCooldown = async () => {
     const value = (await browser.storage.local.get(COOLDOWN_KEY))[COOLDOWN_KEY];
     if (value === undefined) return 0;
     if (typeof value !== 'number' || !Number.isSafeInteger(value) || value < 0) throw new TranslationFailure('CONFIG', 'DeepL 冷却记录无法验证，请检查篡改猴存储后重试。');
     return value;
   };
-  const deeplFetch = createGMFetch(DEEPL_WEB_ENDPOINT, async () => {
+  const deeplTransport = createDeepLUserscriptTransport(async () => {
     const until = await readCooldown();
     if (until > Date.now()) throw new TranslationFailure('RATE_LIMIT', 'DeepL 请求受限，已暂停后续翻译，请稍后手动重试。', true, until);
-  }, { responseType: 'text' });
-  const deepl = new DeepLWebProvider((body, signal) => deeplFetch(DEEPL_WEB_ENDPOINT, {
-    method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'None' },
-    body, signal, credentials: 'omit', redirect: 'error',
-  }), { ...DEEPL_WEB_SCHEDULING, maxConcurrent: 1,
+  });
+  const deepl = new DeepLWebProvider(deeplTransport, { ...DEEPL_WEB_SCHEDULING,
     loadCooldownUntil: readCooldown,
     async persistCooldownUntil(until) {
       await browser.storage.local.set({ [COOLDOWN_KEY]: Math.max(until, await readCooldown()) });
@@ -170,9 +167,11 @@ export async function installRuntime(options: { onOpenSettings: () => void }): P
       const job: { engine?: string; fail: typeof fail } = { fail };
       jobs.set(owner.controller, job);
       const timeout = setTimeout(() => { timedOut = true; owner.controller.abort(); }, REQUEST_TIMEOUT_MS);
-      void queue.run(async context => {
+      void (async () => {
         const input = normalizeTranslationInput(message.input);
         const settings = await readSettings();
+        // Identify waiting jobs before service admission so remote cooldowns
+        // can cancel DeepL work without disturbing the model queue.
         job.engine = settings.translationEngine;
         if (!belongs()) return;
         if (startingEpoch !== epoch) throw new TranslationFailure('CONFIG', changedError.message);
@@ -186,12 +185,31 @@ export async function installRuntime(options: { onOpenSettings: () => void }): P
         if (input.task === 'sentence-analysis' && (isDeepL || !settings.sentenceAnalysisEnabled)) throw new TranslationFailure('CONFIG', '当前翻译方式未开启长难句拆解。');
         const provider = isDeepL ? deepl : new OpenAICompatibleProvider({ apiKey: settings.apiKey, model: settings.model,
           provider: settings.provider, baseUrl: settings.baseUrl, jsonMode: settings.jsonMode }, createGMFetch(completionEndpoint(settings.baseUrl)));
-        send({ type: 'started', requestId });
-        for await (const event of provider.translate(input, context.signal)) {
-          if (!belongs()) break;
-          send({ ...event, requestId });
-        }
-      }, owner.controller.signal).catch(error => {
+        const validateSettings = async () => {
+          const currentSettings = await readSettings();
+          if (!belongs()) throw new DOMException('翻译请求已取消。', 'AbortError');
+          if (startingEpoch !== epoch || settings.connectionRevision !== currentSettings.connectionRevision
+            || settings.translationEngine !== currentSettings.translationEngine || !currentSettings.enabled
+            || settings.sourceLanguage !== currentSettings.sourceLanguage || settings.targetLanguage !== currentSettings.targetLanguage
+            || settings.includeContext !== currentSettings.includeContext
+            || settings.sentenceAnalysisEnabled !== currentSettings.sentenceAnalysisEnabled) {
+            throw new TranslationFailure('CONFIG', changedError.message);
+          }
+        };
+        const execute = async (signal: AbortSignal) => {
+          await validateSettings();
+          send({ type: 'started', requestId });
+          const events = isDeepL ? deepl.translate(input, signal, validateSettings) : provider.translate(input, signal);
+          for await (const event of events) {
+            if (!belongs()) break;
+            send({ ...event, requestId });
+          }
+        };
+        // DeepL owns its bounded 8-slot queue and rolling start budget. Routing
+        // it through the model queue would serialize complete JSON responses.
+        if (isDeepL) await execute(owner.controller.signal);
+        else await modelQueue.run(context => execute(context.signal), owner.controller.signal);
+      })().catch(error => {
         if (timedOut) fail({ code: 'TIMEOUT', message: '翻译等待超过 90 秒，请稍后重试。', retryable: true });
         else if (!owner.controller.signal.aborted) fail(error instanceof RequestSchedulingFailure && error.kind === 'QUEUE_FULL'
           ? { code: 'RATE_LIMIT', message: '本页等待翻译的任务较多，请稍后重试。', retryable: true }
@@ -206,6 +224,6 @@ export async function installRuntime(options: { onOpenSettings: () => void }): P
   const removeHandlers = registerRuntimeHandlers({ request, connect });
   return () => {
     if (disposed) return; disposed = true;
-    cancelAll(); queue.dispose(); deepl.cancelPreparation(); removeStorageWatch(); removeHandlers();
+    cancelAll(); modelQueue.dispose(); deepl.cancelPreparation(); removeStorageWatch(); removeHandlers();
   };
 }

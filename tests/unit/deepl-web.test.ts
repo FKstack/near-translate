@@ -3,7 +3,7 @@ import { DeepLWebProvider, type DeepLWebTransport } from '../../src/providers/de
 import type { TranslationEvent, TranslationInput } from '../../src/shared/contracts';
 import { DEEPL_WEB_SCHEDULING } from '../../src/shared/translation-policy';
 import { LANGUAGES } from '../../src/shared/languages';
-import { toTranslationError } from '../../src/core/errors';
+import { toTranslationError, TranslationFailure } from '../../src/core/errors';
 
 const input: TranslationInput = { kind: 'text', text: 'This is a public test.' };
 function requestTexts(body: string): string[] { return JSON.parse(body).text; }
@@ -19,15 +19,70 @@ function deferred<T>() {
   const promise = new Promise<T>(done => { resolve = done; });
   return { promise, resolve };
 }
-async function collect(provider: DeepLWebProvider, value = input, signal = new AbortController().signal): Promise<TranslationEvent[]> {
+async function collect(provider: DeepLWebProvider, value = input, signal = new AbortController().signal,
+  beforeRequest?: () => Promise<void>): Promise<TranslationEvent[]> {
   const events: TranslationEvent[] = [];
-  for await (const event of provider.translate(value, signal)) events.push(event);
+  for await (const event of provider.translate(value, signal, beforeRequest)) events.push(event);
   return events;
 }
 function fakeTime() { vi.useFakeTimers(); vi.setSystemTime(1_700_000_000_000); }
 afterEach(() => { vi.useRealTimers(); });
 
 describe('DeepL language snapshots and read-only service status', () => {
+  it('runs a caller guard after its batch obtains a network slot, rejecting stale queued work before transport', async () => {
+    fakeTime();
+    const firstResponse = deferred<Response>();
+    const transport = vi.fn<DeepLWebTransport>().mockImplementationOnce(() => firstResponse.promise);
+    const provider = new DeepLWebProvider(transport, { maxConcurrent: 1, intervalMs: 100 });
+    const active = collect(provider);
+    const guard = vi.fn(async () => { throw new TranslationFailure('CONFIG', 'Configuration changed.'); });
+    const queued = collect(provider, input, new AbortController().signal, guard).catch(error => error);
+    await vi.advanceTimersByTimeAsync(100);
+    expect(guard).not.toHaveBeenCalled();
+    expect(transport).toHaveBeenCalledOnce();
+    firstResponse.resolve(reply(transport.mock.calls[0]![0]));
+    await active; await vi.advanceTimersByTimeAsync(0);
+    expect(await queued).toMatchObject({ code: 'CONFIG' });
+    expect(guard).toHaveBeenCalledOnce();
+    expect(transport).toHaveBeenCalledOnce();
+  });
+
+  it('rechecks the caller guard before every actual batch of a long input', async () => {
+    fakeTime();
+    const transport = vi.fn<DeepLWebTransport>().mockImplementation(async body => reply(body));
+    const provider = new DeepLWebProvider(transport, { intervalMs: 100 });
+    const guard = vi.fn<() => Promise<void>>().mockResolvedValueOnce(undefined)
+      .mockRejectedValueOnce(new TranslationFailure('CONFIG', 'Configuration changed.'));
+    const pending = collect(provider, { kind: 'text', text: 'a'.repeat(1_501) }, new AbortController().signal, guard)
+      .catch(error => error);
+    await vi.advanceTimersByTimeAsync(100);
+    expect(await pending).toMatchObject({ code: 'CONFIG' });
+    expect(guard).toHaveBeenCalledTimes(2);
+    expect(transport).toHaveBeenCalledOnce();
+  });
+
+  it('does not send after a peer 429 cancels its scheduler signal while the caller guard is pending', async () => {
+    fakeTime();
+    const firstResponse = deferred<Response>();
+    const guardRelease = deferred<void>();
+    const transport = vi.fn<DeepLWebTransport>().mockImplementationOnce(() => firstResponse.promise)
+      .mockImplementation(async body => reply(body));
+    const provider = new DeepLWebProvider(transport, { maxConcurrent: 2, intervalMs: 100 });
+    const active = collect(provider).catch(error => error);
+    const owner = new AbortController();
+    const guard = vi.fn(() => guardRelease.promise);
+    const peer = collect(provider, input, owner.signal, guard).catch(error => error);
+    await vi.advanceTimersByTimeAsync(100);
+    expect(guard).toHaveBeenCalledOnce();
+    firstResponse.resolve(new Response('{}', { status: 429 }));
+    await vi.advanceTimersByTimeAsync(0);
+    expect(await active).toMatchObject({ code: 'RATE_LIMIT' });
+    expect(await peer).toMatchObject({ code: 'RATE_LIMIT' });
+    expect(owner.signal.aborted).toBe(false);
+    guardRelease.resolve(); await vi.advanceTimersByTimeAsync(0);
+    expect(transport).toHaveBeenCalledOnce();
+  });
+
   it('reports an unused service as ready without contacting either injected transport', async () => {
     const transport = vi.fn<DeepLWebTransport>();
     const prepareTransport = vi.fn(async () => new Response(null, { status: 204 }));

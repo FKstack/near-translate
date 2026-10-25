@@ -170,7 +170,10 @@ export class PageTranslationSession {
       if (group.status === 'skipped') for (const part of group.parts) if (part.status === 'skipped') part.status = 'queued';
       // A newly observed duplicate must receive the existing cached result as well.
       const item: Item = { segment, key, status: 'queued' };
-      group.items.push(item); this.refreshGroup(group);
+      group.items.push(item);
+      // A sole new item was fully checked above, with no intervening callback
+      // or DOM write. Other group refreshes still validate every owned source.
+      this.refreshGroup(group, group.items.length === 1 ? item : undefined);
     }
     this.reconcileStatus(); this.changed(); this.schedulePump();
   }
@@ -245,28 +248,43 @@ export class PageTranslationSession {
     queueMicrotask(() => { this.pumping = false; if (!this.disposed && this.status === 'running') this.pump(); });
   }
 
-  private takeBatch(): Task[] {
+  private qualifyQueuedGroup(group: Group, current: () => boolean): boolean {
+    for (const item of group.items) {
+      this.skipStale(item);
+      if (!current()) return false;
+    }
+    if (group.items.length && group.items.some(item => item.status !== 'skipped')) return true;
+    for (const part of group.parts) if (part.status === 'queued') part.status = 'skipped';
+    group.status = 'skipped';
+    return false;
+  }
+
+  private takeBatch(current: () => boolean): Task[] {
     const tasks: Task[] = [];
     let characters = 0;
     const candidates: Group[] = [];
     for (const group of this.groups.values()) {
       if (!group.parts.some(part => part.status === 'queued')) continue;
-      for (const item of group.items) this.skipStale(item);
       if (!group.items.length || group.items.every(item => item.status === 'skipped')) {
         for (const part of group.parts) if (part.status === 'queued') part.status = 'skipped';
         group.status = 'skipped'; continue;
       }
       candidates.push(group);
     }
-    // Every fourth batch starts with the oldest waiting group, even during scrolling.
+    const firstVisibleBatch = this.viewportPriority && this.dispatchedBatches === 0
+      // A stale visible source must not reserve an empty soft first batch and
+      // prevent eligible sources farther down the page from being dispatched.
+      && candidates.some(group => current() && this.groupPriority(group).visibleProse
+        && this.qualifyQueuedGroup(group, current) && this.groupPriority(group).visibleProse);
+    if (!current()) return tasks;
+    // Qualification may remove the visible copy of a duplicated passage.
+    // Sort using the surviving source identities, not its former priority.
     if (this.viewportPriority && this.dispatchedBatches % 4 !== 3) {
       candidates.sort((a, b) => {
         const left = this.groupPriority(a); const right = this.groupPriority(b);
         return left.tier - right.tier || left.distance - right.distance;
       });
     }
-    const firstVisibleBatch = this.viewportPriority && this.dispatchedBatches === 0
-      && candidates.some(group => this.groupPriority(group).visibleProse);
     const maxItems = firstVisibleBatch ? this.firstBatchMaxItems : this.batchMaxItems;
     const targetChars = firstVisibleBatch ? this.firstBatchTargetChars : this.batchTargetChars;
     // Compact only a small tail of whole queued paragraphs. Keep the priority/FIFO
@@ -280,7 +298,10 @@ export class PageTranslationSession {
       candidates.splice(1, fillers.length, ...fillers);
     }
     for (const group of candidates) {
-      if (firstVisibleBatch && !this.groupPriority(group).visibleProse) break;
+      if (!current()) return tasks;
+      if (!group.parts.some(part => part.status === 'queued')) continue;
+      if (firstVisibleBatch && !this.groupPriority(group).visibleProse) continue;
+      let qualified = false;
       for (const part of group.parts) {
         if (part.status !== 'queued') continue;
         const size = part.text.length + (tasks.length ? this.batchSeparatorChars : 0);
@@ -290,9 +311,18 @@ export class PageTranslationSession {
           if (this.packing === 'fill' && !firstVisibleBatch) break;
           return tasks;
         }
+        // Check complete source eligibility only when this group can actually
+        // enter the batch. Unselected sources are checked on their own turn.
+        if (!qualified) {
+          if (!this.qualifyQueuedGroup(group, current)) break;
+          if (firstVisibleBatch && !this.groupPriority(group).visibleProse) break;
+          qualified = true;
+        }
+        if (!current()) return tasks;
         tasks.push({ group, part }); characters += size; part.status = 'loading';
       }
     }
+    if (!tasks.length && firstVisibleBatch && current()) this.schedulePump();
     return tasks;
   }
 
@@ -306,17 +336,55 @@ export class PageTranslationSession {
   }
 
   private pump(): void {
+    const generation = this.generation;
+    const current = () => !this.disposed && this.status === 'running' && this.generation === generation;
     for (const worker of this.workers.slice(0, this.concurrency)) {
+      if (!current()) return;
       if (worker.active) continue;
-      const tasks = this.takeBatch();
+      const tasks = this.takeBatch(current);
+      if (!current()) return;
       if (!tasks.length) break;
+      for (const group of new Set(tasks.map(task => task.group))) {
+        this.refreshGroup(group);
+        if (!current()) return;
+      }
+      const selected = this.validateDispatch(tasks, current);
+      if (!current()) return;
+      if (!selected.length) { this.schedulePump(); continue; }
+      const pageSegments = selected.map(task => task.part.text);
       this.dispatchedBatches++;
-      for (const group of new Set(tasks.map(task => task.group))) this.refreshGroup(group);
-      const pageSegments = tasks.map(task => task.part.text);
-      worker.active = { tasks, generation: this.generation,
-        requestId: worker.client.start({ text: pageSegments.join('\n'), kind: 'text', pageSegments }) };
+      const requestId = worker.client.start({ text: pageSegments.join('\n'), kind: 'text', pageSegments });
+      if (!current()) { worker.client.cancel(); return; }
+      worker.active = { tasks: selected, generation, requestId };
     }
     this.reconcileStatus(); this.changed();
+  }
+
+  /** Loading/stopped callbacks can synchronously edit another selected source. */
+  private validateDispatch(tasks: Task[], current: () => boolean): Task[] {
+    const groups = new Set(tasks.map(task => task.group));
+    for (;;) {
+      if (!current()) return [];
+      const stale: Item[] = [];
+      for (const group of groups) for (const item of group.items) {
+        if (item.status !== 'skipped' && !this.current(item.segment)) stale.push(item);
+      }
+      if (!current()) return [];
+      if (!stale.length) break;
+      // Each cleanup permanently removes an item from this dispatch. Recheck
+      // only selected groups after callbacks, so this converges without a
+      // whole-queue scan or allowing an earlier source to become stale unnoticed.
+      for (const item of stale) {
+        this.markStale(item);
+        if (!current()) return [];
+      }
+    }
+    return tasks.filter(task => {
+      if (task.group.items.some(item => item.status !== 'skipped')) return true;
+      if (task.part.status === 'loading') task.part.status = 'skipped';
+      task.group.status = 'skipped';
+      return false;
+    });
   }
 
   private receive(worker: Worker, event: TranslationServerMessage): void {
@@ -367,7 +435,7 @@ export class PageTranslationSession {
     }
   }
 
-  private refreshGroup(group: Group): void {
+  private refreshGroup(group: Group, knownCurrent?: Item): void {
     if (!group.items.length) { group.status = 'skipped'; return; }
     const previousStatus = group.status;
     const failed = group.parts.find(part => part.status === 'error');
@@ -380,7 +448,7 @@ export class PageTranslationSession {
       this.rememberTranslation(group.text, group.parts.map(part => part.translation!).join('\n\n'));
     }
     for (const item of group.items) {
-      if (this.skipStale(item)) continue;
+      if (item !== knownCurrent && this.skipStale(item)) continue;
       const previous = item.status; item.status = group.status;
       if (group.status === 'done' && previous !== 'done') this.callbacks.onSegment(item.segment, { status: 'done', text: group.parts.map(part => part.translation!).join('\n\n') });
       else if (group.status === 'error' && group.error && previous !== 'error') this.callbacks.onSegment(item.segment, { status: 'error', error: group.error });
@@ -400,7 +468,12 @@ export class PageTranslationSession {
   private skipStale(item: Item): boolean {
     if (item.status === 'skipped') return true;
     if (this.current(item.segment)) return false;
-    item.status = 'skipped'; this.callbacks.onSegment(item.segment, { status: 'stopped' }); return true;
+    this.markStale(item); return true;
+  }
+
+  private markStale(item: Item): void {
+    if (item.status === 'skipped') return;
+    item.status = 'skipped'; this.callbacks.onSegment(item.segment, { status: 'stopped' });
   }
 
   private pruneStale(): void {

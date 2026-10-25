@@ -26,7 +26,7 @@ function streamBytes(value: unknown): Uint8Array | undefined {
 
 /** A provider-bound adapter: the caller cannot supply arbitrary network destinations. */
 export function createGMFetch(endpoint: string, beforeRequest?: () => Promise<void>,
-  options: { responseType?: 'stream' | 'text' } = {}): typeof fetch {
+  options: { responseType?: 'stream' | 'text'; onSettled?: () => void } = {}): typeof fetch {
   const responseType = options.responseType ?? 'stream';
   return (async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
     try { requireSafeUserscriptNetwork(); }
@@ -53,6 +53,7 @@ export function createGMFetch(endpoint: string, beforeRequest?: () => Promise<vo
       let responseOpened = false;
       let finished = false;
       let streaming = false;
+      let settlementNotified = false;
       let cursor = 0;
       let bytes = 0;
       let streamController!: ReadableStreamDefaultController<Uint8Array>;
@@ -68,6 +69,11 @@ export function createGMFetch(endpoint: string, beforeRequest?: () => Promise<vo
         clearTimeout(timeout);
         signal?.removeEventListener('abort', onAbort);
       };
+      const notifySettled = () => {
+        if (settlementNotified) return;
+        settlementNotified = true;
+        try { options.onSettled?.(); } catch { /* An internal owner hook never changes the response. */ }
+      };
       const fail = (error: unknown) => {
         if (finished) return; finished = true; cleanup();
         reject(error);
@@ -75,12 +81,14 @@ export function createGMFetch(endpoint: string, beforeRequest?: () => Promise<vo
         if (reader) void reader.cancel().catch(() => {});
         else void managerStream?.cancel().catch(() => {});
         try { request?.abort(); } catch { /* A closed GM request needs no further cleanup. */ }
+        notifySettled();
       };
       const onAbort = () => fail(signal?.reason ?? aborted());
       const timeout = setTimeout(() => fail(new TranslationFailure('TIMEOUT', '翻译服务响应超时，请重试。', true)), REQUEST_TIMEOUT_MS);
       const close = () => {
         if (finished) return; finished = true; cleanup();
         try { streamController.close(); } catch { /* Cancelled response. */ }
+        notifySettled();
       };
       const push = (chunk: Uint8Array) => {
         if (finished || !chunk.byteLength) return;
@@ -145,9 +153,8 @@ export function createGMFetch(endpoint: string, beforeRequest?: () => Promise<vo
       try {
         request = GM_xmlhttpRequest({ method: 'POST', url: endpoint, headers, data: init.body as string,
           responseType, anonymous: true, redirect: 'error', timeout: REQUEST_TIMEOUT_MS, nocache: true,
-          onloadstart: receive,
+          ...(responseType === 'stream' ? { onloadstart: receive, onprogress: receive } : {}),
           onreadystatechange(response) { if ((response.readyState ?? 0) >= 2) receive(response); },
-          onprogress: receive,
           onload(response) {
             receive(response, true);
             if (!responseOpened) fail(networkFailure());

@@ -5,6 +5,9 @@ import { snapshotViewportPriorities } from '../../src/page/viewport';
 const prose = 'This paragraph contains enough original English words to explain the design and its useful behavior in a normal article.';
 type Box = { left: number; top: number; right: number; bottom: number; width: number; height: number };
 const box = (left = 10, top = 20, width = 500, height = 30): Box => ({ left, top, width, height, right: left + width, bottom: top + height });
+const hiddenStyles: Record<string, string>[] = [
+  { display: 'none' }, { visibility: 'hidden' }, { visibility: 'collapse' }, { opacity: '0' },
+];
 
 function fixture() {
   const rects = new Map<Text, Box[]>();
@@ -13,9 +16,9 @@ function fixture() {
   let selected: Text;
   const detach = vi.fn();
   const doc = { visibilityState: 'visible', documentElement: { clientWidth: 800, clientHeight: 600 },
-    defaultView: { innerWidth: 800, innerHeight: 600, getComputedStyle: (element: object) => ({
+    defaultView: { innerWidth: 800, innerHeight: 600, getComputedStyle: vi.fn((element: object) => ({
       display: 'block', visibility: 'visible', opacity: '1', ...styles.get(element),
-    }) },
+    })) },
     createRange: () => ({
       setStart: (node: Text, offset: number) => { expect(offset).toBe(0); selected = node; measured.push(node); },
       setEnd: (node: Text, offset: number) => { expect(node).toBe(selected); expect(offset).toBe(node.data.length); },
@@ -42,6 +45,92 @@ function fixture() {
 }
 
 describe('original-source viewport snapshots', () => {
+  it('reads each shared ancestor once across 251 paragraphs and their original text ranges', () => {
+    const f = fixture();
+    const html = f.element('HTML');
+    const body = f.element('BODY', html);
+    const article = f.element('ARTICLE', body);
+    const passages = Array.from({ length: 251 }, () => {
+      const paragraph = f.segment(prose, [box()], f.element('P', article));
+      const additional = f.segment(' Additional original English text.', [box()], paragraph.container);
+      paragraph.nodes.push(additional.nodes[0]!); paragraph.text += additional.text;
+      return paragraph;
+    });
+    const snapshot = snapshotViewportPriorities(passages);
+    expect([...snapshot.values()].every(value => value.visibleProse && value.tier === 0 && value.distance === 0)).toBe(true);
+    expect(f.doc.defaultView.getComputedStyle).toHaveBeenCalledTimes(254);
+    expect(new Set(f.doc.defaultView.getComputedStyle.mock.calls.map(([element]) => element)).size).toBe(254);
+    expect(f.measured).toHaveLength(502);
+    expect(f.detach).toHaveBeenCalledTimes(502);
+  });
+
+  it.each(hiddenStyles)('shares hidden-ancestor results without hiding a visible sibling branch (%j)', style => {
+    const f = fixture();
+    const article = f.element('ARTICLE');
+    const hiddenParent = f.element('DIV', article);
+    f.styles.set(hiddenParent, style);
+    const visible = f.segment(prose, [box()], f.element('P', article));
+    const hidden = [f.segment(prose, [box()], f.element('P', hiddenParent)),
+      f.segment(prose, [box()], f.element('P', hiddenParent))];
+    const sibling = f.segment(prose, [box()], f.element('P', article));
+    const snapshot = snapshotViewportPriorities([visible, ...hidden, sibling]);
+    expect(snapshot.get(visible)?.visibleProse).toBe(true);
+    expect(snapshot.get(sibling)?.visibleProse).toBe(true);
+    expect(hidden.every(segment => snapshot.get(segment)?.tier === 4)).toBe(true);
+    expect(f.measured).toEqual([visible.nodes[0], sibling.nodes[0]]);
+    expect(f.doc.defaultView.getComputedStyle.mock.calls.filter(([element]) => element === hiddenParent)).toHaveLength(1);
+  });
+
+  it('keeps hidden child elements and aria-hidden text parents separate from cached visible ancestors', () => {
+    const f = fixture();
+    const article = f.element('ARTICLE');
+    const visible = f.segment(prose, [box()], f.element('P', article));
+    const hidden = f.segment(prose, [box()], f.element('P', article));
+    hidden.container.hidden = true;
+    const hiddenText = f.segment(prose, [box()], f.element('P', article));
+    const parent = f.element('SPAN', hiddenText.container);
+    Object.assign(parent, { getAttribute: (name: string) => name === 'aria-hidden' ? 'true' : null });
+    Object.assign(hiddenText.nodes[0]!, { parentElement: parent });
+    const sibling = f.segment(prose, [box()], f.element('P', article));
+    const snapshot = snapshotViewportPriorities([visible, hidden, hiddenText, sibling]);
+    expect(snapshot.get(hidden)?.tier).toBe(4);
+    expect(snapshot.get(hiddenText)?.tier).toBe(4);
+    expect(snapshot.get(visible)?.visibleProse).toBe(true);
+    expect(snapshot.get(sibling)?.visibleProse).toBe(true);
+    expect(f.measured).toEqual([visible.nodes[0], sibling.nodes[0]]);
+  });
+
+  it('rechecks style changes in each later snapshot instead of retaining visible or hidden results', () => {
+    const f = fixture();
+    const ancestor = f.element('ARTICLE');
+    const paragraph = f.segment(prose, [box()], f.element('P', ancestor));
+    expect(snapshotViewportPriorities([paragraph]).get(paragraph)?.visibleProse).toBe(true);
+    expect(f.doc.defaultView.getComputedStyle).toHaveBeenCalledTimes(2);
+    f.styles.set(ancestor, { opacity: '0' });
+    expect(snapshotViewportPriorities([paragraph]).get(paragraph)?.tier).toBe(4);
+    expect(f.doc.defaultView.getComputedStyle).toHaveBeenCalledTimes(4);
+    f.styles.set(ancestor, { opacity: '1' });
+    expect(snapshotViewportPriorities([paragraph]).get(paragraph)?.visibleProse).toBe(true);
+    expect(f.doc.defaultView.getComputedStyle).toHaveBeenCalledTimes(6);
+  });
+
+  it('uses each source document window and keeps their independent visibility results', () => {
+    const first = fixture();
+    const second = fixture();
+    const firstAncestor = first.element('ARTICLE');
+    const secondAncestor = second.element('ARTICLE');
+    const firstParagraph = first.segment(prose, [box()], first.element('P', firstAncestor));
+    const secondParagraph = second.segment(prose, [box()], second.element('P', secondAncestor));
+    second.styles.set(secondAncestor, { opacity: '0' });
+    const snapshot = snapshotViewportPriorities([firstParagraph, secondParagraph]);
+    expect(snapshot.get(firstParagraph)?.visibleProse).toBe(true);
+    expect(snapshot.get(secondParagraph)?.tier).toBe(4);
+    expect(first.doc.defaultView.getComputedStyle.mock.calls.every(([element]) =>
+      (element as HTMLElement).ownerDocument === (first.doc as unknown as Document))).toBe(true);
+    expect(second.doc.defaultView.getComputedStyle.mock.calls.every(([element]) =>
+      (element as HTMLElement).ownerDocument === (second.doc as unknown as Document))).toBe(true);
+  });
+
   it('prioritizes visible prose over headings and short brand names without excluding either source', () => {
     const f = fixture();
     const paragraph = f.segment();

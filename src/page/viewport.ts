@@ -17,13 +17,21 @@ function isProse(segment: PageSegment): boolean {
   return linked < segment.text.length * 0.6;
 }
 
-function hidden(element: HTMLElement, view: Window): boolean {
+function hidden(element: HTMLElement, view: Window, visibility: WeakMap<HTMLElement, boolean>): boolean {
+  const path: HTMLElement[] = [];
+  let result = false;
   for (let current: HTMLElement | null = element; current; current = current.parentElement) {
-    if (current.hidden || current.getAttribute('aria-hidden') === 'true') return true;
+    const cached = visibility.get(current);
+    if (cached !== undefined) { result = cached; break; }
+    path.push(current);
+    if (current.hidden || current.getAttribute('aria-hidden') === 'true') { result = true; break; }
     const style = view.getComputedStyle(current);
-    if (style.display === 'none' || style.visibility === 'hidden' || style.visibility === 'collapse' || style.opacity === '0') return true;
+    if (style.display === 'none' || style.visibility === 'hidden' || style.visibility === 'collapse' || style.opacity === '0') {
+      result = true; break;
+    }
   }
-  return false;
+  for (const current of path) visibility.set(current, result);
+  return result;
 }
 
 /**
@@ -32,10 +40,13 @@ function hidden(element: HTMLElement, view: Window): boolean {
  */
 export function snapshotViewportPriorities(segments: readonly PageSegment[]): ReadonlyMap<PageSegment, PageViewportPriority> {
   const priorities = new Map<PageSegment, PageViewportPriority>();
+  // Shared ancestors are read once during this synchronous snapshot. Discard
+  // every result before the next call so website style changes remain visible.
+  const visibility = new WeakMap<HTMLElement, boolean>();
   for (const segment of segments) {
     const doc = segment.container.ownerDocument;
     const view = doc?.defaultView;
-    if (!view || doc.visibilityState === 'hidden' || !segment.container.isConnected || hidden(segment.container, view)) {
+    if (!view || doc.visibilityState === 'hidden' || !segment.container.isConnected || hidden(segment.container, view, visibility)) {
       priorities.set(segment, UNAVAILABLE); continue;
     }
     const width = view.innerWidth || doc.documentElement.clientWidth;
@@ -43,7 +54,7 @@ export function snapshotViewportPriorities(segments: readonly PageSegment[]): Re
     let distance = Infinity;
     let visible = false;
     for (const node of segment.nodes) {
-      if (!node.isConnected || !node.data.length || !node.parentElement || hidden(node.parentElement, view)) continue;
+      if (!node.isConnected || !node.data.length || !node.parentElement || hidden(node.parentElement, view, visibility)) continue;
       const range = doc.createRange();
       try {
         range.setStart(node, 0); range.setEnd(node, node.data.length);

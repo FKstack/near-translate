@@ -9,17 +9,18 @@ vi.mock('../../src/page/segments', async importOriginal => ({ ...await importOri
 vi.mock('../../src/page/viewport', () => ({ snapshotViewportPriorities: deps.viewport }));
 import { PageBenchmarkProbe, PUBLIC_GO_URL, summarizeSources, translationHostForSegment } from '../../scripts/benchmarks/page-probe';
 
-function fixture() {
+function fixture(options: { url?: string; expectedUrl?: string } = {}) {
   let now = 0; let foreground = true; let frameId = 0;
   const frames = new Map<number, FrameRequestCallback>();
   const listeners = new Map<string, EventListener>();
+  const observerCallbacks: MutationCallback[] = [];
   const hosts: HTMLElement[] = [];
   const selection = { toString: () => 'existing selection', removeAllRanges: vi.fn() };
   const aside = { dataset: { status: 'idle', total: '0', completed: '0', failed: '0', pending: '0' } };
   const button = { click: vi.fn(() => Object.assign(aside.dataset, { status: 'running', total: '2', pending: '2' })) };
   const bar = { querySelector: (selector: string) => selector === '[data-status]' ? aside
     : selector === '[role="status"]' ? { textContent: 'numeric test state' } : button };
-  const view = { location: { href: PUBLIC_GO_URL }, performance: { timeOrigin: 1000, now: () => now },
+  const view = { location: { href: options.url ?? PUBLIC_GO_URL }, performance: { timeOrigin: 1000, now: () => now },
     crypto: webcrypto, getSelection: () => selection,
     requestAnimationFrame: vi.fn((callback: FrameRequestCallback) => { frames.set(++frameId, callback); return frameId; }),
     cancelAnimationFrame: vi.fn((id: number) => frames.delete(id)),
@@ -27,7 +28,7 @@ function fixture() {
     removeEventListener: (name: string) => listeners.delete(name),
   };
   const doc = { defaultView: view, body: {}, visibilityState: 'visible', hasFocus: () => foreground,
-    querySelector: () => ({ shadowRoot: bar }), querySelectorAll: () => hosts.filter(h => h.dataset.state === 'done'),
+    querySelector: vi.fn(() => ({ shadowRoot: bar })), querySelectorAll: () => hosts.filter(h => h.dataset.state === 'done'),
     addEventListener: (name: string, handler: EventListener) => listeners.set(name, handler),
     removeEventListener: (name: string) => listeners.delete(name),
   } as unknown as Document;
@@ -40,15 +41,18 @@ function fixture() {
     [title, { tier: 1, distance: 0, visibleProse: false }], [prose, { tier: 0, distance: 0, visibleProse: true }],
   ]);
   deps.collect.mockReturnValue(segments); deps.root.mockReturnValue({ tagName: 'ARTICLE' }); deps.viewport.mockReturnValue(priorities);
-  vi.stubGlobal('MutationObserver', class { observe = vi.fn(); disconnect = vi.fn(); });
+  vi.stubGlobal('MutationObserver', class {
+    constructor(callback: MutationCallback) { observerCallbacks.push(callback); }
+    observe = vi.fn(); disconnect = vi.fn();
+  });
   const complete = (segment: PageSegment, text: string) => {
     const host = { nodeType: 1, tagName: 'NEAR-PAGE-TRANSLATION', hasAttribute: () => true, isConnected: true,
       dataset: { state: 'done' }, shadowRoot: { querySelector: () => ({ textContent: text }) } } as unknown as HTMLElement;
     Object.assign(segment.anchor, { nextSibling: host }); hosts.push(host);
     return host;
   };
-  const probe = new PageBenchmarkProbe(doc);
-  return { probe, doc, view, aside, title, prose, segments, priorities, frames, listeners, selection, complete,
+  const probe = new PageBenchmarkProbe(doc, options.expectedUrl);
+  return { probe, doc, view, aside, button, title, prose, segments, priorities, frames, listeners, observerCallbacks, selection, complete,
     setNow: (value: number) => { now = value; }, setFocused: (value: boolean) => { foreground = value; } };
 }
 
@@ -115,5 +119,53 @@ describe('installed page probe source identity and milestones', () => {
     f.setFocused(true); f.view.location.href = 'https://private.invalid/';
     expect(() => f.probe.readiness()).toThrow(/exact public Go URL/);
     f.probe.cleanup();
+  });
+
+  it.each(['https://blog.rust-lang.org/2025/03/18/Rust-1.85.1/?benchmark=short#article',
+    'http://articles.example/story?edition=1#body'])
+  ('requires explicit binding and retains production source and timing semantics for %s', async url => {
+    expect(() => fixture({ url })).toThrow(/exact public Go URL/);
+    const f = fixture({ url, expectedUrl: url });
+    expect(f.probe.readiness()).toMatchObject({ toolbarReady: true, canStart: true });
+    expect(f.probe.prepare()).toMatchObject({ sourceSegments: 2, sourceChars: f.title.text.length + f.prose.text.length,
+      uniqueSourceTexts: 2, viewportTargets: 1, initialViewportSourceIds: [1] });
+    expect(deps.collect).toHaveBeenCalledExactlyOnceWith({ tagName: 'ARTICLE' });
+    expect(deps.viewport).toHaveBeenCalledExactlyOnceWith(f.segments);
+    f.probe.start();
+    f.setNow(12); f.complete(f.prose, '指定文章的正文译文。');
+    expect(await f.probe.snapshot()).toMatchObject({ firstVisibleProseDomReadyMs: 12, renderedSegments: 1, fullDoneMs: null });
+    f.setNow(24); f.complete(f.title, '标题译文');
+    Object.assign(f.aside.dataset, { status: 'done', completed: '2', pending: '0' });
+    expect(await f.probe.snapshot()).toMatchObject({ fullDoneMs: 24, renderedSegments: 2, sourceChanged: false,
+      mappingConflicts: 0, unexpectedTranslations: 0 });
+    f.probe.cleanup();
+  });
+
+  it.each(['file:///article.html', 'data:text/html,article', 'javascript:void(0)', 'chrome-extension://test/article.html',
+    '/relative-article', 'not a URL'])('rejects an unsupported explicit URL before observing a document: %s', expectedUrl => {
+    const f = fixture();
+    expect(() => new PageBenchmarkProbe(f.doc, expectedUrl)).toThrow(/absolute HTTP\(S\)/);
+    f.probe.cleanup();
+  });
+
+  it.each(['https://articles.example/other', 'https://articles.example/story?edition=2#body',
+    'https://articles.example/story?edition=1#other', 'http://articles.example/story?edition=1#body'])
+  ('rejects every subsequent operation after navigation away from its exact bound href: %s', async destination => {
+    const url = 'https://articles.example/story?edition=1#body';
+    const f = fixture({ url, expectedUrl: url });
+    f.probe.prepare(); f.probe.start();
+    expect(f.button.click).toHaveBeenCalledOnce();
+    const queriesBeforeNavigation = vi.mocked(f.doc.querySelector).mock.calls.length;
+    f.view.location.href = destination;
+    f.observerCallbacks.forEach(callback => callback([], {} as MutationObserver));
+    for (const action of [() => f.probe.readiness(), () => f.probe.prepare(), () => f.probe.start(),
+      () => f.probe.restore(), () => f.probe.restored(), () => f.probe.stop()]) {
+      expect(action).toThrow(/exact authorized page URL/);
+    }
+    await expect(f.probe.snapshot()).rejects.toThrow(/exact authorized page URL/);
+    expect(f.doc.querySelector).toHaveBeenCalledTimes(queriesBeforeNavigation);
+    expect(f.button.click).toHaveBeenCalledOnce();
+    f.probe.cleanup();
+    expect(f.listeners.size).toBe(0);
   });
 });

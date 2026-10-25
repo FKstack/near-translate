@@ -1,0 +1,291 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-25",
+  "scope": "Real Tampermonkey 5.4.1 in an isolated Chrome-for-Testing 156 profile; fixed localhost JSON. No mocked GM API, user profiles, credentials, or remote translation responses.",
+  "installedReproduction": {
+    "scriptVersion": "0.11.9",
+    "url": "https://go.dev/talks/2012/splash.article",
+    "completed": 0,
+    "total": 251,
+    "outcome": "Translation client timed out after 90 seconds"
+  },
+  "before": {
+    "trace": [
+      {
+        "kind": "manager",
+        "elapsed": 2724,
+        "version": "5.4.1"
+      },
+      {
+        "kind": "stream:start",
+        "elapsed": 2840,
+        "status": 0,
+        "readyState": 1,
+        "response": "stream",
+        "responseTextType": "undefined"
+      },
+      {
+        "kind": "stream:read-start",
+        "elapsed": 2840
+      },
+      {
+        "kind": "stream:state",
+        "elapsed": 2855,
+        "status": 200,
+        "readyState": 2,
+        "response": "stream",
+        "responseTextType": "undefined"
+      },
+      {
+        "kind": "stream:read",
+        "elapsed": 2857,
+        "done": false,
+        "shape": "byte-view",
+        "bytes": 66
+      },
+      {
+        "kind": "stream:read-start",
+        "elapsed": 2857
+      },
+      {
+        "kind": "stream:state",
+        "elapsed": 2860,
+        "status": 200,
+        "readyState": 4,
+        "response": "stream",
+        "responseTextType": "undefined"
+      },
+      {
+        "kind": "stream:load",
+        "elapsed": 2860,
+        "status": 200,
+        "readyState": 4,
+        "response": "stream",
+        "responseTextType": "undefined"
+      },
+      {
+        "kind": "stream:end",
+        "elapsed": 2860,
+        "status": 200,
+        "readyState": 4,
+        "response": "stream",
+        "responseTextType": "undefined"
+      },
+      {
+        "kind": "stream:deadline",
+        "elapsed": 7726
+      },
+      {
+        "kind": "text:start",
+        "elapsed": 7839,
+        "status": 0,
+        "readyState": 1,
+        "response": "undefined",
+        "responseTextType": "undefined"
+      },
+      {
+        "kind": "text:state",
+        "elapsed": 7851,
+        "status": 200,
+        "readyState": 2,
+        "response": "undefined",
+        "responseTextType": "undefined"
+      },
+      {
+        "kind": "text:progress",
+        "elapsed": 7851,
+        "status": 200,
+        "readyState": 3,
+        "response": "undefined",
+        "responseTextType": "undefined"
+      },
+      {
+        "kind": "text:state",
+        "elapsed": 7852,
+        "status": 200,
+        "readyState": 4,
+        "response": "string",
+        "responseTextType": "string"
+      },
+      {
+        "kind": "text:load",
+        "elapsed": 7852,
+        "status": 200,
+        "readyState": 4,
+        "response": "string",
+        "responseTextType": "string"
+      },
+      {
+        "kind": "adapter:start",
+        "elapsed": 7852
+      },
+      {
+        "kind": "text:end",
+        "elapsed": 7854,
+        "status": 200,
+        "readyState": 4,
+        "response": "string",
+        "responseTextType": "string"
+      },
+      {
+        "kind": "adapter:headers",
+        "elapsed": 7979,
+        "status": 200
+      },
+      {
+        "kind": "adapter:failure",
+        "elapsed": 12854,
+        "name": "TypeError"
+      },
+      {
+        "kind": "complete",
+        "elapsed": 12854
+      }
+    ],
+    "calls": 3,
+    "externalAllowed": false,
+    "browser": "156.0.8078.4",
+    "tmVersion": "5.4.1",
+    "packagePageSha256": "1bcb0b697c71be07e026e07c54a50d8fae29ac76b7d8cf300453d4203fc34128"
+  },
+  "after": {
+    "trace": [
+      {
+        "kind": "manager",
+        "elapsed": 19555,
+        "version": "5.4.1"
+      },
+      {
+        "kind": "stream:start",
+        "elapsed": 19673,
+        "status": 0,
+        "readyState": 1,
+        "response": "stream",
+        "responseTextType": "undefined"
+      },
+      {
+        "kind": "stream:read-start",
+        "elapsed": 19673
+      },
+      {
+        "kind": "stream:state",
+        "elapsed": 19688,
+        "status": 200,
+        "readyState": 2,
+        "response": "stream",
+        "responseTextType": "undefined"
+      },
+      {
+        "kind": "stream:read",
+        "elapsed": 19690,
+        "done": false,
+        "shape": "byte-view",
+        "bytes": 66
+      },
+      {
+        "kind": "stream:read-start",
+        "elapsed": 19690
+      },
+      {
+        "kind": "stream:state",
+        "elapsed": 19694,
+        "status": 200,
+        "readyState": 4,
+        "response": "stream",
+        "responseTextType": "undefined"
+      },
+      {
+        "kind": "stream:load",
+        "elapsed": 19694,
+        "status": 200,
+        "readyState": 4,
+        "response": "stream",
+        "responseTextType": "undefined"
+      },
+      {
+        "kind": "stream:end",
+        "elapsed": 19694,
+        "status": 200,
+        "readyState": 4,
+        "response": "stream",
+        "responseTextType": "undefined"
+      },
+      {
+        "kind": "stream:deadline",
+        "elapsed": 24556
+      },
+      {
+        "kind": "text:start",
+        "elapsed": 24672,
+        "status": 0,
+        "readyState": 1,
+        "response": "undefined",
+        "responseTextType": "undefined"
+      },
+      {
+        "kind": "text:state",
+        "elapsed": 24684,
+        "status": 200,
+        "readyState": 2,
+        "response": "undefined",
+        "responseTextType": "undefined"
+      },
+      {
+        "kind": "text:progress",
+        "elapsed": 24685,
+        "status": 200,
+        "readyState": 3,
+        "response": "undefined",
+        "responseTextType": "undefined"
+      },
+      {
+        "kind": "text:state",
+        "elapsed": 24686,
+        "status": 200,
+        "readyState": 4,
+        "response": "string",
+        "responseTextType": "string"
+      },
+      {
+        "kind": "text:load",
+        "elapsed": 24686,
+        "status": 200,
+        "readyState": 4,
+        "response": "string",
+        "responseTextType": "string"
+      },
+      {
+        "kind": "adapter:start",
+        "elapsed": 24687
+      },
+      {
+        "kind": "text:end",
+        "elapsed": 24688,
+        "status": 200,
+        "readyState": 4,
+        "response": "string",
+        "responseTextType": "string"
+      },
+      {
+        "kind": "adapter:headers",
+        "elapsed": 24813,
+        "status": 200
+      },
+      {
+        "kind": "adapter:body",
+        "elapsed": 24816,
+        "length": 42,
+        "validJson": true
+      },
+      {
+        "kind": "complete",
+        "elapsed": 24816
+      }
+    ],
+    "calls": 6,
+    "externalAllowed": false,
+    "tmVersion": "5.4.1",
+    "browser": "156.0.8078.4"
+  },
+  "finding": "Manager response stream delivered HTTP 200 and all JSON bytes plus load/end callbacks, but its next read did not return done. DeepL complete JSON text mode finishes without waiting for stream EOF. Model SSE retains stream mode."
+}

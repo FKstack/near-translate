@@ -15,7 +15,7 @@ export interface GMRequest {
   url: string;
   headers: Record<string, string>;
   data: string;
-  responseType: 'stream';
+  responseType: 'stream' | 'text';
   anonymous: true;
   redirect: 'error';
   timeout: number;

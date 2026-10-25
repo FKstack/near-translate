@@ -64,7 +64,7 @@ test('whole-page translation uses the GM transport and restores the original mar
   const requests = await state.evaluate(state => state.requests);
   expect(requests.length).toBeGreaterThan(0);
   for (const request of requests) {
-    expect(request).toMatchObject({ anonymous: true, body: { target_lang: 'zh-Hans' } });
+    expect(request).toMatchObject({ anonymous: true, responseType: 'text', body: { target_lang: 'zh-Hans' } });
     expect(request.body.text.join('\n')).not.toMatch(/Do not translate|must not leave|已有中文/);
   }
   await page.getByRole('button', { name: '恢复原文', exact: true }).click();

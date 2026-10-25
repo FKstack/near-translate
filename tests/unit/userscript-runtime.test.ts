@@ -92,7 +92,7 @@ describe('userscript sandbox storage and runtime', () => {
     const client = new TranslationClient(event => events.push(event));
     client.start({ kind: 'text', text: 'Hello\n\nWorld', pageSegments: ['Hello', 'World'] });
     await until(() => requests.length === 1);
-    expect(requests[0]!.details).toMatchObject({ url: DEEPL, anonymous: true, redirect: 'error', method: 'POST' });
+    expect(requests[0]!.details).toMatchObject({ url: DEEPL, anonymous: true, redirect: 'error', method: 'POST', responseType: 'text' });
     expect(JSON.parse(requests[0]!.details.data).text).toEqual(['Hello', 'World']);
     respond(0, { translations: [{ text: '你好' }, { text: '世界' }] });
     await until(() => events.some(event => event.type === 'result'));
@@ -114,6 +114,7 @@ describe('userscript sandbox storage and runtime', () => {
     client.start({ kind: 'text', text: 'Hello there.' });
     await until(() => requests.length === 1);
     expect(requests[0]!.details.url).toBe('https://api.deepseek.com/chat/completions');
+    expect(requests[0]!.details.responseType).toBe('stream');
     expect(requests[0]!.details.headers.authorization).toBe(`Bearer ${KEY}`);
     let controller!: ReadableStreamDefaultController<Uint8Array>;
     const stream = new ReadableStream<Uint8Array>({ start(value) { controller = value; } });

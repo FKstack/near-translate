@@ -14,8 +14,8 @@ function observed<T>(promise: Promise<T>): Promise<T> {
   void promise.catch(() => undefined);
   return promise;
 }
-function request(init: Partial<RequestInit> = {}, beforeRequest?: () => Promise<void>) {
-  return observed(createGMFetch(ENDPOINT, beforeRequest)(ENDPOINT, {
+function request(init: Partial<RequestInit> = {}, beforeRequest?: () => Promise<void>, responseType: 'stream' | 'text' = 'stream') {
+  return observed(createGMFetch(ENDPOINT, beforeRequest, { responseType })(ENDPOINT, {
     method: 'POST', body: JSON.stringify({ input: SOURCE }), credentials: 'omit', redirect: 'error',
     headers: { Authorization: `Bearer ${KEY}`, 'Content-Type': 'application/json' }, ...init,
   }));
@@ -56,6 +56,23 @@ afterEach(async () => {
 });
 
 describe('Tampermonkey response and request boundaries', () => {
+  it('reads complete JSON from text onload without waiting for a manager stream EOF', async () => {
+    const pending = request({}, undefined, 'text');
+    const source = stream();
+    const getReader = vi.spyOn(source.body, 'getReader');
+    expect(requests[0]!.details.responseType).toBe('text');
+    requests[0]!.details.onloadstart(response({ status: 0, readyState: 1, response: source.body }));
+    requests[0]!.details.onreadystatechange(response({ readyState: 2 }));
+    const text = observed((await pending).text());
+    requests[0]!.details.onprogress(response({ readyState: 3, responseText: 'discard this partial text' }));
+    const payload = JSON.stringify({ translations: [{ text: '图书馆每天早上九点开放。' }] });
+    requests[0]!.details.onload(response({ responseText: payload }));
+    await expect(text).resolves.toBe(payload);
+    expect(getReader).not.toHaveBeenCalled();
+    expect(requests[0]!.abort).not.toHaveBeenCalled();
+    source.controller.close();
+  });
+
   it('reads cross-realm Uint8Array chunks and preserves UTF-8 characters split between chunks', async () => {
     const pending = request();
     const source = stream();

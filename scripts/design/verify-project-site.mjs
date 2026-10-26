@@ -114,10 +114,46 @@ try {
       }
     }
 
+    record(`${width}px hero installation CTA targets install section`,
+      await page.locator('.hero a[href="#install"]').count() > 0);
+    record(`${width}px extension download entry preserved`,
+      await page.locator('#install a[href="https://github.com/FKstack/near-translate/releases/latest"]').count() > 0);
+    record(`${width}px script installation entry preserved`,
+      await page.locator('#install a[href="./userscript/"]').count() > 0);
+    record(`${width}px script guide entry preserved`,
+      await page.locator('a[href="./userscript/guide.html"]').count() > 0);
+    record(`${width}px script settings entry preserved`,
+      await page.locator('a[href="./userscript/settings.html"]').count() > 0);
+
+    const scenes = ['word', 'sentence', 'reading'];
+    record(`${width}px word demo selected initially`, await page.locator('#scene-word').isChecked());
+    for (const selected of scenes) {
+      await page.locator(`.mode-label[for="scene-${selected}"]`).click();
+      record(`${width}px ${selected} demo radio selected`, await page.locator(`#scene-${selected}`).isChecked());
+      for (const candidate of scenes) {
+        const visible = await page.locator(`.scene-${candidate}`).isVisible();
+        record(`${width}px ${selected} selection ${candidate} panel visibility`, visible === (candidate === selected));
+      }
+      const size = await page.evaluate(() => ({
+        viewport: innerWidth, document: document.documentElement.scrollWidth, body: document.body.scrollWidth,
+      }));
+      record(`${width}px ${selected} demo has no horizontal overflow`,
+        size.document <= width + 1 && size.body <= width + 1, size);
+    }
+    await page.locator('.mode-label[for="scene-word"]').click();
+    await page.locator('#scene-word').press('ArrowRight');
+    record(`${width}px demo ArrowRight selects sentence`, await page.locator('#scene-sentence').isChecked());
+    record(`${width}px demo ArrowRight displays sentence`, await page.locator('.scene-sentence').isVisible()
+      && !await page.locator('.scene-word').isVisible() && !await page.locator('.scene-reading').isVisible());
+    // Restore the initial panel for the remaining checks and deliverable images.
+    await page.locator('.mode-label[for="scene-word"]').click();
+
     const images = page.locator('img');
     for (let index = 0; index < await images.count(); index += 1) {
-      await images.nth(index).scrollIntoViewIfNeeded();
-      await images.nth(index).evaluate(async image => { if (!image.complete) await image.decode(); });
+      const image = images.nth(index);
+      if (!await image.isVisible()) continue;
+      await image.scrollIntoViewIfNeeded();
+      await image.evaluate(async image => { if (!image.complete) await image.decode(); });
     }
     const imageState = await images.evaluateAll(elements => elements.map(image => ({
       src: image.getAttribute('src'), loaded: image.complete && image.naturalWidth > 0,
@@ -138,29 +174,12 @@ try {
     summary.viewports.push({ width, ...dimensions });
     record(`${width}px no horizontal overflow`, dimensions.document <= width + 1 && dimensions.body <= width + 1, dimensions);
 
-    const details = page.locator('.faq-list details');
-    record(`${width}px FAQ content present`, await details.count() > 0);
-    for (let index = 0; index < await details.count(); index += 1) {
-      const item = details.nth(index);
-      const control = item.locator('summary');
-      await control.click();
-      record(`${width}px FAQ ${index + 1} click expands`, await item.getAttribute('open') !== null);
-      await control.click();
-      record(`${width}px FAQ ${index + 1} click closes`, await item.getAttribute('open') === null);
-    }
-    const first = details.first();
-    await first.locator('summary').focus();
-    await page.keyboard.press('Enter');
-    record(`${width}px FAQ Enter expands`, await first.getAttribute('open') !== null);
-    await page.keyboard.press('Space');
-    record(`${width}px FAQ Space closes`, await first.getAttribute('open') === null);
-
     await page.evaluate(() => { document.activeElement?.blur(); window.scrollTo(0, 0); });
     if (width === 390 || width === 1440) {
-      const name = width === 390 ? 'mobile.png' : 'desktop.png';
+      const name = width === 390 ? 'brand-mobile.png' : 'brand-desktop.png';
       await page.screenshot({ path: path.join(output, name), fullPage: true });
       summary.screenshots.push(path.join(output, name));
-      const heroName = width === 390 ? 'mobile-hero.png' : 'desktop-hero.png';
+      const heroName = width === 390 ? 'brand-mobile-hero.png' : 'brand-desktop-hero.png';
       await page.screenshot({ path: path.join(output, heroName), fullPage: false });
       summary.screenshots.push(path.join(output, heroName));
     }

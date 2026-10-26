@@ -1,12 +1,13 @@
 {
   "schemaVersion": 1,
   "date": "2026-10-26",
-  "taskStatus": "accepted-scoped-current-user-criterion-actual-edge-E-verified",
+  "taskStatus": "historical-v0.11.19-validation-followed-by-30s-workflow-release",
   "userRequirement": "稳定优先；保留免费DeepL端点，允许真实受限时等待超过15秒后自动恢复；正常速度尽量保持此前水平，连续多个不同规模文章完整完成。",
   "publication": {
     "publicVersionUnchanged": "0.11.16",
     "candidateVersion": "0.11.19",
-    "newReleasePublished": false
+    "newReleasePublished": false,
+    "scope": "Status at the candidateE experiment; subsequent workflow release is recorded separately, without relabeling historical real-service evidence."
   },
   "validation": {
     "unitTestsPassed": 1744,
@@ -18850,5 +18851,16 @@
       "completedWorkRetained": true,
       "validServerDeadlineNeverShortened": true
     }
+  },
+  "subsequentRelease": {
+    "version": "0.11.21",
+    "minimumCooldownMs": 30000,
+    "previousLocalVersion": "0.11.20",
+    "previousLocalMinimumCooldownMs": 10000,
+    "validatedHistoricalArtifactVersion": "0.11.19",
+    "historicalMinimumCooldownMs": 60000,
+    "newRealServiceTestsRun": false,
+    "ciAndPublicationChecks": "Required existing workflow checks; result must be read from final PR/Actions.",
+    "notes": "docs/releases/v0.11.21.md"
   }
 }

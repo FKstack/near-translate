@@ -211,8 +211,8 @@ describe('opted-in DeepL automatic page recovery', () => {
     session.seedTranslations(new Map(completed.map(segment => [segment.text, '已有译文'])));
     session.start([...completed, ...remaining], policy); await vi.advanceTimersByTimeAsync(0);
     expect(session.state).toMatchObject({ status: 'running', completed: 193, pending: 58, automaticRecoveryAttempts: 1 });
-    expect(session.state.waitingUntil).toBe(Date.now() + 10_000);
-    await vi.advanceTimersByTimeAsync(10_000); expect(transport).toHaveBeenCalledTimes(2);
+    expect(session.state.waitingUntil).toBe(Date.now() + 30_000);
+    await vi.advanceTimersByTimeAsync(30_000); expect(transport).toHaveBeenCalledTimes(2);
     await vi.advanceTimersByTimeAsync(1_000); expect(transport).toHaveBeenCalledTimes(2);
     release(reply(transport.mock.calls[1]![0]));
     await vi.advanceTimersByTimeAsync(20_000);

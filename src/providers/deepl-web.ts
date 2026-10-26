@@ -50,7 +50,7 @@ const MAX_DIAGNOSTIC_BYTES = 8 * 1024;
 const DIAGNOSTIC_TIMEOUT_MS = 1_000;
 const MIN_INTERVAL_MS = 100;
 const DEFAULT_INTERVAL_MS = 1_050;
-const MIN_COOLDOWN_MS = 60_000;
+const MIN_COOLDOWN_MS = 10_000;
 const MAX_EPISODE_COOLDOWN_MS = 15 * 60_000;
 // A local recovery policy, not an upstream quota or availability guarantee.
 const RECOVERY_HEALTHY_RESPONSES = DEEPL_WEB_SCHEDULING.maxConcurrent;

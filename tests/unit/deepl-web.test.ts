@@ -444,7 +444,7 @@ describe('DeepL metadata preparation lifecycle', () => {
     expect(canceled).toHaveBeenCalledOnce();
     await vi.advanceTimersByTimeAsync(4_000); await preparation;
     expect(provider.prepareNetwork()).toBe(preparation);
-    await vi.advanceTimersByTimeAsync(60_000);
+    await vi.advanceTimersByTimeAsync(10_000);
     expect(provider.prepareNetwork()).toBe(preparation); expect(prepareTransport).toHaveBeenCalledOnce();
     const translated = collect(provider);
     await vi.advanceTimersByTimeAsync(0); expect(transport).not.toHaveBeenCalled();
@@ -899,10 +899,10 @@ describe('DeepL web shared cancellable queue', () => {
   });
 
   it.each([
-    { response: () => new Response('limited', { status: 429 }), wait: 60_000 },
+    { response: () => new Response('limited', { status: 429 }), wait: 10_000 },
     { response: () => new Response('limited', { status: 429, headers: { 'retry-after': '120' } }), wait: 120_000 },
     { response: () => new Response('limited', { status: 429, headers: { 'retry-after': new Date(1_700_000_090_000).toUTCString() } }), wait: 90_000 },
-    { response: () => new Response(JSON.stringify({ error: { message: 'Too many requests' } })), wait: 60_000 },
+    { response: () => new Response(JSON.stringify({ error: { message: 'Too many requests' } })), wait: 10_000 },
   ])('flushes pending work and blocks new requests throughout cooldown ($wait ms)', async ({ response, wait }) => {
     fakeTime();
     const firstResponse = deferred<Response>();
@@ -1160,7 +1160,7 @@ describe('DeepL oneshot bounded global pipeline', () => {
     expect(caller.signal.aborted).toBe(false); // Only provider-owned child transports are aborted.
     expect(transport.mock.calls[0]![1].aborted).toBe(true);
     expect(transport.mock.calls[1]![1].aborted).toBe(false);
-    expect(persist).toHaveBeenCalledWith(1_700_000_060_500);
+    expect(persist).toHaveBeenCalledWith(1_700_000_010_500);
     expect(rateFinished).toBe(false);
     expect(onDiagnostic).not.toHaveBeenCalled();
     await vi.advanceTimersByTimeAsync(999);
@@ -1179,7 +1179,7 @@ describe('DeepL oneshot bounded global pipeline', () => {
     expect(events).toEqual([]);
     saved.resolve(undefined);
     expect(await rate).toMatchObject({ code: 'RATE_LIMIT' });
-    await vi.advanceTimersByTimeAsync(60000);
+    await vi.advanceTimersByTimeAsync(10000);
     expect(transport).toHaveBeenCalledTimes(2); // Neither a free slot nor cooldown expiry retries old work.
     expect(vi.getTimerCount()).toBe(0);
   });
@@ -1197,7 +1197,7 @@ describe('DeepL oneshot bounded global pipeline', () => {
     for (const failure of [await peer, await rate, await waiting]) expect(failure).toMatchObject({ code: 'RATE_LIMIT' });
     expect(transport.mock.calls[0]![1].aborted).toBe(true);
     peerResponse.resolve(reply(transport.mock.calls[0]![0]));
-    await vi.advanceTimersByTimeAsync(60000);
+    await vi.advanceTimersByTimeAsync(10000);
     expect(transport).toHaveBeenCalledTimes(2);
     expect(vi.getTimerCount()).toBe(0);
   });
@@ -1255,7 +1255,7 @@ describe('DeepL web cooldown across worker/provider lifetimes', () => {
     const limitedTransport = vi.fn<DeepLWebTransport>().mockResolvedValue(new Response('limited', { status: 429 }));
     const first = new DeepLWebProvider(limitedTransport, { loadCooldownUntil: load, persistCooldownUntil: persist });
     await expect(collect(first)).rejects.toMatchObject({ code: 'RATE_LIMIT' });
-    expect(stored).toBe(1_700_000_060_000);
+    expect(stored).toBe(1_700_000_010_000);
     expect(persist).toHaveBeenCalledWith(stored);
 
     const transport = vi.fn<DeepLWebTransport>().mockImplementation(async body => reply(body));
@@ -1263,7 +1263,7 @@ describe('DeepL web cooldown across worker/provider lifetimes', () => {
     await expect(collect(restarted)).rejects.toMatchObject({ code: 'RATE_LIMIT' });
     expect(transport).not.toHaveBeenCalled();
     expect(load).toHaveBeenCalledTimes(2);
-    await vi.advanceTimersByTimeAsync(60_000);
+    await vi.advanceTimersByTimeAsync(10_000);
     expect((await collect(restarted)).at(-1)).toMatchObject({ type: 'result' });
     expect(load).toHaveBeenCalledTimes(2); // Each instance loads once, not once per request.
     const afterExpiry = new DeepLWebProvider(transport, { loadCooldownUntil: load });
@@ -1340,7 +1340,7 @@ describe('DeepL web cooldown across worker/provider lifetimes', () => {
     await expect(collect(new DeepLWebProvider(transport, {
       loadCooldownUntil: async () => 0, persistCooldownUntil: persist,
     }))).rejects.toMatchObject({ code: 'RATE_LIMIT' });
-    expect(persist).toHaveBeenCalledWith(1_700_000_060_000);
+    expect(persist).toHaveBeenCalledWith(1_700_000_010_000);
   });
 
   it('keeps the instance closed if persistence fails, even after its in-memory deadline', async () => {
@@ -1376,7 +1376,7 @@ describe('DeepL web bounded rate-limit diagnostics', () => {
     expect(onDiagnostic).toHaveBeenCalledExactlyOnceWith({ at: 1_700_000_000_000, httpStatus: 429,
       origin: 'upstream', source: 'http-429',
       rpcErrorCode: 1042911, bodyOutcome: 'json', bodyCompletedAt: 1_700_000_000_000 });
-    await vi.advanceTimersByTimeAsync(59_999);
+    await vi.advanceTimersByTimeAsync(9_999);
     await expect(collect(provider)).rejects.toMatchObject({ code: 'RATE_LIMIT' });
     await vi.advanceTimersByTimeAsync(1);
     expect(transport).toHaveBeenCalledOnce();
@@ -1543,7 +1543,7 @@ describe('DeepL web bounded rate-limit diagnostics', () => {
     const waiting = collect(provider).catch(error => error);
     await vi.advanceTimersByTimeAsync(0);
     expect(await waiting).toMatchObject({ code: 'RATE_LIMIT' });
-    expect(persist).toHaveBeenCalledWith(1_700_000_060_000);
+    expect(persist).toHaveBeenCalledWith(1_700_000_010_000);
     expect(finished).toBe(false); expect(onDiagnostic).not.toHaveBeenCalled();
     await vi.advanceTimersByTimeAsync(999); expect(onDiagnostic).not.toHaveBeenCalled();
     await vi.advanceTimersByTimeAsync(1);
@@ -1553,7 +1553,7 @@ describe('DeepL web bounded rate-limit diagnostics', () => {
     expect(finished).toBe(false); expect(canceled).toHaveBeenCalledOnce();
     expect(response.body!.locked).toBe(false); expect(vi.getTimerCount()).toBe(0);
     saved.resolve(undefined); expect(await active).toMatchObject({ code: 'RATE_LIMIT' });
-    await vi.advanceTimersByTimeAsync(60_000);
+    await vi.advanceTimersByTimeAsync(10_000);
     expect(transport).toHaveBeenCalledOnce(); // A timeout or expired cooldown never retries queued work.
   });
 

@@ -51,7 +51,7 @@ describe('DeepL recovery after confirmed upstream limiting', () => {
     const provider = new DeepLWebProvider(transport, { ...DEEPL_WEB_SCHEDULING, onRecoverySucceeded: recovered });
     await expect(collect(provider)).rejects.toMatchObject({ code: 'RATE_LIMIT' });
     const until = (await provider.getServiceStatus()).cooldownUntil;
-    await vi.advanceTimersByTimeAsync(60_000); expect(starts).toHaveLength(1);
+    await vi.advanceTimersByTimeAsync(10_000); expect(starts).toHaveLength(1);
     const jobs = Array.from({ length: 8 }, () => collect(provider));
     await vi.advanceTimersByTimeAsync(5_000);
     expect(starts).toHaveLength(2); expect(recovered).not.toHaveBeenCalled();
@@ -75,7 +75,7 @@ describe('DeepL recovery after confirmed upstream limiting', () => {
     });
     const provider = new DeepLWebProvider(transport, DEEPL_WEB_SCHEDULING);
     await collect(provider).catch(() => {}); phase = 1;
-    await vi.advanceTimersByTimeAsync(60_000);
+    await vi.advanceTimersByTimeAsync(10_000);
     const jobs = Array.from({ length: 8 }, () => collect(provider).catch(error => error));
     await vi.advanceTimersByTimeAsync(0);
     const errors = await Promise.all(jobs);
@@ -93,7 +93,7 @@ describe('DeepL recovery after confirmed upstream limiting', () => {
     });
     const recovered = vi.fn(async () => {});
     const provider = new DeepLWebProvider(transport, { ...DEEPL_WEB_SCHEDULING, onRecoverySucceeded: recovered });
-    await collect(provider).catch(() => {}); phase = 1; await vi.advanceTimersByTimeAsync(60_000);
+    await collect(provider).catch(() => {}); phase = 1; await vi.advanceTimersByTimeAsync(10_000);
     const controller = new AbortController();
     const probe = collect(provider, controller.signal).catch(error => error);
     const waiting = collect(provider).catch(error => error);
@@ -111,7 +111,7 @@ describe('DeepL recovery after confirmed upstream limiting', () => {
     const transport = vi.fn<DeepLWebTransport>().mockImplementation(async body => success ? reply(body)
       : new Response('{}', { status: 429, headers: retryAfter ? { 'Retry-After': retryAfter } : {} }));
     const provider = new DeepLWebProvider(transport, { ...DEEPL_WEB_SCHEDULING, onDiagnostic: diagnostic });
-    for (const wait of [60_000, 120_000, 240_000, 480_000, 900_000, 900_000]) {
+    for (const wait of [10_000, 20_000, 40_000, 80_000, 160_000, 320_000, 640_000, 900_000, 900_000]) {
       const at = Date.now(); await expect(collect(provider)).rejects.toMatchObject({ code: 'RATE_LIMIT', retryAt: at + wait });
       const calls = transport.mock.calls.length;
       for (let local = 0; local < 3; local++) await collect(provider).catch(() => {});
@@ -127,8 +127,8 @@ describe('DeepL recovery after confirmed upstream limiting', () => {
     }
     success = false; retryAfter = undefined;
     await vi.advanceTimersByTimeAsync(100);
-    await expect(collect(provider)).rejects.toMatchObject({ retryAt: Date.now() + 60_000 });
-    expect(diagnostic).toHaveBeenCalledTimes(8);
+    await expect(collect(provider)).rejects.toMatchObject({ retryAt: Date.now() + 10_000 });
+    expect(diagnostic).toHaveBeenCalledTimes(11);
     expect(diagnostic.mock.calls.every(([item]) => item.origin === 'upstream' && item.source === 'http-429')).toBe(true);
   });
 
@@ -136,23 +136,23 @@ describe('DeepL recovery after confirmed upstream limiting', () => {
     fakeTime(); let limited = true;
     const transport = vi.fn<DeepLWebTransport>().mockImplementation(async body => limited ? new Response('{}', { status: 429 }) : reply(body));
     const provider = new DeepLWebProvider(transport, DEEPL_WEB_SCHEDULING);
-    await expect(collect(provider)).rejects.toMatchObject({ retryAt: Date.now() + 60_000 });
-    await vi.advanceTimersByTimeAsync(60_000); limited = false; await collect(provider);
+    await expect(collect(provider)).rejects.toMatchObject({ retryAt: Date.now() + 10_000 });
+    await vi.advanceTimersByTimeAsync(10_000); limited = false; await collect(provider);
     limited = true; await vi.advanceTimersByTimeAsync(100);
-    await expect(collect(provider)).rejects.toMatchObject({ retryAt: Date.now() + 120_000 });
-    await vi.advanceTimersByTimeAsync(120_000); limited = false;
+    await expect(collect(provider)).rejects.toMatchObject({ retryAt: Date.now() + 20_000 });
+    await vi.advanceTimersByTimeAsync(20_000); limited = false;
     for (let count = 0; count < 7; count++) {
       const valid = collect(provider); await vi.advanceTimersByTimeAsync(100); await valid;
     }
     // Seven successful responses, including the probe, still retain the episode.
     limited = true;
-    await expect(collect(provider)).rejects.toMatchObject({ retryAt: Date.now() + 240_000 });
-    await vi.advanceTimersByTimeAsync(240_000); limited = false;
+    await expect(collect(provider)).rejects.toMatchObject({ retryAt: Date.now() + 40_000 });
+    await vi.advanceTimersByTimeAsync(40_000); limited = false;
     for (let count = 0; count < 8; count++) {
       const valid = collect(provider); await vi.advanceTimersByTimeAsync(100); await valid;
     }
     limited = true;
-    await expect(collect(provider)).rejects.toMatchObject({ retryAt: Date.now() + 60_000 });
+    await expect(collect(provider)).rejects.toMatchObject({ retryAt: Date.now() + 10_000 });
   });
 
   it('does not count a local queue rejection or a restored cooldown as an upstream limit episode', async () => {
@@ -165,7 +165,7 @@ describe('DeepL recovery after confirmed upstream limiting', () => {
     await vi.advanceTimersByTimeAsync(0);
     await expect(collect(provider)).rejects.toMatchObject({ code: 'RATE_LIMIT' });
     response.resolve(new Response('{}', { status: 429 }));
-    expect(await first).toMatchObject({ retryAt: Date.now() + 60_000 }); expect(await peer).toMatchObject({ code: 'RATE_LIMIT' });
+    expect(await first).toMatchObject({ retryAt: Date.now() + 10_000 }); expect(await peer).toMatchObject({ code: 'RATE_LIMIT' });
     expect(diagnostic).toHaveBeenCalledOnce();
   });
 
@@ -199,7 +199,7 @@ describe('DeepL recovery after confirmed upstream limiting', () => {
     held = false; response.resolve(reply(transport.mock.calls[1]![0])); await vi.advanceTimersByTimeAsync(100); await Promise.all([first, waiting]);
     expect(recovered).toHaveBeenCalledExactlyOnceWith(until, expect.any(Function));
     limit = true; await vi.advanceTimersByTimeAsync(100);
-    await expect(collect(provider)).rejects.toMatchObject({ retryAt: Date.now() + 60_000 });
+    await expect(collect(provider)).rejects.toMatchObject({ retryAt: Date.now() + 10_000 });
   });
 
   it('copies service-wide stopping only from a trusted local translation failure', () => {
@@ -217,7 +217,7 @@ describe('DeepL recovery after confirmed upstream limiting', () => {
       return limited ? new Response('{}', { status: 429 }) : reply(body);
     });
     const provider = new DeepLWebProvider(transport, DEEPL_WEB_SCHEDULING);
-    await collect(provider).catch(() => {}); await vi.advanceTimersByTimeAsync(60_000); limited = false;
+    await collect(provider).catch(() => {}); await vi.advanceTimersByTimeAsync(10_000); limited = false;
     for (let count = 0; count < 7; count++) {
       const valid = collect(provider); await vi.advanceTimersByTimeAsync(100); await valid;
     }
@@ -234,7 +234,7 @@ describe('DeepL recovery after confirmed upstream limiting', () => {
       invalid = false; await vi.advanceTimersByTimeAsync(100);
     }
     await collect(provider); limited = true; await vi.advanceTimersByTimeAsync(100);
-    await expect(collect(provider)).rejects.toMatchObject({ retryAt: Date.now() + 120_000 });
+    await expect(collect(provider)).rejects.toMatchObject({ retryAt: Date.now() + 20_000 });
   });
 
   it('does not use optional metadata preparation to reopen an expired restored cooldown', async () => {
@@ -283,7 +283,7 @@ describe('DeepL recovery after confirmed upstream limiting', () => {
         expect(session.state.error).toBeUndefined(); expect(await provider.getServiceStatus()).toEqual({ cooldownUntil: 0 });
         await vi.advanceTimersByTimeAsync(100);
       } else {
-        expect(session.state.error).toMatchObject({ code: 'RATE_LIMIT' }); await vi.advanceTimersByTimeAsync(60_000);
+        expect(session.state.error).toMatchObject({ code: 'RATE_LIMIT' }); await vi.advanceTimersByTimeAsync(10_000);
       }
       expect(transport).toHaveBeenCalledOnce();
       session.retryFailed(); await vi.advanceTimersByTimeAsync(2_000); expect(transport).toHaveBeenCalledTimes(2);

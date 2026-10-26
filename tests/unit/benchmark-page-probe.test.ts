@@ -7,16 +7,16 @@ const deps = vi.hoisted(() => ({ collect: vi.fn(), root: vi.fn(), viewport: vi.f
 vi.mock('../../src/page/segments', async importOriginal => ({ ...await importOriginal<object>(),
   collectPageSegments: deps.collect, selectPageTranslationRoot: deps.root }));
 vi.mock('../../src/page/viewport', () => ({ snapshotViewportPriorities: deps.viewport }));
-import { PageBenchmarkProbe, PUBLIC_GO_URL, summarizeSources, translationHostForSegment } from '../../scripts/benchmarks/page-probe';
+import { MAX_PROBE_RECOVERY_EVENTS, PageBenchmarkProbe, PUBLIC_GO_URL, summarizeSources, translationHostForSegment } from '../../scripts/benchmarks/page-probe';
 
-function fixture(options: { url?: string; expectedUrl?: string } = {}) {
+function fixture(options: { url?: string; expectedUrl?: string; mode?: 'foreground' | 'background-dom' } = {}) {
   let now = 0; let foreground = true; let frameId = 0;
   const frames = new Map<number, FrameRequestCallback>();
   const listeners = new Map<string, EventListener>();
   const observerCallbacks: MutationCallback[] = [];
   const hosts: HTMLElement[] = [];
   const selection = { toString: () => 'existing selection', removeAllRanges: vi.fn() };
-  const aside = { dataset: { status: 'idle', total: '0', completed: '0', failed: '0', pending: '0' } };
+  const aside: { dataset: Record<string, string> } = { dataset: { status: 'idle', total: '0', completed: '0', failed: '0', pending: '0' } };
   const button = { click: vi.fn(() => Object.assign(aside.dataset, { status: 'running', total: '2', pending: '2' })) };
   const bar = { querySelector: (selector: string) => selector === '[data-status]' ? aside
     : selector === '[role="status"]' ? { textContent: 'numeric test state' } : button };
@@ -51,7 +51,7 @@ function fixture(options: { url?: string; expectedUrl?: string } = {}) {
     Object.assign(segment.anchor, { nextSibling: host }); hosts.push(host);
     return host;
   };
-  const probe = new PageBenchmarkProbe(doc, options.expectedUrl);
+  const probe = new PageBenchmarkProbe(doc, options.expectedUrl, { mode: options.mode });
   return { probe, doc, view, aside, button, title, prose, segments, priorities, frames, listeners, observerCallbacks, selection, complete,
     setNow: (value: number) => { now = value; }, setFocused: (value: boolean) => { foreground = value; } };
 }
@@ -84,7 +84,7 @@ describe('installed page probe source identity and milestones', () => {
     Object.assign(f.aside.dataset, { status: 'done', completed: '2', pending: '0' });
     f.setNow(20);
     const final = await f.probe.snapshot();
-    expect(final).toMatchObject({ firstVisibleProseRafMs: 16, fullDoneMs: 20, doneAt: 1020, renderedSegments: 2 });
+    expect(final).toMatchObject({ measurementMode: 'foreground', firstVisibleProseRafMs: 16, fullDoneMs: 20, doneAt: 1020, renderedSegments: 2 });
     expect(final?.outputFingerprint).toMatch(/^[a-f0-9]{64}$/);
     expect(JSON.stringify(final)).not.toContain('这是正文');
     f.setNow(1100); expect((await f.probe.snapshot())?.elapsedMs).toBe(20);
@@ -116,6 +116,11 @@ describe('installed page probe source identity and milestones', () => {
   it('refuses a hidden, unfocused or non-public document before translation', () => {
     const f = fixture(); f.setFocused(false);
     expect(() => f.probe.prepare()).toThrow(/visible and focused/);
+    f.setFocused(true); Object.assign(f.doc, { visibilityState: 'hidden' });
+    expect(() => f.probe.prepare()).toThrow(/visible and focused/);
+    Object.assign(f.doc, { visibilityState: 'visible' }); f.probe.prepare(); f.setFocused(false);
+    expect(() => f.probe.start()).toThrow(/remain visible and focused/);
+    expect(f.button.click).not.toHaveBeenCalled();
     f.setFocused(true); f.view.location.href = 'https://private.invalid/';
     expect(() => f.probe.readiness()).toThrow(/exact public Go URL/);
     f.probe.cleanup();
@@ -167,5 +172,122 @@ describe('installed page probe source identity and milestones', () => {
     expect(f.button.click).toHaveBeenCalledOnce();
     f.probe.cleanup();
     expect(f.listeners.size).toBe(0);
+  });
+  it('allows a genuinely hidden and unfocused background DOM pass without inventing visual milestones', async () => {
+    const f = fixture({ mode: 'background-dom' });
+    Object.assign(f.doc, { visibilityState: 'hidden' }); f.setFocused(false);
+    expect(f.probe.prepare()).toMatchObject({ sourceSegments: 2, viewportTargets: 0, initialViewportSourceIds: [] });
+    expect(deps.collect).toHaveBeenCalledExactlyOnceWith({ tagName: 'ARTICLE' });
+    expect(deps.viewport).not.toHaveBeenCalled();
+    expect(await f.probe.snapshot()).toMatchObject({ measurementMode: 'background-dom', visible: false, focused: false });
+    f.probe.start(); expect(f.button.click).toHaveBeenCalledOnce();
+    f.setNow(5); f.complete(f.title, '标题译文');
+    expect(await f.probe.snapshot()).toMatchObject({ firstMs: null, renderedSegments: 1, fullDoneMs: null });
+    f.setNow(12); f.complete(f.prose, '完整正文译文');
+    Object.assign(f.aside.dataset, { status: 'done', completed: '2', pending: '0' });
+    const snapshot = await f.probe.snapshot();
+    expect(snapshot).toMatchObject({ measurementMode: 'background-dom', visible: false, focused: false,
+      fullDoneMs: 12, doneAt: 1012, renderedSegments: 2, sourceChanged: false, mappingConflicts: 0,
+      unexpectedTranslations: 0, viewportTargets: 0, viewportCompleted: 0,
+      firstMs: null, firstProseMs: null, firstViewportProseMs: null, firstVisibleProseDomReadyMs: null,
+      firstVisibleProseRafMs: null, firstVisibleProseSourceId: null, initialViewportAllDoneMs: null });
+    expect(snapshot?.outputFingerprint).toMatch(/^[a-f0-9]{64}$/);
+    expect(JSON.stringify(snapshot)).not.toContain('完整正文译文');
+    expect(f.view.requestAnimationFrame).not.toHaveBeenCalled();
+    expect(f.doc.visibilityState).toBe('hidden'); expect(f.doc.hasFocus()).toBe(false);
+    f.probe.cleanup(); expect(f.listeners.size).toBe(0);
+  });
+
+  it('records actual focus transitions without turning a background pass into a visual result', async () => {
+    const f = fixture({ mode: 'background-dom' });
+    Object.assign(f.doc, { visibilityState: 'hidden' }); f.setFocused(false); f.probe.prepare(); f.probe.start();
+    f.setNow(5); Object.assign(f.doc, { visibilityState: 'visible' }); f.setFocused(true);
+    f.listeners.get('visibilitychange')?.(new Event('visibilitychange'));
+    f.setNow(9); f.setFocused(false); f.listeners.get('blur')?.(new Event('blur'));
+    f.setNow(12); f.setFocused(true); f.listeners.get('focus')?.(new Event('focus'));
+    f.complete(f.title, '标题'); f.complete(f.prose, '正文');
+    Object.assign(f.aside.dataset, { status: 'done', completed: '2', pending: '0' });
+    const snapshot = await f.probe.snapshot();
+    expect(snapshot).toMatchObject({ measurementMode: 'background-dom', visible: true, focused: true, visibilityFailures: 1,
+      fullDoneMs: 12, firstMs: null, firstVisibleProseDomReadyMs: null, firstVisibleProseRafMs: null,
+      initialViewportAllDoneMs: null, visibilityChanges: [
+        { elapsedMs: 0, visible: false, focused: false }, { elapsedMs: 5, visible: true, focused: true },
+        { elapsedMs: 9, visible: true, focused: false }, { elapsedMs: 12, visible: true, focused: true },
+      ] });
+    expect(f.view.requestAnimationFrame).not.toHaveBeenCalled(); f.probe.cleanup();
+  });
+
+  it('keeps every exact-URL guard in background DOM mode after navigation', async () => {
+    const url = 'https://articles.example/story?edition=1#body';
+    const f = fixture({ url, expectedUrl: url, mode: 'background-dom' });
+    Object.assign(f.doc, { visibilityState: 'hidden' }); f.setFocused(false); f.probe.prepare(); f.probe.start();
+    const queries = vi.mocked(f.doc.querySelector).mock.calls.length;
+    f.view.location.href = 'https://articles.example/story?edition=2#body';
+    f.observerCallbacks.forEach(callback => callback([], {} as MutationObserver));
+    for (const action of [() => f.probe.readiness(), () => f.probe.prepare(), () => f.probe.start(),
+      () => f.probe.restore(), () => f.probe.restored(), () => f.probe.stop()])
+      expect(action).toThrow(/exact authorized page URL/);
+    await expect(f.probe.snapshot()).rejects.toThrow(/exact authorized page URL/);
+    expect(f.doc.querySelector).toHaveBeenCalledTimes(queries); expect(f.button.click).toHaveBeenCalledOnce();
+    f.probe.cleanup(); expect(f.listeners.size).toBe(0);
+  });
+
+  it.each(['foreground', 'background-dom'] as const)('includes automatic recovery waiting in the original click clock: %s', async mode => {
+    const f = fixture({ mode }); f.probe.prepare(); f.probe.start();
+    f.setNow(5); Object.assign(f.aside.dataset, { waitingUntil: '61000', recoveryAttempts: '1', errorCode: 'RATE_LIMIT' });
+    expect(await f.probe.snapshot()).toMatchObject({ clickedAt: 1000, elapsedMs: 5, waitingUntil: 61000,
+      automaticRecoveryAttempts: 1, recoveryEvents: [{ type: 'waiting', elapsedMs: 5, waitingUntil: 61000, automaticRecoveryAttempts: 1 }] });
+    f.setNow(61000); delete f.aside.dataset.waitingUntil;
+    expect((await f.probe.snapshot())?.recoveryEvents.at(-1)).toEqual({ type: 'resuming', elapsedMs: 61000,
+      previousWaitingUntil: 61000, automaticRecoveryAttempts: 1 });
+    f.setNow(65000); f.complete(f.title, '标题'); f.complete(f.prose, '正文');
+    Object.assign(f.aside.dataset, { status: 'done', completed: '2', pending: '0', errorCode: '' });
+    const result = await f.probe.snapshot();
+    expect(result).toMatchObject({ clickedAt: 1000, fullDoneMs: 65000, elapsedMs: 65000, doneAt: 66000 });
+    expect(f.button.click).toHaveBeenCalledOnce(); expect(result?.outputFingerprint).toMatch(/^[a-f0-9]{64}$/);
+    if (mode === 'background-dom') expect(result).toMatchObject({ firstMs: null, firstVisibleProseRafMs: null, viewportTargets: 0 });
+    f.probe.cleanup();
+  });
+
+  it('deduplicates and copies waiting extensions, and does not call a terminal stop a resumption', async () => {
+    const f = fixture({ mode: 'background-dom' }); f.probe.prepare(); f.probe.start();
+    Object.assign(f.aside.dataset, { waitingUntil: '61000', recoveryAttempts: '1', errorCode: 'RATE_LIMIT' });
+    f.setNow(5); await f.probe.snapshot(); f.setNow(8); await f.probe.snapshot();
+    f.setNow(10); f.aside.dataset.waitingUntil = '121000';
+    const extended = await f.probe.snapshot();
+    expect(extended?.recoveryEvents).toEqual([
+      { type: 'waiting', elapsedMs: 5, waitingUntil: 61000, automaticRecoveryAttempts: 1 },
+      { type: 'extended', elapsedMs: 10, waitingUntil: 121000, previousWaitingUntil: 61000, automaticRecoveryAttempts: 1 },
+    ]);
+    extended!.recoveryEvents[0]!.waitingUntil = 1;
+    expect((await f.probe.snapshot())?.recoveryEvents[0]?.waitingUntil).toBe(61000);
+    Object.assign(f.aside.dataset, { status: 'stopped', recoveryAttempts: '3' }); delete f.aside.dataset.waitingUntil;
+    const final = await f.probe.snapshot();
+    expect(final?.waitingUntil).toBeUndefined(); expect(final?.automaticRecoveryAttempts).toBe(3);
+    expect(final?.recoveryEvents).toHaveLength(2); f.probe.cleanup();
+  });
+
+  it('does not retain malformed recovery attributes or unrelated UI data', async () => {
+    const f = fixture(); f.probe.prepare(); f.probe.start();
+    for (const waitingUntil of ['Infinity', 'NaN', '-1', '1.5', 'private text']) {
+      Object.assign(f.aside.dataset, { waitingUntil, recoveryAttempts: 'private token', unrelated: 'private original' });
+      const result = await f.probe.snapshot();
+      expect(result?.waitingUntil).toBeUndefined(); expect(result?.automaticRecoveryAttempts).toBeUndefined();
+      expect(result?.recoveryEvents).toEqual([]); expect(JSON.stringify(result)).not.toContain('private');
+    }
+    f.probe.cleanup();
+  });
+
+  it('bounds recovery event retention while reporting dropped transitions and preserving the clock', async () => {
+    const f = fixture({ mode: 'background-dom' }); f.probe.prepare(); f.probe.start();
+    for (let i = 0; i < MAX_PROBE_RECOVERY_EVENTS; i++) {
+      f.setNow(i * 2 + 1); Object.assign(f.aside.dataset, { waitingUntil: String(61000 + i), recoveryAttempts: '1' });
+      await f.probe.snapshot(); f.setNow(i * 2 + 2); delete f.aside.dataset.waitingUntil; await f.probe.snapshot();
+    }
+    const result = await f.probe.snapshot();
+    expect(result?.recoveryEvents).toHaveLength(MAX_PROBE_RECOVERY_EVENTS);
+    expect(result?.recoveryEventsDropped).toBe(MAX_PROBE_RECOVERY_EVENTS);
+    expect(result?.clickedAt).toBe(1000); expect(result?.elapsedMs).toBe(MAX_PROBE_RECOVERY_EVENTS * 2);
+    f.probe.cleanup();
   });
 });

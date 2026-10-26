@@ -2,6 +2,7 @@ import { mountSelectionTranslator } from '../selection/mount';
 import { mountPageTranslator } from '../page/mount';
 import { createReadingMode, type ReadingModeController } from '../reading/mount';
 import { TranslationServiceStatusClient } from '../platform/service-status';
+import { userscriptPageExecutionPolicy } from '../shared/translation-policy';
 import { installRuntime } from './runtime';
 import { mountSettings } from './Settings';
 import { SETTINGS_URL, isSettingsPage } from './locations';
@@ -33,12 +34,12 @@ async function main(): Promise<void> {
     let closeSelection = () => {};
     const disposeSelection = mountSelectionTranslator({ source: 'web', beforeUse, onHost(host, close) { selectionHost = host; closeSelection = close; } });
     let reading: ReadingModeController | undefined;
-    const getReading = () => reading ??= createReadingMode({ serviceStatus, beforeUse, onSelectionPortal(portal) {
+    const getReading = () => reading ??= createReadingMode({ serviceStatus, beforeUse, executionPolicy: userscriptPageExecutionPolicy, onSelectionPortal(portal) {
       closeSelection();
       if (selectionHost) (portal ?? document.documentElement).append(selectionHost);
     } });
     let openReading = () => getReading().open();
-    const disposePage = mountPageTranslator({ serviceStatus, beforeUse, onRead: translations => getReading().open(translations), onReadingAction: action => { openReading = action; } });
+    const disposePage = mountPageTranslator({ serviceStatus, beforeUse, executionPolicy: userscriptPageExecutionPolicy, onRead: translations => getReading().open(translations), onReadingAction: action => { openReading = action; } });
     const shortcut = (event: KeyboardEvent) => {
       if (!event.altKey || !event.shiftKey || event.code !== 'KeyR') return;
       event.preventDefault(); openReading();

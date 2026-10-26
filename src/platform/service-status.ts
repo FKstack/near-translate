@@ -1,5 +1,6 @@
 import { browser } from 'wxt/browser';
 import type { TranslationServiceStatus, TranslationStatusSource } from '../shared/contracts';
+import { publicDeepLRateDiagnostic } from '../shared/translation-diagnostic';
 
 function validStatus(value: unknown): value is TranslationServiceStatus {
   if (!value || typeof value !== 'object') return false;
@@ -60,9 +61,14 @@ export class TranslationServiceStatusClient implements TranslationStatusSource {
   };
 
   private update(status: TranslationServiceStatus): void {
-    const changed = !this.status || this.status.engine !== status.engine || this.status.cooldownUntil !== status.cooldownUntil;
+    const rateLimit = status.engine === 'deepl-web' ? publicDeepLRateDiagnostic(status.rateLimit) : undefined;
+    const before = this.status?.rateLimit;
+    const diagnosticChanged = before?.source !== rateLimit?.source || before?.httpStatus !== rateLimit?.httpStatus
+      || before?.at !== rateLimit?.at || before?.retryAfterMs !== rateLimit?.retryAfterMs || before?.responseReason !== rateLimit?.responseReason;
+    const changed = !this.status || this.status.engine !== status.engine || this.status.cooldownUntil !== status.cooldownUntil || diagnosticChanged;
     // Copy only the public status fields; do not retain arbitrary message data.
-    this.status = { engine: status.engine, cooldownUntil: status.cooldownUntil, checkedAt: status.checkedAt };
+    this.status = { engine: status.engine, cooldownUntil: status.cooldownUntil, checkedAt: status.checkedAt,
+      ...(rateLimit ? { rateLimit } : {}) };
     if (changed) for (const listener of this.listeners) listener(this.status);
   }
 

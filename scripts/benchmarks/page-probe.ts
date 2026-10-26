@@ -2,6 +2,16 @@ import { collectPageSegments, selectPageTranslationRoot, type PageSegment } from
 import { snapshotViewportPriorities } from '../../src/page/viewport';
 
 export const PUBLIC_GO_URL = 'https://go.dev/talks/2012/splash.article?utm_source=chatgpt.com';
+export type ProbeMeasurementMode = 'foreground' | 'background-dom';
+export interface ProbeVisibilityChange { elapsedMs: number; visible: boolean; focused: boolean }
+export const MAX_PROBE_RECOVERY_EVENTS = 64;
+export interface ProbeRecoveryEvent {
+  elapsedMs: number;
+  type: 'waiting' | 'extended' | 'resuming';
+  waitingUntil?: number;
+  previousWaitingUntil?: number;
+  automaticRecoveryAttempts?: number;
+}
 
 interface SourceRecord {
   id: number;
@@ -26,6 +36,12 @@ export function summarizeSources(segments: readonly PageSegment[]) {
 }
 
 export interface ProbeSnapshot {
+  measurementMode: ProbeMeasurementMode;
+  visibilityChanges: ProbeVisibilityChange[];
+  waitingUntil?: number;
+  automaticRecoveryAttempts?: number;
+  recoveryEvents: ProbeRecoveryEvent[];
+  recoveryEventsDropped: number;
   elapsedMs: number;
   firstMs: number | null;
   firstProseMs: number | null;
@@ -69,6 +85,7 @@ export interface ProbeSnapshot {
 /** One explicitly started pass owns frozen original nodes, observers, and RAF. */
 export class PageBenchmarkProbe {
   private readonly view: Window;
+  private readonly mode: ProbeMeasurementMode;
   private readonly bodyObserver: MutationObserver;
   private barObserver?: MutationObserver;
   private observedBar?: ShadowRoot;
@@ -81,10 +98,20 @@ export class PageBenchmarkProbe {
   private state?: ProbeSnapshot;
   private output: string[] = [];
   private readonly visibilityListener = () => {
-    if (this.active && !this.isForeground()) this.visibilityFailures++;
+    if (!this.active || this.view.location.href !== this.expectedUrl) return;
+    const visible = this.page.visibilityState === 'visible';
+    const focused = this.page.hasFocus();
+    if (!visible || !focused) this.visibilityFailures++;
+    if (this.state) {
+      this.state.visible = visible; this.state.focused = focused; this.state.visibilityFailures = this.visibilityFailures;
+      const previous = this.state.visibilityChanges.at(-1);
+      if (!previous || previous.visible !== visible || previous.focused !== focused)
+        this.state.visibilityChanges.push({ elapsedMs: this.view.performance.now() - this.started, visible, focused });
+    }
   };
 
-  constructor(private readonly page: Document = document, private readonly expectedUrl = PUBLIC_GO_URL) {
+  constructor(private readonly page: Document = document, private readonly expectedUrl = PUBLIC_GO_URL,
+    options: { mode?: ProbeMeasurementMode } = {}) {
     let expected: URL;
     try { expected = new URL(expectedUrl); }
     catch { throw new Error('Probe requires an absolute HTTP(S) page URL.'); }
@@ -92,11 +119,14 @@ export class PageBenchmarkProbe {
     if (!page.defaultView || !page.body) throw new Error('Public page document is not ready.');
     this.view = page.defaultView;
     this.ensurePublicPage();
+    this.mode = options.mode ?? 'foreground';
+    if (this.mode !== 'foreground' && this.mode !== 'background-dom') throw new Error('Unsupported benchmark measurement mode.');
     this.bodyObserver = new MutationObserver(() => this.update());
     this.bodyObserver.observe(page.body, { subtree: true, childList: true, characterData: true,
       attributes: true, attributeFilter: ['data-state'] });
     page.addEventListener('visibilitychange', this.visibilityListener);
     this.view.addEventListener('blur', this.visibilityListener);
+    this.view.addEventListener('focus', this.visibilityListener);
     this.update();
   }
 
@@ -117,25 +147,30 @@ export class PageBenchmarkProbe {
 
   prepare() {
     this.ensurePublicPage();
-    if (!this.isForeground()) throw new Error('Benchmark page must be visible and focused before translation.');
+    if (this.mode === 'foreground' && !this.isForeground()) throw new Error('Benchmark page must be visible and focused before translation.');
     const button = this.bar()?.querySelector<HTMLButtonElement>('button[aria-label="翻译整个页面"]');
     if (!button) throw new Error('Public page is not in a state that can start translation.');
     const root = selectPageTranslationRoot(this.page);
     const segments = collectPageSegments(root);
-    const priorities = snapshotViewportPriorities(segments);
+    // Background DOM timing makes no claim about a visible first screen or paint.
+    const priorities = this.mode === 'foreground' ? snapshotViewportPriorities(segments) : undefined;
     this.records = segments.map((segment, id) => ({ id, segment, original: segment.nodes.map(node => node.data),
-      visibleProse: priorities.get(segment)?.visibleProse === true }));
+      visibleProse: priorities?.get(segment)?.visibleProse === true }));
     this.visibilityFailures = 0;
     this.output = [];
     this.started = this.view.performance.now();
+    const visible = this.page.visibilityState === 'visible';
+    const focused = this.page.hasFocus();
     this.state = {
+      measurementMode: this.mode, visibilityChanges: [{ elapsedMs: 0, visible, focused }],
+      recoveryEvents: [], recoveryEventsDropped: 0,
       elapsedMs: 0, firstMs: null, firstProseMs: null, firstViewportProseMs: null,
       firstVisibleProseDomReadyMs: null, firstVisibleProseRafMs: null, firstVisibleProseSourceId: null,
       initialViewportAllDoneMs: null, fullDoneMs: null, doneAt: null,
       clickedAt: this.view.performance.timeOrigin + this.started,
       navigationStartedAt: this.view.performance.timeOrigin, toolbarReadyAt: this.toolbarReadyAt,
       selectionLength: this.view.getSelection()?.toString().length ?? 0,
-      visible: true, focused: true, visibilityFailures: 0, sourceChanged: false,
+      visible, focused, visibilityFailures: 0, sourceChanged: false,
       rootTag: root.tagName.toLowerCase(), ...summarizeSources(segments),
       completed: 0, failed: 0, pending: 0, total: 0, renderedSegments: 0,
       translatedChars: 0, chineseSegments: 0, viewportTargets: this.records.filter(r => r.visibleProse).length,
@@ -150,12 +185,14 @@ export class PageBenchmarkProbe {
 
   start(): void {
     this.ensurePublicPage();
-    if (!this.isForeground()) throw new Error('Benchmark page must remain visible and focused.');
+    if (this.mode === 'foreground' && !this.isForeground()) throw new Error('Benchmark page must remain visible and focused.');
     if (!this.state) this.prepare();
     const button = this.bar()?.querySelector<HTMLButtonElement>('button[aria-label="翻译整个页面"]');
     if (!button) throw new Error('Translation button is not ready.');
     this.started = this.view.performance.now();
     this.state!.clickedAt = this.view.performance.timeOrigin + this.started;
+    this.state!.visible = this.page.visibilityState === 'visible'; this.state!.focused = this.page.hasFocus();
+    this.state!.visibilityChanges = [{ elapsedMs: 0, visible: this.state!.visible, focused: this.state!.focused }];
     this.active = true; button.click(); this.update();
   }
 
@@ -171,7 +208,9 @@ export class PageBenchmarkProbe {
     if (root?.querySelector('[data-status]') && this.toolbarReadyAt === null)
       this.toolbarReadyAt = this.view.performance.timeOrigin + this.view.performance.now();
     const state = this.state;
-    if (!state || !this.active) return;
+    if (!state) return;
+    state.visible = this.page.visibilityState === 'visible'; state.focused = this.page.hasFocus();
+    if (!this.active) return;
     const elapsed = this.view.performance.now() - this.started;
     const used = new Set<HTMLElement>();
     const done = new Set<number>();
@@ -188,8 +227,8 @@ export class PageBenchmarkProbe {
       return '';
     });
     const visibleDone = this.records.filter(record => record.visibleProse && done.has(record.id));
-    if (done.size && state.firstMs === null) state.firstMs = elapsed;
-    if (visibleDone.length && state.firstVisibleProseDomReadyMs === null && this.isForeground()) {
+    if (this.mode === 'foreground' && done.size && state.firstMs === null) state.firstMs = elapsed;
+    if (this.mode === 'foreground' && visibleDone.length && state.firstVisibleProseDomReadyMs === null && this.isForeground()) {
       state.firstVisibleProseDomReadyMs = elapsed;
       state.firstProseMs = elapsed; state.firstViewportProseMs = elapsed;
       state.firstVisibleProseSourceId = visibleDone[0]!.id;
@@ -200,7 +239,7 @@ export class PageBenchmarkProbe {
       };
       this.raf = this.view.requestAnimationFrame(nextVisibleFrame);
     }
-    if (state.viewportTargets > 0 && visibleDone.length === state.viewportTargets && state.initialViewportAllDoneMs === null)
+    if (this.mode === 'foreground' && state.viewportTargets > 0 && visibleDone.length === state.viewportTargets && state.initialViewportAllDoneMs === null)
       state.initialViewportAllDoneMs = elapsed;
     state.viewportCompleted = visibleDone.length;
     state.renderedSegments = done.size;
@@ -216,6 +255,7 @@ export class PageBenchmarkProbe {
       for (const key of ['completed', 'failed', 'pending', 'total'] as const) state[key] = Number(aside.dataset[key] ?? 0);
       state.errorCode = aside.dataset.errorCode ?? '';
       state.statusText = root?.querySelector('[role="status"]')?.textContent ?? '';
+      this.recordRecoveryState(state, aside.dataset, elapsed);
     }
     if (state.status === 'done' && state.total > 0 && state.completed === state.total && !state.failed && !state.pending
       && done.size === this.records.length && state.fullDoneMs === null) {
@@ -226,10 +266,36 @@ export class PageBenchmarkProbe {
     else state.elapsedMs = state.fullDoneMs;
   }
 
+  private recordRecoveryState(state: ProbeSnapshot, data: DOMStringMap, elapsedMs: number): void {
+    const until = Number(data.waitingUntil);
+    const attempts = Number(data.recoveryAttempts);
+    const next = state.status === 'running' && Number.isSafeInteger(until) && until > 0 ? until : undefined;
+    const count = data.recoveryAttempts !== undefined && Number.isSafeInteger(attempts) && attempts >= 0
+      && attempts <= 1_000_000 ? attempts : undefined;
+    const previous = state.waitingUntil;
+    const previousCount = state.automaticRecoveryAttempts;
+    state.waitingUntil = next;
+    state.automaticRecoveryAttempts = count;
+    let event: ProbeRecoveryEvent | undefined;
+    if (next !== undefined && (previous !== next || previousCount !== count)) {
+      event = { type: previous !== undefined && next > previous ? 'extended' : 'waiting', elapsedMs,
+        waitingUntil: next, ...(previous === undefined ? {} : { previousWaitingUntil: previous }),
+        ...(count === undefined ? {} : { automaticRecoveryAttempts: count }) };
+    } else if (previous !== undefined && next === undefined && state.status === 'running') {
+      event = { type: 'resuming', elapsedMs, previousWaitingUntil: previous,
+        ...(count === undefined ? {} : { automaticRecoveryAttempts: count }) };
+    }
+    if (!event) return;
+    if (state.recoveryEvents.length < MAX_PROBE_RECOVERY_EVENTS) state.recoveryEvents.push(event);
+    else state.recoveryEventsDropped++;
+  }
+
   async snapshot(): Promise<ProbeSnapshot | undefined> {
     this.ensurePublicPage(); this.update();
     if (!this.state) return;
-    const snapshot = { ...this.state, initialViewportSourceIds: [...this.state.initialViewportSourceIds] };
+    const snapshot = { ...this.state, initialViewportSourceIds: [...this.state.initialViewportSourceIds],
+      visibilityChanges: this.state.visibilityChanges.map(change => ({ ...change })),
+      recoveryEvents: this.state.recoveryEvents.map(event => ({ ...event })) };
     if (snapshot.fullDoneMs !== null) {
       const bytes = new TextEncoder().encode(JSON.stringify(this.output));
       snapshot.outputFingerprint = [...new Uint8Array(await this.view.crypto.subtle.digest('SHA-256', bytes))]
@@ -257,6 +323,7 @@ export class PageBenchmarkProbe {
     if (this.raf !== undefined) this.view.cancelAnimationFrame(this.raf);
     this.page.removeEventListener('visibilitychange', this.visibilityListener);
     this.view.removeEventListener('blur', this.visibilityListener);
+    this.view.removeEventListener('focus', this.visibilityListener);
     this.records = []; this.output = [];
   }
 }

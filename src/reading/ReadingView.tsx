@@ -4,7 +4,7 @@ import { readingAppearanceVariables } from '../shared/reading-appearance';
 import { ReadingSettings, type PreferencesStatus } from './ReadingSettings';
 import type { ReadingArticle } from './types';
 import type { TranslationError, TranslationServiceStatus } from '../shared/contracts';
-import { RecoveryAction, useTranslationRecovery } from '../ui/translation/RecoveryAction';
+import { RecoveryAction, automaticRecoveryDeadline, automaticRecoveryMessage, useTranslationRecovery } from '../ui/translation/RecoveryAction';
 
 export type { ReadingPreferences } from '../shared/reading';
 
@@ -17,6 +17,8 @@ export interface ReadingTranslationState {
   skipped?: number;
   limitReached?: boolean;
   error?: TranslationError;
+  waitingUntil?: number;
+  automaticRecoveryAttempts?: number;
 }
 
 export interface ReadingViewProps {
@@ -115,12 +117,13 @@ export function ReadingView(props: ReadingViewProps) {
   const minutes = Math.max(1, article.readingMinutes);
   const remaining = Math.max(1, Math.ceil(minutes * (1 - fraction)));
   const running = translation.status === 'running';
-  const recovery = useTranslationRecovery(translation.error, props.serviceStatus);
+  const automaticUntil = automaticRecoveryDeadline(translation);
+  const recovery = useTranslationRecovery(translation.error, props.serviceStatus, automaticUntil);
   const done = translation.status === 'done';
   const stopped = translation.status === 'stopped';
   const translatedFraction = translation.total ? Math.min(1, translation.completed / translation.total) : 0;
   const primaryLabel = running ? '停止翻译' : done ? translation.failed ? '本次翻译结束' : '翻译完成' : stopped ? '继续翻译' : '翻译正文';
-  const translationLabel = recovery.blocked ? [props.notice, recovery.message].filter(Boolean).join(' ') : props.notice || recovery.message || (running
+  const translationLabel = automaticUntil ? automaticRecoveryMessage(recovery.automaticRemainingSeconds!, translation.completed, translation.total) : recovery.blocked ? [props.notice, recovery.message].filter(Boolean).join(' ') : props.notice || recovery.message || (running
     ? `正在翻译 ${translation.completed} / ${translation.total} 段，可继续阅读。`
     : done ? `已翻译 ${translation.completed} / ${translation.total} 段${translation.failed ? `，${translation.failed} 段未完成。` : '。'}`
     : stopped ? `翻译已停止，保留已完成的 ${translation.completed} 段译文。`
@@ -140,7 +143,10 @@ export function ReadingView(props: ReadingViewProps) {
     }
   });
   const minimumHeadingLevel = article.outline.length ? Math.min(...article.outline.map(item => item.level)) : 2;
-  const update = (patch: Partial<ReadingPreferences>) => props.onPreferences({ ...preferences, ...patch });
+  const update = (patch: Partial<ReadingPreferences>) => {
+    if (patch.mode === 'original' && automaticUntil) props.onStop();
+    props.onPreferences({ ...preferences, ...patch });
+  };
   const closePanel = () => {
     const trigger = activePanel === 'settings' ? settingsTrigger : outlineTrigger;
     setMobilePanel(null);
@@ -151,6 +157,7 @@ export function ReadingView(props: ReadingViewProps) {
   return <section className="nr-reader" role="document" aria-label="文章阅读内容" aria-describedby={helpId} tabIndex={-1}
     onKeyDown={event => { if (event.key === 'Escape' && activePanel) { event.preventDefault(); event.stopPropagation(); closePanel(); } }}
     data-theme={preferences.theme} data-font={preferences.fontFamily} data-width={preferences.width} data-mode={preferences.mode}
+    data-waiting-until={automaticUntil || undefined} data-recovery-attempts={translation.automaticRecoveryAttempts}
     data-focus={preferences.focus} data-code-wrap={preferences.codeWrap} data-translation-style={preferences.translationStyle} data-settings-open={settingsOpen} data-status={translation.status} style={customStyle}>
     <p className="nr-sr-only" id={helpId}>阅读模式。按 Escape 退出并回到原网页。</p>
     <div className="nr-header" ref={header}>

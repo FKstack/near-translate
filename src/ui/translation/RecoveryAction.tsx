@@ -5,11 +5,22 @@ export interface TranslationRecovery {
   action: 'retry' | 'settings' | 'none';
   blocked: boolean;
   remainingSeconds: number;
+  automaticRemainingSeconds?: number;
   message?: string;
 }
 
 function deadline(value: unknown): number {
   return typeof value === 'number' && Number.isSafeInteger(value) && value > 0 && value <= 8_640_000_000_000_000 ? value : 0;
+}
+
+/** Only an explicit running-session deadline represents automatic recovery intent. */
+export function automaticRecoveryDeadline(state: { status: string; waitingUntil?: number }): number {
+  return state.status === 'running' ? deadline(state.waitingUntil) : 0;
+}
+
+export function automaticRecoveryMessage(remainingSeconds: number, completed: number, total: number): string {
+  return remainingSeconds > 0 ? `DeepL 暂时受限，${remainingSeconds} 秒后自动继续 · 已翻译 ${completed} / ${total}`
+    : `DeepL 正在恢复翻译 · 已翻译 ${completed} / ${total}`;
 }
 
 export function recoveryDeadline(error?: TranslationError, serviceStatus?: TranslationServiceStatus): number {
@@ -32,19 +43,24 @@ export function translationRecovery(error?: TranslationError, serviceStatus?: Tr
 }
 
 /** One local clock per view, shared by its message and all recovery controls. */
-export function useTranslationRecovery(error?: TranslationError, serviceStatus?: TranslationServiceStatus): TranslationRecovery {
-  const until = recoveryDeadline(error, serviceStatus);
-  const [now, setNow] = useState(Date.now);
+export function useTranslationRecovery(error?: TranslationError, serviceStatus?: TranslationServiceStatus, automaticWaitingUntil?: number): TranslationRecovery {
+  const automaticUntil = deadline(automaticWaitingUntil);
+  const until = Math.max(recoveryDeadline(error, serviceStatus), automaticUntil);
+  const [clock, setClock] = useState(() => ({ until, now: Date.now() }));
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | undefined;
     const tick = () => {
-      const current = Date.now(); setNow(current);
+      const current = Date.now(); setClock({ until, now: current });
       if (until > current) timer = setTimeout(tick, Math.min(1_000, until - current));
     };
     tick();
     return () => { clearTimeout(timer); };
   }, [until]);
-  return translationRecovery(error, serviceStatus, now);
+  // A new deadline can arrive after a long idle period with no ticking clock.
+  // Its first render must not show a countdown based on the previous deadline.
+  const now = clock.until === until ? clock.now : Date.now();
+  return { ...translationRecovery(error, serviceStatus, now),
+    ...(automaticUntil ? { automaticRemainingSeconds: Math.max(0, Math.ceil((automaticUntil - now) / 1_000)) } : {}) };
 }
 
 export function RecoveryAction({ recovery, onRetry, onSettings, retryLabel = '重试', className, disabled = false }: {

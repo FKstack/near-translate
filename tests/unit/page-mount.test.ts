@@ -3,7 +3,7 @@ import type { PageBarProps } from '../../src/page/Bar';
 import type { PageSegment } from '../../src/page/segments';
 import type { PublicSettings, TranslationInput, TranslationServerMessage } from '../../src/shared/contracts';
 import type { PageViewportPriority } from '../../src/page/viewport';
-import { pageExecutionPolicy } from '../../src/shared/translation-policy';
+import { pageExecutionPolicy, userscriptPageExecutionPolicy } from '../../src/shared/translation-policy';
 
 const fixtures = vi.hoisted(() => ({
   render: vi.fn(), unmount: vi.fn(), update: vi.fn(), clear: vi.fn(), prune: vi.fn(),
@@ -99,6 +99,40 @@ beforeEach(() => {
 afterEach(() => { dispose?.(); dispose = undefined; vi.useRealTimers(); vi.unstubAllGlobals(); });
 
 describe('document-scoped page translation lifecycle', () => {
+  it('uses an injected userscript workload policy after before-use and preserves completed work on retry', async () => {
+    passages = Array.from({ length: 3 }, (_, index) => segment(index + ': ' + 'article '.repeat(110), selectedRoot));
+    const beforeUse = vi.fn().mockResolvedValue(true);
+    dispose = mountPageTranslator({ executionPolicy: userscriptPageExecutionPolicy, beforeUse }); await flush();
+    bar().onTranslate(); expect(fixtures.requests).toHaveLength(0); await flush();
+    expect(fixtures.requests).toHaveLength(1);
+    complete(1); await flush(); expect(fixtures.requests).toHaveLength(2);
+    bar().onStop(); bar().onRetry(); await flush();
+    expect(beforeUse).toHaveBeenCalledTimes(2);
+    expect(bar().state.completed).toBe(1);
+    expect(fixtures.requests).toHaveLength(3);
+    expect(fixtures.requests[2]!.pageSegments).toEqual([passages[1]!.text]);
+    expect(fixtures.requests.slice(1).every(input => !input.pageSegments?.includes(passages[0]!.text))).toBe(true);
+  });
+
+  it('uses the injected policy for viewport watching and a replacement article', async () => {
+    const executionPolicy = vi.fn((engine: Parameters<typeof pageExecutionPolicy>[0]) => ({
+      ...userscriptPageExecutionPolicy(engine), viewportPriority: false,
+    }));
+    passages = Array.from({ length: 3 }, (_, index) => segment(index + ': ' + 'article '.repeat(110), selectedRoot));
+    dispose = mountPageTranslator({ executionPolicy }); await flush(); bar().onTranslate(); await flush();
+    expect(fixtures.requests).toHaveLength(1); expect(fixtures.snapshot).not.toHaveBeenCalled();
+    const previous = selectedRoot; previous.remove();
+    selectedRoot = new ElementFixture('article'); pageBody.append(selectedRoot);
+    passages = Array.from({ length: 3 }, (_, index) => segment('new ' + index + ': ' + 'article '.repeat(110), selectedRoot));
+    mutation([{ type: 'childList', target: pageBody, addedNodes: [selectedRoot], removedNodes: [previous] }]);
+    await vi.advanceTimersByTimeAsync(400);
+    expect(fixtures.requests).toHaveLength(2);
+    expect(fixtures.requests[1]!.pageSegments).toEqual([passages[0]!.text]);
+    pageDocument.dispatchEvent(new Event('scroll')); await vi.advanceTimersByTimeAsync(16);
+    expect(fixtures.snapshot).not.toHaveBeenCalled();
+    expect(executionPolicy.mock.calls.every(([engine]) => engine === 'deepl-web')).toBe(true);
+  });
+
   it('uses the shared DeepL concurrency budget and refills only a completed worker', async () => {
     const policy = pageExecutionPolicy('deepl-web');
     passages = Array.from({ length: policy.concurrency + 2 }, (_, index) => segment(`${index}: ${'article '.repeat(110)}`, selectedRoot));

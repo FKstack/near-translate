@@ -91,11 +91,20 @@ export interface ConnectionSettings extends PublicSettings {
   profiles: Partial<Record<ProviderId, PublicApiProfile>>;
 }
 export type ErrorCode = 'CONFIG' | 'AUTH' | 'BALANCE' | 'RATE_LIMIT' | 'NETWORK' | 'TIMEOUT' | 'INVALID_RESPONSE' | 'INVALID_INPUT' | 'DISCONNECTED' | 'SERVER';
-export interface TranslationError { code: ErrorCode; message: string; retryable: boolean; retryAt?: number }
+export interface TranslationError { code: ErrorCode; message: string; retryable: boolean; retryAt?: number; serviceWide?: true }
+/** Whitelisted service metadata only; never contains response text or request identity. */
+export interface TranslationRateLimitDiagnostic {
+  source: 'http-429' | 'json-too-many-requests';
+  httpStatus: number;
+  at: number;
+  retryAfterMs?: number;
+  responseReason?: 'rate-limit' | 'quota' | 'concurrency' | 'payload-limit' | 'authentication';
+}
 export interface TranslationServiceStatus {
   engine: TranslationEngine;
   cooldownUntil: number;
   checkedAt: number;
+  rateLimit?: TranslationRateLimitDiagnostic;
 }
 export interface TranslationStatusSource {
   subscribe(listener: (status: TranslationServiceStatus) => void): () => void;

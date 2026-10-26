@@ -2,11 +2,13 @@ import { JSDOM } from 'jsdom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ReadingViewProps } from '../../src/reading/ReadingView';
 import type { ReadingArticle } from '../../src/reading/types';
+import type { TranslationEngine } from '../../src/shared/contracts';
+import { pageExecutionPolicy, userscriptPageExecutionPolicy } from '../../src/shared/translation-policy';
 import { DEFAULT_READING_PREFERENCES, normalizeReadingPreferences, readingStyle, type ReadingPreferences } from '../../src/shared/reading';
 
 const fixtures = vi.hoisted(() => ({
   render: vi.fn(), unmount: vi.fn(), sendMessage: vi.fn(), addListener: vi.fn(), removeListener: vi.fn(),
-  extract: vi.fn(), start: vi.fn(), stop: vi.fn(), disposeTranslation: vi.fn(),
+  extract: vi.fn(), start: vi.fn(), stop: vi.fn(), retry: vi.fn(), disposeTranslation: vi.fn(),
 }));
 vi.mock('react-dom/client', () => ({ createRoot: () => ({ render: fixtures.render, unmount: fixtures.unmount }) }));
 vi.mock('wxt/browser', () => ({ browser: { runtime: { sendMessage: fixtures.sendMessage,
@@ -15,7 +17,7 @@ vi.mock('../../src/reading/extract', () => ({ extractReadingArticle: fixtures.ex
 vi.mock('../../src/reading/translation', () => ({ ReadingTranslation: class {
   state = { status: 'idle', total: 2, completed: 0, failed: 0, pending: 2 };
   snapshot = new Map(); start = fixtures.start; stop = fixtures.stop;
-  dispose = fixtures.disposeTranslation; retry() {} refreshViewport() {}
+  dispose = fixtures.disposeTranslation; retry = fixtures.retry; refreshViewport() {}
 } }));
 import { createReadingMode, type ReadingModeController } from '../../src/reading/mount';
 
@@ -40,15 +42,15 @@ function deferred<T>() {
 const rect = (top: number, height: number) => ({ top, bottom: top + height, height, left: 0, right: 600, width: 600, x: 0, y: top,
   toJSON() { return {}; } }) as DOMRect;
 
-async function open(preferences: Partial<ReadingPreferences> = {}) {
+async function open(preferences: Partial<ReadingPreferences> = {}, options: Parameters<typeof createReadingMode>[0] = {}, engine: TranslationEngine = 'model') {
   const initial = normalizeReadingPreferences({ ...DEFAULT_READING_PREFERENCES, ...preferences });
   fixtures.sendMessage.mockImplementation(async (message: { type: string }) => {
     if (message.type === 'get-reading-preferences') return { ok: true, preferences: initial };
-    if (message.type === 'get-settings') return { enabled: true, webAccess: true, translationEngine: 'model', requiresApiKey: true,
+    if (message.type === 'get-settings') return { enabled: true, webAccess: true, translationEngine: engine, requiresApiKey: engine === 'model',
       hasApiKey: true, apiAccess: true, model: '', includeContext: true, sentenceAnalysisEnabled: false, connectionRevision: 1 };
     return { ok: true };
   });
-  controller = createReadingMode(); await flush(); controller.open();
+  controller = createReadingMode(options); await flush(); controller.open();
   const dialog = dom.window.document.querySelector('near-reading-mode')!.shadowRoot!.querySelector('dialog')!;
   scroll = dom.window.document.createElement('div');
   const mount = dom.window.document.createElement('div'); scroll.append(mount); dialog.append(scroll);
@@ -95,6 +97,26 @@ afterEach(() => {
 });
 
 describe('document-owned reading customization', () => {
+  it('keeps the default model execution policy when no resolver is injected', async () => {
+    await open(); view().onTranslate();
+    expect(fixtures.start).toHaveBeenCalledExactlyOnceWith(pageExecutionPolicy('model'));
+  });
+
+  it('passes the injected userscript policy through the existing guarded start and retry actions', async () => {
+    const executionPolicy = vi.fn(userscriptPageExecutionPolicy);
+    const beforeUse = vi.fn().mockResolvedValueOnce(false).mockResolvedValue(true);
+    await open({}, { executionPolicy, beforeUse }, 'deepl-web');
+    view().onTranslate(); await flush(); expect(fixtures.start).not.toHaveBeenCalled();
+    view().onTranslate(); await flush();
+    expect(executionPolicy).toHaveBeenCalledExactlyOnceWith('deepl-web');
+    expect(fixtures.start).toHaveBeenCalledExactlyOnceWith(userscriptPageExecutionPolicy('deepl-web'));
+    view().onStop(); expect(fixtures.stop).toHaveBeenCalledOnce();
+    view().onRetry(); await flush();
+    expect(beforeUse).toHaveBeenCalledTimes(3); expect(fixtures.retry).toHaveBeenCalledOnce();
+    expect(fixtures.start).toHaveBeenCalledOnce(); expect(executionPolicy).toHaveBeenCalledOnce();
+    expect(fixtures.extract).toHaveBeenCalledOnce();
+  });
+
   it('previews immediately and coalesces a continuous adjustment into one final save and undo', async () => {
     await open();
     const commit = view().onLayoutCommit;

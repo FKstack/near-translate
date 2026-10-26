@@ -4,6 +4,7 @@ import { MAX_PAGE_BATCH_ITEMS } from '../shared/contracts';
 import { PAGE_BATCH_MAX_ITEMS, PAGE_BATCH_TARGET_CHARS, PAGE_CONCURRENCY, normalizePageBatchTargetChars, splitPageBatchText } from './batches';
 import { MAX_PAGE_SEGMENTS, segmentIsCurrent, type PageSegment } from './segments';
 import type { PageViewportPriority } from './viewport';
+import type { PageAutomaticRecoveryPolicy } from '../shared/translation-policy';
 
 export { MAX_PAGE_SEGMENTS } from './segments';
 const MAX_CACHED_TRANSLATIONS = 1_500;
@@ -17,6 +18,8 @@ export interface PageTranslationState {
   pending: number;
   limitReached: boolean;
   error?: TranslationError;
+  waitingUntil?: number;
+  automaticRecoveryAttempts?: number;
 }
 export type PageSessionState = PageTranslationState;
 export type PageSegmentUpdate =
@@ -30,6 +33,8 @@ export interface PageSessionCallbacks {
 }
 export interface PageScheduling {
   concurrency?: number; batchMaxItems?: number; batchTargetChars?: number; batchSeparatorChars?: 0 | 1 | 2;
+  resolveConcurrency?: (ownedPartLengths: readonly number[]) => number;
+  automaticRecovery?: PageAutomaticRecoveryPolicy;
   viewportPriority?: boolean; firstBatchMaxItems?: number; firstBatchTargetChars?: number; packing?: 'ordered' | 'fill';
 }
 export interface PageTranslationClient {
@@ -66,6 +71,16 @@ export class PageTranslationSession {
   private pumping = false;
   private disposed = false;
   private concurrency = PAGE_CONCURRENCY;
+  private maximumConcurrency = PAGE_CONCURRENCY;
+  private resolveConcurrency?: PageScheduling['resolveConcurrency'];
+  private readonly ownedPartLengths: number[] = [];
+  private workloadResolved = false;
+  private automaticRecovery?: PageAutomaticRecoveryPolicy;
+  private automaticRecoveryAttempts = 0;
+  private recoveryWindowUntil?: number;
+  private waitingUntil?: number;
+  private recoveryTimer?: ReturnType<typeof setTimeout>;
+  private recoveryToken = 0;
   private batchMaxItems = PAGE_BATCH_MAX_ITEMS;
   private batchTargetChars = PAGE_BATCH_TARGET_CHARS;
   private batchSeparatorChars: 0 | 1 | 2 = 1;
@@ -95,6 +110,8 @@ export class PageTranslationSession {
       skipped: this.prunedCount + items.filter(item => item.status === 'skipped').length,
       pending: items.filter(item => ['queued', 'loading', 'stopped'].includes(item.status)).length,
       limitReached: this.limitReached, error: this.error,
+      ...(this.automaticRecovery ? { automaticRecoveryAttempts: this.automaticRecoveryAttempts } : {}),
+      ...(this.waitingUntil !== undefined ? { waitingUntil: this.waitingUntil } : {}),
     };
   }
 
@@ -113,6 +130,12 @@ export class PageTranslationSession {
   start(segments: PageSegment[], scheduling: PageScheduling = {}): void {
     if (this.disposed) return;
     this.concurrency = Number.isInteger(scheduling.concurrency) ? Math.max(1, Math.min(PAGE_CONCURRENCY, scheduling.concurrency!)) : PAGE_CONCURRENCY;
+    this.maximumConcurrency = this.concurrency;
+    this.resolveConcurrency = scheduling.resolveConcurrency;
+    const recovery = scheduling.automaticRecovery;
+    this.automaticRecovery = recovery && Number.isSafeInteger(recovery.maxAttempts) && recovery.maxAttempts > 0
+      && Number.isSafeInteger(recovery.maxWaitMs) && recovery.maxWaitMs > 0
+      ? { maxAttempts: Math.min(3, recovery.maxAttempts), maxWaitMs: Math.min(15 * 60_000, recovery.maxWaitMs) } : undefined;
     this.batchMaxItems = Number.isInteger(scheduling.batchMaxItems) ? Math.max(1, Math.min(MAX_PAGE_BATCH_ITEMS, scheduling.batchMaxItems!)) : PAGE_BATCH_MAX_ITEMS;
     this.batchTargetChars = normalizePageBatchTargetChars(scheduling.batchTargetChars);
     this.batchSeparatorChars = scheduling.batchSeparatorChars === 0 ? 0 : scheduling.batchSeparatorChars === 2 ? 2 : 1;
@@ -166,6 +189,13 @@ export class PageTranslationSession {
           ? splitPageBatchText(segment.text, this.batchTargetChars).map(text => ({ text, status: 'queued' }))
           : [{ text: segment.text, status: 'done', translation: cached }], status: cached === undefined ? 'queued' : 'done' };
         this.groups.set(segment.text, group);
+        if (this.resolveConcurrency) {
+          // Count the complete unique source, including cached successes whose
+          // stored result deliberately uses one whole-text done part.
+          const lengths = cached === undefined ? group.parts.map(part => part.text.length)
+            : splitPageBatchText(group.text, this.batchTargetChars).map(text => text.length);
+          for (const length of lengths) this.ownedPartLengths.push(length);
+        }
       }
       if (group.status === 'skipped') for (const part of group.parts) if (part.status === 'skipped') part.status = 'queued';
       // A newly observed duplicate must receive the existing cached result as well.
@@ -175,17 +205,35 @@ export class PageTranslationSession {
       // or DOM write. Other group refreshes still validate every owned source.
       this.refreshGroup(group, group.items.length === 1 ? item : undefined);
     }
+    if (!this.updateWorkloadConcurrency()) return;
     this.reconcileStatus(); this.changed(); this.schedulePump();
+  }
+
+  private updateWorkloadConcurrency(): boolean {
+    if (!this.resolveConcurrency) return true;
+    const generation = this.generation;
+    const current = () => !this.disposed && this.status !== 'idle' && this.status !== 'stopped' && generation === this.generation;
+    if (!current()) return false;
+    const resolved = this.resolveConcurrency(this.ownedPartLengths);
+    if (!current()) return false;
+    const bounded = Number.isInteger(resolved) ? Math.max(1, Math.min(this.maximumConcurrency, resolved)) : this.maximumConcurrency;
+    // New source may promote a growing article; completion/retry never shrinks it.
+    this.concurrency = this.workloadResolved ? Math.max(this.concurrency, bounded) : bounded;
+    this.workloadResolved = true;
+    return true;
   }
 
   retryFailed(): void {
     if (this.disposed || this.status === 'idle' || this.status === 'running') return;
+    this.clearRecoveryWait(); this.automaticRecoveryAttempts = 0; this.recoveryWindowUntil = undefined;
+    const generation = this.generation;
     for (const group of this.groups.values()) {
       for (const part of group.parts) {
         if (part.status !== 'stopped' && !(part.status === 'error' && part.error?.retryable)) continue;
         part.status = 'queued'; part.error = undefined;
       }
       this.refreshGroup(group);
+      if (this.disposed || generation !== this.generation) return;
     }
     this.error = undefined; this.status = 'running'; this.changed(); this.schedulePump();
   }
@@ -206,6 +254,8 @@ export class PageTranslationSession {
     this.groups.clear(); this.segmentKeys.clear(); this.nodeIds = new WeakMap();
     this.nextNodeId = 0; this.acceptedCount = 0; this.prunedCount = 0; this.limitReached = false; this.error = undefined;
     this.dispatchedBatches = 0;
+    this.ownedPartLengths.length = 0; this.workloadResolved = false;
+    this.automaticRecoveryAttempts = 0; this.recoveryWindowUntil = undefined;
   }
 
   private clearTranslations(): void { this.translations.clear(); this.cachedBytes = 0; }
@@ -337,7 +387,7 @@ export class PageTranslationSession {
 
   private pump(): void {
     const generation = this.generation;
-    const current = () => !this.disposed && this.status === 'running' && this.generation === generation;
+    const current = () => !this.disposed && this.status === 'running' && this.generation === generation && this.waitingUntil === undefined;
     for (const worker of this.workers.slice(0, this.concurrency)) {
       if (!current()) return;
       if (worker.active) continue;
@@ -406,11 +456,13 @@ export class PageTranslationSession {
         this.complete(active.tasks[0]!, event.result.translation);
       } else this.failTasks(active.tasks, INVALID_BATCH);
     } else {
-      if (STOP_ERRORS.has(event.error.code)) {
-        // A connection or service-wide failure belongs to the session bar, not
-        // every paragraph in this batch. Keep completed text and wait for the
-        // user's next action before sending any unfinished work again.
-        this.error = event.error; this.stopWork(); this.status = 'stopped';
+      if (STOP_ERRORS.has(event.error.code) || event.error.serviceWide === true) {
+        // Keep completed text; only the opted-in, deadline-bearing rate limit
+        // retains the user's intent to continue automatically.
+        const stoppedGeneration = this.generation + 1;
+        this.error = event.error; this.stopWork();
+        if (this.disposed || this.generation !== stoppedGeneration) return;
+        this.status = this.waitForRateLimit(event.error) ? 'running' : 'stopped';
       } else this.failTasks(active.tasks, event.error);
     }
     this.reconcileStatus(); this.changed(); this.schedulePump();
@@ -458,7 +510,7 @@ export class PageTranslationSession {
   }
 
   private reconcileStatus(): void {
-    if (this.status === 'stopped' || this.status === 'idle') return;
+    if (this.status === 'stopped' || this.status === 'idle' || this.waitingUntil !== undefined) return;
     this.status = this.workers.some(worker => worker.active)
       || Array.from(this.groups.values()).some(group => group.items.length && group.parts.some(part => part.status === 'queued')) ? 'running' : 'done';
   }
@@ -490,11 +542,51 @@ export class PageTranslationSession {
   }
 
   private stopWork(): void {
+    this.clearRecoveryWait();
     this.generation++;
     for (const worker of this.workers) { worker.active = undefined; worker.client.cancel(); }
     for (const group of this.groups.values()) {
       for (const part of group.parts) if (part.status === 'queued' || part.status === 'loading') part.status = 'stopped';
       this.refreshGroup(group);
     }
+  }
+
+  private clearRecoveryWait(): void {
+    clearTimeout(this.recoveryTimer); this.recoveryTimer = undefined;
+    this.waitingUntil = undefined; this.recoveryToken++;
+  }
+
+  private waitForRateLimit(error: TranslationError): boolean {
+    const policy = this.automaticRecovery, now = Date.now();
+    if (!policy || error.code !== 'RATE_LIMIT' || !error.retryable || !Number.isSafeInteger(error.retryAt)
+      || error.retryAt! < 0 || !Number.isSafeInteger(now) || now < 0) return false;
+    this.recoveryWindowUntil ??= now + policy.maxWaitMs;
+    if (this.automaticRecoveryAttempts >= policy.maxAttempts || now > this.recoveryWindowUntil
+      || error.retryAt! > this.recoveryWindowUntil) return false;
+    this.automaticRecoveryAttempts++;
+    const until = Math.max(now, error.retryAt!);
+    this.waitingUntil = until;
+    const generation = this.generation, token = this.recoveryToken;
+    const current = () => !this.disposed && this.status === 'running' && this.generation === generation
+      && this.recoveryToken === token && this.waitingUntil === until;
+    const resume = () => {
+      if (!current()) return;
+      this.recoveryTimer = undefined;
+      const time = Date.now();
+      if (time > this.recoveryWindowUntil!) {
+        this.clearRecoveryWait(); this.status = 'stopped'; this.changed(); return;
+      }
+      if (time < until) { this.recoveryTimer = setTimeout(resume, Math.min(until - time, 2_147_483_647)); return; }
+      this.clearRecoveryWait();
+      this.error = undefined;
+      for (const group of this.groups.values()) {
+        for (const part of group.parts) if (part.status === 'stopped') { part.status = 'queued'; part.error = undefined; }
+        this.refreshGroup(group);
+        if (this.disposed || this.status !== 'running' || this.generation !== generation) return;
+      }
+      this.reconcileStatus(); this.changed(); this.schedulePump();
+    };
+    this.recoveryTimer = setTimeout(resume, Math.min(Math.max(0, until - now), 2_147_483_647));
+    return true;
   }
 }

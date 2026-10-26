@@ -3,7 +3,8 @@ import { JSDOM } from 'jsdom';
 import type { TranslationError, TranslationInput, TranslationServerMessage } from '../../src/shared/contracts';
 import { MAX_TEXT_LENGTH } from '../../src/shared/contracts';
 import type { PageSegment } from '../../src/page/segments';
-import { PAGE_BATCH_MAX_ITEMS, PAGE_BATCH_TARGET_CHARS, PAGE_CONCURRENCY } from '../../src/page/batches';
+import { PAGE_BATCH_MAX_ITEMS, PAGE_BATCH_TARGET_CHARS, PAGE_CONCURRENCY, splitPageBatchText } from '../../src/page/batches';
+import { pageExecutionPolicy, userscriptPageExecutionPolicy } from '../../src/shared/translation-policy';
 import type { PageViewportPriority } from '../../src/page/viewport';
 
 const fixtures = vi.hoisted(() => ({ stale: new WeakSet<object>() }));
@@ -985,5 +986,134 @@ describe('batched page translation session', () => {
     session.start([segment('ignored')]); await flush();
     expect(clients.every(client => client.dispose.mock.calls.length === 1)).toBe(true);
     expect(onSegment).toHaveBeenCalledTimes(rendered); expect(onChange).toHaveBeenCalledTimes(changes);
+  });
+});
+
+describe('userscript workload producer policy', () => {
+  const policy = userscriptPageExecutionPolicy('deepl-web');
+  const passage = (index: number, length = 800) => segment(`${index}:`.padEnd(length, 'x'));
+
+  async function drain(fixture: ReturnType<typeof setup>, finished = new Set<string>()): Promise<void> {
+    for (let pass = 0; fixture.session.state.status === 'running' && pass < MAX_PAGE_SEGMENTS; pass++) {
+      for (let worker = 0; worker < fixture.clients.length; worker++) {
+        const requestId = fixture.clients[worker]!.start.mock.results.at(-1)?.value;
+        if (!requestId || finished.has(requestId)) continue;
+        finished.add(requestId); fixture.done(worker);
+      }
+      await flush();
+    }
+  }
+
+  it('sends one small-page batch at a time and finishes immediately after the final valid result', async () => {
+    const fixture = setup();
+    const passages = Array.from({ length: 4 }, (_, index) => passage(index));
+    fixture.session.start(passages, policy); await flush();
+    expect(fixture.requests()).toHaveLength(1);
+    fixture.done(); await flush();
+    expect(fixture.requests()).toHaveLength(2);
+    expect(fixture.session.state).toMatchObject({ status: 'running', completed: 1, pending: 3 });
+    await drain(fixture, new Set(['request-1']));
+    expect(fixture.requests().map(input => input.pageSegments)).toEqual(passages.map(source => [source.text]));
+    expect(fixture.session.state).toMatchObject({ status: 'done', completed: 4, pending: 0, failed: 0 });
+    fixture.session.dispose();
+  });
+
+  it('keeps eight producers for a shape that cannot fit into eight requests', async () => {
+    const fixture = setup();
+    const passages = Array.from({ length: 9 }, (_, index) => passage(index));
+    fixture.session.start(passages, policy); await flush();
+    expect(fixture.requests()).toHaveLength(8);
+    fixture.done(); await flush();
+    expect(fixture.requests()).toHaveLength(9);
+    await drain(fixture, new Set(['request-1']));
+    expect(fixture.session.state).toMatchObject({ status: 'done', completed: 9, pending: 0 });
+    expect(fixture.requests().flatMap(input => input.pageSegments!)).toEqual(expect.arrayContaining(passages.map(source => source.text)));
+    fixture.session.dispose();
+  });
+
+  it('deduplicates equal source text before resolving the workload', async () => {
+    const fixture = setup();
+    const resolveConcurrency = vi.fn(policy.resolveConcurrency!);
+    fixture.session.start(Array.from({ length: 1_000 }, () => segment('same')), { ...policy, resolveConcurrency });
+    expect(resolveConcurrency).toHaveBeenCalledExactlyOnceWith([4]);
+    await flush();
+    expect(fixture.requests()).toHaveLength(1);
+    fixture.done(); await flush();
+    expect(fixture.session.state).toMatchObject({ status: 'done', total: 1_000, completed: 1_000, pending: 0 });
+    fixture.session.dispose();
+  });
+
+  it('counts the true split lengths of cached whole-text successes when deciding the article tier', async () => {
+    const fixture = setup();
+    const cached = 'a'.repeat(20_000);
+    fixture.session.seedTranslations(new Map([[cached, '已有长段译文']]));
+    const resolveConcurrency = vi.fn(policy.resolveConcurrency!);
+    const remaining = Array.from({ length: 8 }, (_, index) => passage(index));
+    fixture.session.start([segment(cached), ...remaining], { ...policy, resolveConcurrency });
+    expect(resolveConcurrency).toHaveBeenCalledExactlyOnceWith([
+      ...splitPageBatchText(cached, 1_500).map(text => text.length), ...remaining.map(source => source.text.length),
+    ]);
+    await flush();
+    expect(fixture.requests()).toHaveLength(8);
+    expect(fixture.requests().some(input => input.pageSegments!.includes(cached))).toBe(false);
+    await drain(fixture);
+    expect(fixture.session.state).toMatchObject({ status: 'done', completed: 9, pending: 0 });
+    fixture.session.dispose();
+  });
+
+  it('promotes a growing page without resetting, canceling or repeating the existing request', async () => {
+    const fixture = setup();
+    fixture.session.start([passage(0), passage(1)], policy); await flush();
+    const firstId = fixture.id();
+    const cancellations = fixture.clients.map(client => client.cancel.mock.calls.length);
+    fixture.session.append(Array.from({ length: 8 }, (_, index) => passage(index + 2))); await flush();
+    expect(fixture.requests()).toHaveLength(8);
+    expect(fixture.id()).toBe(firstId);
+    expect(fixture.clients.map(client => client.cancel.mock.calls.length)).toEqual(cancellations);
+    await drain(fixture);
+    expect(fixture.requests()).toHaveLength(10);
+    expect(fixture.session.state).toMatchObject({ status: 'done', total: 10, completed: 10, pending: 0 });
+    fixture.session.dispose();
+  });
+
+  it('retains 193 completed sources and the large-article tier when retrying only the remaining 58', async () => {
+    const fixture = setup();
+    const completed = Array.from({ length: 193 }, (_, index) => segment(`Completed public source ${index}.`));
+    fixture.session.seedTranslations(new Map(completed.map(source => [source.text, '已有译文'])));
+    const pending = Array.from({ length: 58 }, (_, index) => passage(index, 900));
+    const resolveConcurrency = vi.fn(policy.resolveConcurrency!);
+    fixture.session.start([...completed, ...pending], { ...policy, resolveConcurrency }); await flush();
+    expect(fixture.requests()).toHaveLength(8);
+    expect(fixture.session.state).toMatchObject({ completed: 193, pending: 58 });
+    fixture.session.cancel();
+    const canceled = new Set(fixture.clients.flatMap(client => client.start.mock.results.map(result => result.value)));
+    fixture.session.retryFailed(); await flush();
+    expect(fixture.requests()).toHaveLength(16);
+    expect(resolveConcurrency).toHaveBeenCalledTimes(1);
+    expect(fixture.requests().every(input => input.pageSegments!.every(text => pending.some(source => source.text === text)))).toBe(true);
+    await drain(fixture, canceled);
+    expect(fixture.session.state).toMatchObject({ status: 'done', total: 251, completed: 251, pending: 0, failed: 0 });
+    fixture.session.dispose();
+  });
+
+  it('does not dispatch after the resolver synchronously cancels the owning generation', async () => {
+    const fixture = setup();
+    fixture.session.start([passage(0), passage(1)], { ...policy, resolveConcurrency: () => {
+      fixture.session.cancel(); return 8;
+    } });
+    await flush();
+    expect(fixture.requests()).toHaveLength(0);
+    expect(fixture.session.state).toMatchObject({ status: 'stopped', pending: 2 });
+    fixture.session.dispose();
+  });
+
+  it('keeps the default extension and model policies free of workload hooks', async () => {
+    for (const engine of ['deepl-web', 'model'] as const) {
+      const fixture = setup();
+      const defaultPolicy = pageExecutionPolicy(engine);
+      fixture.session.start(Array.from({ length: 40 }, (_, index) => passage(index, 1_000)), defaultPolicy); await flush();
+      expect(fixture.requests()).toHaveLength(defaultPolicy.concurrency);
+      fixture.session.dispose();
+    }
   });
 });

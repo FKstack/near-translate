@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from 'react';
 import type { PageSessionState } from './session';
 import type { TranslationServiceStatus } from '../shared/contracts';
-import { RecoveryAction, useTranslationRecovery } from '../ui/translation/RecoveryAction';
+import { RecoveryAction, automaticRecoveryDeadline, automaticRecoveryMessage, useTranslationRecovery } from '../ui/translation/RecoveryAction';
 
 const barSize = 40;
 const edge = 8;
@@ -103,7 +103,8 @@ export function PageBar(props: PageBarProps) {
     });
   }
   const { state } = props;
-  const recovery = useTranslationRecovery(state.error, props.serviceStatus);
+  const automaticUntil = automaticRecoveryDeadline(state);
+  const recovery = useTranslationRecovery(state.error, props.serviceStatus, automaticUntil);
   const running = state.status === 'running';
   const continuing = state.status === 'stopped' && !state.error && state.failed === 0 && state.pending > 0;
   const retry = !running && (state.failed > 0 || continuing || Boolean(state.error && recovery.action === 'retry'))
@@ -111,7 +112,7 @@ export function PageBar(props: PageBarProps) {
   const restoreOriginal = !running && state.completed > 0;
   const primaryLabel = running ? '停止翻译' : restoreOriginal ? '恢复原文' : '翻译整个页面';
   const primaryAction = running ? props.onStop : restoreOriginal ? props.onRestore : props.onTranslate;
-  const label = recovery.blocked ? [props.notice, recovery.message].filter(Boolean).join(' ') : props.notice || recovery.message || (running
+  const label = automaticUntil ? automaticRecoveryMessage(recovery.automaticRemainingSeconds!, state.completed, state.total) : recovery.blocked ? [props.notice, recovery.message].filter(Boolean).join(' ') : props.notice || recovery.message || (running
     ? `正在翻译 ${state.completed} / ${state.total}`
     : state.status === 'done' ? `翻译完成 · ${state.completed} / ${state.total}`
     : state.status === 'stopped' ? `已停止 · 已翻译 ${state.completed} / ${state.total}` : '点击翻译页面');
@@ -124,6 +125,7 @@ export function PageBar(props: PageBarProps) {
     onKeyDown={moveWithKeyboard}
     data-status={state.status} data-total={state.total} data-completed={state.completed}
     data-failed={state.failed} data-pending={state.pending} data-error-code={state.error?.code}
+    data-waiting-until={automaticUntil || undefined} data-recovery-attempts={state.automaticRecoveryAttempts}
     data-last-rate-http-status={props.serviceStatus?.rateLimit?.httpStatus}
     data-last-rate-source={props.serviceStatus?.rateLimit?.source}
     data-last-rate-at={props.serviceStatus?.rateLimit?.at}

@@ -3,7 +3,7 @@ import { act, createElement } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { RecoveryAction, recoveryDeadline, translationRecovery, useTranslationRecovery } from '../../src/ui/translation/RecoveryAction';
+import { RecoveryAction, automaticRecoveryDeadline, recoveryDeadline, translationRecovery, useTranslationRecovery } from '../../src/ui/translation/RecoveryAction';
 import { PageBar, type PageBarProps } from '../../src/page/Bar';
 import { ReadingView, type ReadingViewProps } from '../../src/reading/ReadingView';
 import { Translator, type TranslatorView } from '../../src/ui/translator/Translator';
@@ -21,16 +21,17 @@ afterEach(async () => {
   vi.useRealTimers(); vi.unstubAllGlobals();
 });
 
-function page(changes: Partial<PageBarProps> = {}) {
+function pageProps(changes: Partial<PageBarProps> = {}): PageBarProps {
   const props: PageBarProps = {
     state: { status: 'stopped', total: 3, completed: 1, failed: 0, pending: 2, skipped: 0, limitReached: false },
     hasTranslations: true, onTranslate: vi.fn(), onStop: vi.fn(), onRestore: vi.fn(), onRetry: vi.fn(), onContinue: vi.fn(), onSettings: vi.fn(),
     ...changes,
   };
-  return renderToStaticMarkup(createElement(PageBar, props));
+  return props;
 }
+function page(changes: Partial<PageBarProps> = {}) { return renderToStaticMarkup(createElement(PageBar, pageProps(changes))); }
 
-function reading(changes: Partial<ReadingViewProps> = {}) {
+function readingProps(changes: Partial<ReadingViewProps> = {}): ReadingViewProps {
   const props: ReadingViewProps = {
     article: { title: 'Reading recovery', byline: '', siteName: 'Example', sourceUrl: 'https://example.test/article', lang: 'en', excerpt: '',
       wordCount: 500, readingMinutes: 2, content: {} as HTMLElement, outline: [], sourceMap: new Map(), strategy: 'readability', truncated: false },
@@ -39,8 +40,9 @@ function reading(changes: Partial<ReadingViewProps> = {}) {
     articleRef: vi.fn(), onPreferences: vi.fn(), onClose: vi.fn(), onTranslate: vi.fn(), onStop: vi.fn(), onRetry: vi.fn(), onSettings: vi.fn(), onHeading: vi.fn(),
     ...changes,
   };
-  return renderToStaticMarkup(createElement(ReadingView, props));
+  return props;
 }
+function reading(changes: Partial<ReadingViewProps> = {}) { return renderToStaticMarkup(createElement(ReadingView, readingProps(changes))); }
 
 function documentFor(html: string): Document {
   dom = new JSDOM(html); return dom.window.document;
@@ -170,5 +172,80 @@ describe('manual translation recovery presentation', () => {
     const view: TranslatorView = { mode: 'card', selection, status: 'done', streamed: '', result: { kind: 'text', translation: '翻訳' }, analysis: { status: 'loading' } };
     const html = renderToStaticMarkup(createElement(Translator, { ...props, view }));
     expect(html).toContain('aria-label="翻译结果"'); expect(html).toContain('日语'); expect(html).not.toContain('长难句拆解');
+  });
+});
+
+
+describe('explicit automatic DeepL wait presentation', () => {
+  it('requires a valid deadline on a running session before promising automatic recovery', () => {
+    expect(automaticRecoveryDeadline({ status: 'running', waitingUntil: 4_000 })).toBe(4_000);
+    for (const status of ['idle', 'stopped', 'done']) expect(automaticRecoveryDeadline({ status, waitingUntil: 4_000 })).toBe(0);
+    for (const waitingUntil of [NaN, Infinity, -1, 1.5, Number.MAX_SAFE_INTEGER]) {
+      expect(automaticRecoveryDeadline({ status: 'running', waitingUntil })).toBe(0);
+    }
+    vi.useFakeTimers(); vi.setSystemTime(1_000);
+    const html = page({ state: { status: 'stopped', total: 251, completed: 193, failed: 0, pending: 58, skipped: 0, limitReached: false,
+      waitingUntil: 4_000, error: rate(4_000) } });
+    expect(html).toContain('手动重试'); expect(html).not.toContain('自动继续'); expect(html).not.toContain('data-waiting-until');
+    expect(reading({ translation: { status: 'running', total: 251, completed: 193, failed: 0, pending: 58, error: rate(4_000) } })).not.toContain('自动继续');
+  });
+
+  it('shows one automatic countdown with preserved progress and an enabled Stop on both surfaces', () => {
+    vi.useFakeTimers(); vi.setSystemTime(1_000);
+    const waiting = { status: 'running' as const, total: 251, completed: 193, failed: 0, pending: 58, skipped: 0, limitReached: false,
+      waitingUntil: 4_000, automaticRecoveryAttempts: 1, error: rate(4_000) };
+    for (const html of [page({ state: waiting, serviceStatus: status(6_000) }), reading({ translation: waiting, serviceStatus: status(6_000) })]) {
+      const doc = documentFor(html);
+      expect(doc.body.textContent).toContain('DeepL 暂时受限，3 秒后自动继续 · 已翻译 193 / 251');
+      expect(doc.body.textContent).not.toContain('手动重试');
+      expect(doc.querySelector<HTMLButtonElement>('[aria-label="停止翻译"]')?.disabled).toBe(false);
+      expect(html).toContain('data-waiting-until="4000"'); expect(html).toContain('data-recovery-attempts="1"');
+      dom!.window.close(); dom = undefined;
+    }
+  });
+
+  it('ticks the session deadline without starting requests and replaces the wait after cancellation', async () => {
+    vi.useFakeTimers(); vi.setSystemTime(1_000);
+    dom = new JSDOM('<!doctype html><div id="root"></div>');
+    vi.stubGlobal('window', dom.window); vi.stubGlobal('document', dom.window.document); vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true);
+    const onStop = vi.fn(), onTranslate = vi.fn(), onRetry = vi.fn();
+    const state = { status: 'running' as const, total: 251, completed: 193, failed: 0, pending: 58, skipped: 0, limitReached: false,
+      waitingUntil: 3_500, automaticRecoveryAttempts: 1, error: rate(3_500) };
+    root = createRoot(dom.window.document.getElementById('root')!);
+    await act(async () => root!.render(createElement(PageBar, pageProps({ state, onStop, onTranslate, onRetry }))));
+    expect(dom.window.document.body.textContent).toContain('3 秒后自动继续');
+    await act(async () => { await vi.advanceTimersByTimeAsync(1_000); });
+    expect(dom.window.document.body.textContent).toContain('2 秒后自动继续');
+    await act(async () => { await vi.advanceTimersByTimeAsync(1_500); });
+    expect(dom.window.document.body.textContent).toContain('DeepL 正在恢复翻译');
+    expect(onTranslate).not.toHaveBeenCalled(); expect(onRetry).not.toHaveBeenCalled();
+    await act(async () => dom!.window.document.querySelector<HTMLButtonElement>('[aria-label="停止翻译"]')!.click());
+    expect(onStop).toHaveBeenCalledOnce();
+    await act(async () => root!.render(createElement(PageBar, pageProps({ state: { ...state, status: 'stopped', waitingUntil: undefined } }))));
+    expect(dom.window.document.body.textContent).not.toContain('自动继续'); expect(dom.window.document.body.textContent).not.toContain('正在恢复翻译');
+    expect(dom.window.document.querySelector('[data-waiting-until]')).toBeNull();
+    await act(async () => root!.unmount()); root = undefined; expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('cancels only an explicit automatic wait when the reader chooses original, while Stop and exit stay usable', async () => {
+    vi.useFakeTimers(); vi.setSystemTime(1_000);
+    dom = new JSDOM('<!doctype html><div id="root"></div>');
+    vi.stubGlobal('window', dom.window); vi.stubGlobal('document', dom.window.document); vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true);
+    const onStop = vi.fn(), onClose = vi.fn(), onPreferences = vi.fn();
+    const translation = { status: 'running' as const, total: 251, completed: 193, failed: 0, pending: 58,
+      waitingUntil: 4_000, automaticRecoveryAttempts: 2, error: rate(4_000) };
+    root = createRoot(dom.window.document.getElementById('root')!);
+    await act(async () => root!.render(createElement(ReadingView, readingProps({ translation, onStop, onClose, onPreferences }))));
+    await act(async () => dom!.window.document.querySelector<HTMLButtonElement>('[aria-label="停止翻译"]')!.click());
+    expect(onStop).toHaveBeenCalledOnce();
+    const original = () => [...dom!.window.document.querySelectorAll('button')].find(button => button.textContent === '原文')!;
+    await act(async () => original().click());
+    expect(onStop).toHaveBeenCalledTimes(2); expect(onPreferences).toHaveBeenLastCalledWith(expect.objectContaining({ mode: 'original' }));
+    await act(async () => dom!.window.document.querySelector<HTMLButtonElement>('[aria-label="退出阅读模式"]')!.click());
+    expect(onClose).toHaveBeenCalledOnce();
+    await act(async () => root!.render(createElement(ReadingView, readingProps({ translation: { ...translation, waitingUntil: undefined }, onStop, onPreferences }))));
+    await act(async () => original().click());
+    expect(onStop).toHaveBeenCalledTimes(2); expect(onPreferences).toHaveBeenCalledTimes(2);
+    await act(async () => root!.unmount()); root = undefined; expect(vi.getTimerCount()).toBe(0);
   });
 });

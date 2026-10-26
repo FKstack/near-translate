@@ -4,6 +4,14 @@ import { snapshotViewportPriorities } from '../../src/page/viewport';
 export const PUBLIC_GO_URL = 'https://go.dev/talks/2012/splash.article?utm_source=chatgpt.com';
 export type ProbeMeasurementMode = 'foreground' | 'background-dom';
 export interface ProbeVisibilityChange { elapsedMs: number; visible: boolean; focused: boolean }
+export const MAX_PROBE_RECOVERY_EVENTS = 64;
+export interface ProbeRecoveryEvent {
+  elapsedMs: number;
+  type: 'waiting' | 'extended' | 'resuming';
+  waitingUntil?: number;
+  previousWaitingUntil?: number;
+  automaticRecoveryAttempts?: number;
+}
 
 interface SourceRecord {
   id: number;
@@ -30,6 +38,10 @@ export function summarizeSources(segments: readonly PageSegment[]) {
 export interface ProbeSnapshot {
   measurementMode: ProbeMeasurementMode;
   visibilityChanges: ProbeVisibilityChange[];
+  waitingUntil?: number;
+  automaticRecoveryAttempts?: number;
+  recoveryEvents: ProbeRecoveryEvent[];
+  recoveryEventsDropped: number;
   elapsedMs: number;
   firstMs: number | null;
   firstProseMs: number | null;
@@ -151,6 +163,7 @@ export class PageBenchmarkProbe {
     const focused = this.page.hasFocus();
     this.state = {
       measurementMode: this.mode, visibilityChanges: [{ elapsedMs: 0, visible, focused }],
+      recoveryEvents: [], recoveryEventsDropped: 0,
       elapsedMs: 0, firstMs: null, firstProseMs: null, firstViewportProseMs: null,
       firstVisibleProseDomReadyMs: null, firstVisibleProseRafMs: null, firstVisibleProseSourceId: null,
       initialViewportAllDoneMs: null, fullDoneMs: null, doneAt: null,
@@ -242,6 +255,7 @@ export class PageBenchmarkProbe {
       for (const key of ['completed', 'failed', 'pending', 'total'] as const) state[key] = Number(aside.dataset[key] ?? 0);
       state.errorCode = aside.dataset.errorCode ?? '';
       state.statusText = root?.querySelector('[role="status"]')?.textContent ?? '';
+      this.recordRecoveryState(state, aside.dataset, elapsed);
     }
     if (state.status === 'done' && state.total > 0 && state.completed === state.total && !state.failed && !state.pending
       && done.size === this.records.length && state.fullDoneMs === null) {
@@ -252,11 +266,36 @@ export class PageBenchmarkProbe {
     else state.elapsedMs = state.fullDoneMs;
   }
 
+  private recordRecoveryState(state: ProbeSnapshot, data: DOMStringMap, elapsedMs: number): void {
+    const until = Number(data.waitingUntil);
+    const attempts = Number(data.recoveryAttempts);
+    const next = state.status === 'running' && Number.isSafeInteger(until) && until > 0 ? until : undefined;
+    const count = data.recoveryAttempts !== undefined && Number.isSafeInteger(attempts) && attempts >= 0
+      && attempts <= 1_000_000 ? attempts : undefined;
+    const previous = state.waitingUntil;
+    const previousCount = state.automaticRecoveryAttempts;
+    state.waitingUntil = next;
+    state.automaticRecoveryAttempts = count;
+    let event: ProbeRecoveryEvent | undefined;
+    if (next !== undefined && (previous !== next || previousCount !== count)) {
+      event = { type: previous !== undefined && next > previous ? 'extended' : 'waiting', elapsedMs,
+        waitingUntil: next, ...(previous === undefined ? {} : { previousWaitingUntil: previous }),
+        ...(count === undefined ? {} : { automaticRecoveryAttempts: count }) };
+    } else if (previous !== undefined && next === undefined && state.status === 'running') {
+      event = { type: 'resuming', elapsedMs, previousWaitingUntil: previous,
+        ...(count === undefined ? {} : { automaticRecoveryAttempts: count }) };
+    }
+    if (!event) return;
+    if (state.recoveryEvents.length < MAX_PROBE_RECOVERY_EVENTS) state.recoveryEvents.push(event);
+    else state.recoveryEventsDropped++;
+  }
+
   async snapshot(): Promise<ProbeSnapshot | undefined> {
     this.ensurePublicPage(); this.update();
     if (!this.state) return;
     const snapshot = { ...this.state, initialViewportSourceIds: [...this.state.initialViewportSourceIds],
-      visibilityChanges: this.state.visibilityChanges.map(change => ({ ...change })) };
+      visibilityChanges: this.state.visibilityChanges.map(change => ({ ...change })),
+      recoveryEvents: this.state.recoveryEvents.map(event => ({ ...event })) };
     if (snapshot.fullDoneMs !== null) {
       const bytes = new TextEncoder().encode(JSON.stringify(this.output));
       snapshot.outputFingerprint = [...new Uint8Array(await this.view.crypto.subtle.digest('SHA-256', bytes))]

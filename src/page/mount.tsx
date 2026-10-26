@@ -16,7 +16,9 @@ export function mountPageTranslator(options: {
   /** Shares one explicit action with the composition root's popup and keyboard entry points. */
   onReadingAction?: (action: () => void) => void;
   beforeUse?: BeforeUse;
+  executionPolicy?: typeof pageExecutionPolicy;
 } = {}): () => void {
+  const resolveExecutionPolicy = options.executionPolicy ?? pageExecutionPolicy;
   const host = document.createElement('near-page-translate');
   host.setAttribute('data-near-page-ui', '');
   host.setAttribute('translate', 'no');
@@ -79,7 +81,7 @@ export function mountPageTranslator(options: {
   }
 
   function refreshViewportPriorities(): void {
-    if (disposed || !observing || !pageExecutionPolicy(settings?.translationEngine).viewportPriority) return;
+    if (disposed || !observing || !resolveExecutionPolicy(settings?.translationEngine).viewportPriority) return;
     const snapshot = session.viewportSnapshot;
     if (snapshot.segments.length) session.updateViewportPriorities(snapshot.generation, snapshotViewportPriorities(snapshot.segments));
   }
@@ -90,7 +92,7 @@ export function mountPageTranslator(options: {
   }
 
   function startViewportWatching(): void {
-    if (!pageExecutionPolicy(settings?.translationEngine).viewportPriority) return;
+    if (!resolveExecutionPolicy(settings?.translationEngine).viewportPriority) return;
     if (!watchingViewport) {
       watchingViewport = true;
       // Capture also observes scrolling inside an article's own scrolling container.
@@ -152,7 +154,7 @@ export function mountPageTranslator(options: {
     translationRoot = selectPageTranslationRoot();
     const segments = collectPageSegments(translationRoot, settings);
     if (!segments.length) { notice = '没有找到需要翻译的正文，请检查源语言与目标语言。'; render(); return; }
-    session.start(segments, pageExecutionPolicy(settings?.translationEngine));
+    session.start(segments, resolveExecutionPolicy(settings?.translationEngine));
     observer.observe(document.body, observation);
     observing = true;
     startViewportWatching();
@@ -202,7 +204,7 @@ export function mountPageTranslator(options: {
       const nextRoot = selectPageTranslationRoot();
       if (nextRoot !== translationRoot) {
         session.reset({ clearCache: false }); translations.clear(); translationRoot = nextRoot;
-        session.start(collectPageSegments(translationRoot, settings), pageExecutionPolicy(settings?.translationEngine));
+        session.start(collectPageSegments(translationRoot, settings), resolveExecutionPolicy(settings?.translationEngine));
         refreshViewportPriorities();
         return;
       }

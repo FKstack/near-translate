@@ -30,7 +30,8 @@ interface ReadingLayoutAnchor {
 interface ReadingAppearanceSnapshot { style: ReadingStyle; savedStyle: ReadingStyle | null }
 
 /** One document owns a reversible reading surface, source references and all reader requests. */
-export function createReadingMode(options: { onSelectionPortal?: (portal?: HTMLElement) => void; serviceStatus?: TranslationStatusSource; beforeUse?: BeforeUse } = {}): ReadingModeController {
+export function createReadingMode(options: { onSelectionPortal?: (portal?: HTMLElement) => void; serviceStatus?: TranslationStatusSource; beforeUse?: BeforeUse; executionPolicy?: typeof pageExecutionPolicy } = {}): ReadingModeController {
+  const resolveExecutionPolicy = options.executionPolicy ?? pageExecutionPolicy;
   let disposed = false;
   let host: HTMLElement | undefined;
   let dialog: HTMLDialogElement | undefined;
@@ -348,7 +349,7 @@ export function createReadingMode(options: { onSelectionPortal?: (portal?: HTMLE
     notice = '';
     if (!translation.state.total) { notice = '没有需要翻译的正文，请检查源语言与目标语言，或继续阅读原文。'; render(); return; }
     if (preferences.mode === 'original') updatePreferences({ ...preferences, mode: 'bilingual' });
-    translation.start(pageExecutionPolicy(publicSettings.translationEngine));
+    translation.start(resolveExecutionPolicy(publicSettings.translationEngine));
     render();
   }
 

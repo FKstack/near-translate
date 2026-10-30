@@ -34,6 +34,8 @@ jobs:
     if: github.event_name != 'release' || !github.event.release.prerelease
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    outputs:
+      publish_userscripts: ${{ steps.scope.outputs.publish_userscripts }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -45,6 +47,9 @@ jobs:
           cache: npm
       - name: Verify Release, source commit and package versions
         run: node scripts/verify-release.mjs
+      - name: Read publication scope from the tagged version's release notes
+        id: scope
+        run: node scripts/release-scope.mjs
       - run: npm ci
       - run: npm run check:repo
       - run: npm run check:docs
@@ -62,16 +67,19 @@ jobs:
       - run: npx playwright test -c playwright.greasyfork.config.ts
       - name: Prepare versioned Release assets and checksums
         run: node scripts/prepare-release-assets.mjs
-      - name: Attach all tested distributions to the existing Release
+      - name: Attach the scoped, tested distributions to the existing Release
         run: gh release upload "$RELEASE_TAG" .output/release-assets/* --clobber
       - uses: actions/configure-pages@v5
+        if: steps.scope.outputs.publish_userscripts == 'true'
       - name: Upload installable userscript
+        if: steps.scope.outputs.publish_userscripts == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: near-translate-userscript
           path: .output/userscript/
           if-no-files-found: error
       - name: Upload Greasy Fork distribution
+        if: steps.scope.outputs.publish_userscripts == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: near-translate-greasyfork
@@ -84,11 +92,23 @@ jobs:
           path: .output/release-assets/
           if-no-files-found: error
       - uses: actions/upload-pages-artifact@v4
+        if: steps.scope.outputs.publish_userscripts == 'true'
         with:
           path: .output/userscript-site
+      - name: Report extension-only publication
+        if: steps.scope.outputs.publish_userscripts == 'false'
+        run: |
+          {
+            echo '## Extension-only publication'
+            echo
+            echo "Release: $RELEASE_TAG"
+            echo 'Chrome and Edge ZIPs, the release manifest and checksums were attached.'
+            echo 'Userscript builds were tested but were not uploaded. Pages and the existing GitHub/Greasy Fork update sources were not deployed.'
+          } >> "$GITHUB_STEP_SUMMARY"
 
   deploy:
     needs: build
+    if: needs.build.outputs.publish_userscripts == 'true'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

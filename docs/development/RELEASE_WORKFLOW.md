@@ -44,6 +44,12 @@
 
 普通功能分支 push / PR 不向用户发行更新。新流程使用 `v<版本号>` Release；历史 `userscript-v*` 标签继续保留，但仅推送标签不再触发发行部署。Release 出现早于构建结束，需等待 **Publish userscript** 成功后再把安装地址作为可用新版发给用户。
 
+### 仅发行 Chrome / Edge 扩展
+
+用户明确限定只发布浏览器扩展时，在本次版本对应的 `docs/releases/v<版本号>.md` 中单独写一行 `<!-- release-scope: extensions-only -->`。发布工作流从精确 Release 标签的版本说明读取此标记；缺少标记时仍执行完整发行，标记只作用于对应版本。
+
+仅扩展发行仍执行仓库、文档、类型、单元测试、模块边界、两种扩展构建和两种脚本浏览器检查。Release 仅上传 Chrome / Edge ZIP、发行清单及校验文件；跳过脚本附件、脚本发行产物上传及 Pages 部署。已有官网、脚本安装文件与两渠道更新源保持原版本，Greasy Fork 同步源不会因这次发行而变化。
+
 ## Greasy Fork 同步的边界
 
 当前公开脚本：[近译 · 网页阅读与翻译（601973）](https://greasyfork.org/zh-CN/scripts/601973)。平台自动同步源为：

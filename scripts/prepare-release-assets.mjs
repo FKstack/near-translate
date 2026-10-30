@@ -1,22 +1,30 @@
 import { createHash } from 'node:crypto';
-import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { copyFileSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { assertReleaseVersion, run } from './lib/release-tools.mjs';
+import { readReleaseScope } from './lib/release-scope.mjs';
 
 const { version } = JSON.parse(readFileSync('package.json', 'utf8'));
 const tag = process.env.RELEASE_TAG;
 if (!tag) throw new Error('RELEASE_TAG is required.');
 assertReleaseVersion(tag, version);
+const scope = readReleaseScope(version);
 const destination = '.output/release-assets';
 mkdirSync(destination, { recursive: true });
 const files = [
   [`.output/near-translate-${version}-chrome.zip`, `near-translate-chrome-v${version}.zip`],
   [`.output/near-translate-${version}-edge.zip`, `near-translate-edge-v${version}.zip`],
-  ['.output/userscript/near-translate.user.js', 'near-translate.user.js'],
-  ['.output/userscript/near-translate.meta.js', 'near-translate.meta.js'],
-  ['.output/greasyfork/near-translate.user.js', 'near-translate-greasyfork.user.js'],
+  ...(scope === 'all' ? [
+    ['.output/userscript/near-translate.user.js', 'near-translate.user.js'],
+    ['.output/userscript/near-translate.meta.js', 'near-translate.meta.js'],
+    ['.output/greasyfork/near-translate.user.js', 'near-translate-greasyfork.user.js'],
+  ] : []),
 ];
-const manifest = { version, tag, commit: run('git', ['rev-parse', 'HEAD']).stdout, files: {} };
+// The workflow uploads this directory with a glob. Fail before uploading stale
+// userscripts or another version's ZIP left by an earlier local preparation.
+const allowed = new Set([...files.map(([, name]) => name), 'release-manifest.json', 'SHA256SUMS']);
+if (readdirSync(destination).some(name => !allowed.has(name))) throw new Error('Release asset directory contains files outside this version and scope. Use a clean output directory.');
+const manifest = { version, tag, scope, commit: run('git', ['rev-parse', 'HEAD']).stdout, files: {} };
 for (const [source, name] of files) {
   const bytes = readFileSync(source);
   if (!bytes.length) throw new Error(`Empty release asset: ${source}`);
@@ -28,4 +36,4 @@ for (const [source, name] of files) {
 }
 writeFileSync(path.join(destination, 'release-manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`);
 writeFileSync(path.join(destination, 'SHA256SUMS'), `${Object.entries(manifest.files).map(([name, entry]) => `${entry.sha256}  ${name}`).join('\n')}\n`);
-console.log(`Prepared Chrome, Edge, GitHub userscript and readable Greasy Fork assets for ${tag}.`);
+console.log(`Prepared ${scope === 'all' ? 'Chrome, Edge, GitHub userscript and readable Greasy Fork' : 'Chrome and Edge only'} assets for ${tag}.`);

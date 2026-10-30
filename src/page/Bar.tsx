@@ -5,7 +5,12 @@ import { RecoveryAction, automaticRecoveryDeadline, automaticRecoveryMessage, us
 
 const barSize = 40;
 const edge = 8;
-const viewportSize = () => typeof window === 'undefined' ? { width: 1024, height: 768 } : { width: document.documentElement.clientWidth || window.innerWidth, height: document.documentElement.clientHeight || window.innerHeight };
+function viewportSize() {
+  if (typeof window === 'undefined') return { width: 1024, height: 768 };
+  // In quirks mode the body exposes viewport dimensions; html can be as tall as the article.
+  const root = document.compatMode === 'BackCompat' ? document.body : document.documentElement;
+  return { width: root?.clientWidth || window.innerWidth, height: root?.clientHeight || window.innerHeight };
+}
 const bounded = (value: number, maximum: number) => Math.max(edge, Math.min(value, maximum - barSize - edge));
 
 const settingsIcon = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden="true"><path d="M4 7h6m4 0h6M4 17h10m4 0h2"/><circle cx="12" cy="7" r="2"/><circle cx="16" cy="17" r="2"/></svg>;
